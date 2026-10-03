@@ -21,6 +21,7 @@ cd mobile && npm install  # REQUIRED: new packages (Nunito font, splash screen, 
 | `core/rank.js` | `RANKS` is now **5 leagues × 3 divisions**: Bronze III → Crystal I (thresholds 0, 100, 200 / 300, 450, 600 / 800, 1100, 1400 / 1800, 2300, 2800 / 3500, 4200, 5000 XP). New exports `LEAGUES`, `leagueOf`. Each rank has `id`, `name`, `emoji`, `league`, `division` (3 = III … 1 = I), `min`, `trail`. One trail per league, so `TRAILS.length === 5`. | Agreed with Abdullah: Clash of Clans-style leagues |
 | `core/test/core.test.js` | Rank assertions updated | Matches the leagues |
 | `mobile/src/core/rank.js` | Re-synced (`npm run sync-core`) | Generated copy |
+| `mobile/src/game/game.js`, `state.js` | `runExpedition` sets `expedition: { agentId, from, to: { lat, lon }, startedAt, durationMs }` while a pet is out, and clears it in `finally` (new `expedition: null` in `INITIAL_STATE`) | The map walks the exploring pet to the place and back. If you rework expeditions as `game.runPet`, keep setting `expedition` |
 | `mobile/src/game/game.js` | `checkRankUp`: only a league change (`rank.division === 3`) says "League up! New trail unlocked"; division changes say "Rank up!" | The old message claimed a new trail on every rank-up |
 
 Please pull before editing these.

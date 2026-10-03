@@ -10,13 +10,12 @@ import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { PetArt } from "./PetArt.js";
+import { squadStatuses } from "./petStatus.js";
 import { Button, Card, Hint } from "./ui.js";
 
 // Extra slots by league index (0 Bronze ... 4 Crystal).
 const SLOT_UNLOCKS = [{ tier: 2, name: "Gold" }, { tier: 4, name: "Crystal" }];
 const BASE_SLOTS = 3;
-
-const CLASS_AGENT = { Scout: "scout", Storyteller: "storyteller", Pathfinder: "pathfinder" };
 
 const STATUS = {
   "with-you": { label: "🐾 With you", color: colors.greenDark, bg: colors.greenSoft },
@@ -25,15 +24,9 @@ const STATUS = {
   resting: { label: "💤 Resting", color: colors.muted, bg: colors.stripe },
 };
 
-function statusOf(pet, state, agentId, firstOfClass) {
-  if (pet.status) return pet.status;
-  return agentId && firstOfClass && state.away.includes(agentId) ? "exploring" : "with-you";
-}
-
-function SquadCard({ pet, state, game, firstOfClass }) {
+function SquadCard({ pet, status, agentId, state, game }) {
   const walked = state.progress.walked;
-  const agent = AGENTS.find((a) => a.id === CLASS_AGENT[pet.petClass]);
-  const status = statusOf(pet, state, agent?.id, firstOfClass);
+  const agent = AGENTS.find((a) => a.id === agentId);
   const look = STATUS[status] ?? STATUS["with-you"];
   const rarity = rarityOf(pet);
   const guarding = status === "defending" ? state.turf?.find((t) => t.pet?.id === pet.id) : null;
@@ -50,8 +43,9 @@ function SquadCard({ pet, state, game, firstOfClass }) {
         <Text style={type.heading} numberOfLines={1}>{`${pet.name} · Lv ${petLevel(pet, walked)}`}</Text>
         <Text style={styles.meta} numberOfLines={1}>
           <Text style={{ color: rarity.color }}>{rarity.label}</Text>
-          {` ${pet.petClass} · ⚡${petPower(pet, walked)}`}
+          {` ${pet.petClass}`}
         </Text>
+        <Text style={styles.power}>{`⚡ ${petPower(pet, walked)} power`}</Text>
         <View style={[styles.status, { backgroundColor: look.bg }]}>
           <Text style={[styles.statusText, { color: look.color }]}>
             {guarding ? `${look.label} ${guarding.title}` : status === "resting" && pet.restMeters ? `${look.label} · ${Math.ceil(pet.restMeters)} m` : look.label}
@@ -82,8 +76,7 @@ export function SquadPanel({ state, game }) {
   const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
   const size = state.squadSize ?? BASE_SLOTS + SLOT_UNLOCKS.filter((u) => tier >= u.tier).length;
   const locked = SLOT_UNLOCKS.filter((u) => tier < u.tier);
-  const members = squad.slice(0, size);
-  const seenClasses = new Set();
+  const members = squadStatuses(squad.slice(0, size), state);
 
   return (
     <View style={styles.list}>
@@ -91,11 +84,9 @@ export function SquadPanel({ state, game }) {
         <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
         <Hint>Guards still use their slot</Hint>
       </View>
-      {members.map((pet) => {
-        const firstOfClass = !seenClasses.has(pet.petClass);
-        seenClasses.add(pet.petClass);
-        return <SquadCard key={pet.id} pet={pet} state={state} game={game} firstOfClass={firstOfClass} />;
-      })}
+      {members.map(({ pet, status, agentId }) => (
+        <SquadCard key={pet.id} pet={pet} status={status} agentId={agentId} state={state} game={game} />
+      ))}
       {Array.from({ length: Math.max(0, size - members.length) }, (_, i) => (
         <EmptySlot key={`empty-${i}`} onPress={() => game.set({ tab: "pets" })} />
       ))}
@@ -115,6 +106,7 @@ const styles = StyleSheet.create({
   away: { opacity: 0.4 },
   info: { flex: 1, gap: 2 },
   meta: { ...type.caption },
+  power: { fontFamily: fonts.bold, fontSize: 12, color: colors.ink },
   status: { alignSelf: "flex-start", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, marginTop: 2 },
   statusText: { fontFamily: fonts.bold, fontSize: 12 },
   guardHint: { maxWidth: 70, textAlign: "center" },

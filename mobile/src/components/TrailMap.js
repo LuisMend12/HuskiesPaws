@@ -4,15 +4,23 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { DEFAULT_CENTER } from "../core/config.js";
+import { distanceMeters } from "../core/geo.js";
 import { colors } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { MapPets, useSettled } from "./MapPets.js";
+import { squadStatuses } from "./petStatus.js";
 
 const TILT = 50; // degrees; makes standing pets and 3D buildings read as 3D
 const ZOOM = 17; // Google Maps (Android)
 const ALTITUDE = 600; // meters; Apple Maps (iOS) uses this instead of zoom
 const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
-const cameraAt = (p) => ({ center: toCoord(p), pitch: TILT, heading: 0, zoom: ZOOM, altitude: ALTITUDE });
+const cameraAt = (p, meters = 0) => ({
+  center: toCoord(p),
+  pitch: TILT,
+  heading: 0,
+  zoom: meters > 450 ? ZOOM - 1.5 : meters > 200 ? ZOOM - 0.7 : ZOOM,
+  altitude: Math.max(ALTITUDE, meters * 2.4),
+});
 
 function Bloom({ bloom }) {
   const tracking = useSettled();
@@ -31,6 +39,14 @@ export function TrailMap({ state }) {
     if (!state.mapFocus) return;
     mapRef.current?.animateCamera(cameraAt(state.mapFocus), { duration: 600 });
   }, [state.mapFocus]);
+
+  // Pull back so you can watch the exploring pet walk to its place.
+  useEffect(() => {
+    const trip = state.expedition;
+    if (!trip) return;
+    const middle = { lat: (trip.from.lat + trip.to.lat) / 2, lon: (trip.from.lon + trip.to.lon) / 2 };
+    mapRef.current?.animateCamera(cameraAt(middle, distanceMeters(trip.from, trip.to)), { duration: 700 });
+  }, [state.expedition]);
 
   useEffect(() => {
     if (!state.route || state.route.length < 2) return;
@@ -61,7 +77,7 @@ export function TrailMap({ state }) {
       {state.found.map((place) => (
         <Marker key={`place-${place.id}`} coordinate={toCoord(place)} title={place.title} description="Found by your squad" />
       ))}
-      <MapPets position={state.position} squad={squad} turf={turf} />
+      <MapPets position={state.position} squad={squadStatuses(squad, state)} turf={turf} expedition={state.expedition} />
       <Marker coordinate={toCoord(state.position)} anchor={{ x: 0.5, y: 0.5 }} title="You" tracksViewChanges={false}>
         <View style={styles.me} />
       </Marker>

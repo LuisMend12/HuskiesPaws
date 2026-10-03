@@ -1,8 +1,9 @@
 // Pets standing on the tilted map, like Google Maps' car: your squad follows
-// you, and each guard stands on its landmark with an HP bar.
+// you, an exploring pet walks out to its place and back, and each guard stands
+// on its landmark with an HP bar.
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Marker } from "react-native-maps";
+import { Marker, Polyline } from "react-native-maps";
 import { colors, fonts, radius } from "../theme.js";
 import { PetSvg } from "./PetArt.js";
 
@@ -35,6 +36,40 @@ function SquadPet({ pet, coordinate }) {
   );
 }
 
+// An exploring pet spends this share of the trip walking out; the rest walking back.
+const OUT_SHARE = 0.6;
+const TICK_MS = 100;
+const ease = (f) => (f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2);
+const between = (a, b, f) => ({ latitude: a.lat + (b.lat - a.lat) * f, longitude: a.lon + (b.lon - a.lon) * f });
+
+function placeOnTrip({ from, to, startedAt, durationMs }, home, now) {
+  const t = Math.min(1, Math.max(0, (now - startedAt) / durationMs));
+  return t < OUT_SHARE ? between(from, to, ease(t / OUT_SHARE)) : between(to, home, ease((t - OUT_SHARE) / (1 - OUT_SHARE)));
+}
+
+function ExplorerPet({ pet, expedition, home }) {
+  const tracking = useSettled();
+  const [now, setNow] = useState(expedition.startedAt);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => clearInterval(timer);
+  }, []);
+  const target = { latitude: expedition.to.lat, longitude: expedition.to.lon };
+  return (
+    <>
+      <Polyline coordinates={[{ latitude: home.lat, longitude: home.lon }, target]} strokeColor={colors.ice} strokeWidth={3} lineDashPattern={[2, 8]} />
+      <Marker coordinate={target} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracking} title="Somewhere new…">
+        <View style={styles.mystery}>
+          <Text style={styles.mysteryText}>?</Text>
+        </View>
+      </Marker>
+      <Marker coordinate={placeOnTrip(expedition, home, now)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={tracking} title={`${pet.name} is exploring`}>
+        <PetSvg pet={pet} size={46} />
+      </Marker>
+    </>
+  );
+}
+
 function Guard({ turf }) {
   const tracking = useSettled();
   const hp = turf.maxHp ? Math.max(0, Math.min(1, turf.hp / turf.maxHp)) : 1;
@@ -62,13 +97,16 @@ function Guard({ turf }) {
   );
 }
 
-export function MapPets({ position, squad, turf }) {
-  const following = squad.filter((pet) => (pet.status ?? "with-you") === "with-you").slice(0, FOLLOW_SPOTS.length);
+// squad: [{ pet, status, agentId }] from squadStatuses().
+export function MapPets({ position, squad, turf, expedition }) {
+  const following = squad.filter((s) => s.status === "with-you").map((s) => s.pet).slice(0, FOLLOW_SPOTS.length);
+  const explorer = expedition ? squad.find((s) => s.status === "exploring" && s.agentId === expedition.agentId)?.pet : null;
   return (
     <>
       {turf.map((t) => (
         <Guard key={`turf-${t.landmarkId}`} turf={t} />
       ))}
+      {explorer && <ExplorerPet key={`explore-${expedition.startedAt}`} pet={explorer} expedition={expedition} home={position} />}
       {following.map((pet, i) => (
         <SquadPet key={`squad-${pet.id}`} pet={pet} coordinate={offset(position, FOLLOW_SPOTS[i])} />
       ))}
@@ -77,6 +115,8 @@ export function MapPets({ position, squad, turf }) {
 }
 
 const styles = StyleSheet.create({
+  mystery: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.navy, borderWidth: 3, borderColor: colors.ice, alignItems: "center", justifyContent: "center" },
+  mysteryText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },
   guard: { alignItems: "center", width: 84 },
   owner: { borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 1, maxWidth: 84 },
   mine: { backgroundColor: colors.green },
