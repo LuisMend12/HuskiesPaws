@@ -48,12 +48,12 @@ export function expeditionDuration(meters) {
   return Math.min(EXPEDITION_MAX_MS, Math.max(EXPEDITION_MIN_MS, ms));
 }
 
-// Pick a not-yet-visited place among the closest candidates.
-export function choosePlace(places, position, visitedIds, random = Math.random) {
+// Pick a not-yet-visited place among the closest candidates at least minDistance away.
+export function choosePlace(places, position, visitedIds, { random = Math.random, minDistance = MIN_PLACE_DISTANCE_M } = {}) {
   const candidates = places
     .filter((p) => !visitedIds.has(p.id))
     .map((p) => ({ ...p, distance: distanceMeters(position, p) }))
-    .filter((p) => p.distance >= MIN_PLACE_DISTANCE_M)
+    .filter((p) => p.distance >= minDistance)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, SCOUT_CANDIDATES);
   if (candidates.length === 0) return null;

@@ -5,4 +5,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",
-    "terminal": "node --env-file-if-exists=.env src/index.js --t
+    "terminal": "node --env-file-if-exists=.env src/index.js --terminal",
+    "test": "node --test test/*.test.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "spectrum-ts": "^12.10.1"
+  },
+  "engines": {
+    "node": ">=22.9"
+  }
+}

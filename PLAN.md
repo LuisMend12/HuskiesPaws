@@ -62,7 +62,7 @@ This file groups every idea from the brainstorms and the repo docs, adds the new
 | **Impact** | Tag stairs, ramps and broken elevators | Idea |
 | | Forager agent: finds water, food and benches | Idea |
 | **Sponsor tracks** | Savings tree with Nessie (Capital One) | Built (Nessie calls untested) |
-| | Agents text you in iMessage (Photon) | Idea |
+| | Agents text you in iMessage (Photon) | Built in [`imessage-agent/`](imessage-agent/) and tested in the terminal. Needs Photon keys. |
 | | Desk garden on a SenseCAP or Raspberry Pi (Hardware) | Idea |
 | **Grok (required)** | Voice memos, Imagine postcards and pet art, Grok chat for agents | **Not done.** Still placeholders. |
 
@@ -91,7 +91,8 @@ Full write-ups are in the [README](README.md), [docs/ideas/](docs/ideas/) and [d
 | **Should** | Eggs → pets: hatch by distance, with Imagine pet art | The new hook, and a strong use of Grok |
 | **Should** | Simple turf: claim with a pet, power comparison, XP for hours held | Leave out real-time updates, live battles and decay |
 | **Could** | Defender decay, a campus turf map, fog of war | Polish if there's time |
-| **Won't (this weekend)** | Real AR, background tracking, iMessage, hardware | Too risky for the time left |
+| **Could** | Enter the Photon track: add Photon keys to `imessage-agent/` and run it | Already built, so it's cheap. See [imessage-agent/README.md](imessage-agent/README.md). |
+| **Won't (this weekend)** | Real AR, background tracking, hardware | Too risky for the time left |
 
 **Optional idea for the SpaceX judges:** Wanderlings uses no space data at the moment. **Rare eggs could appear only while the ISS or a Starlink train is passing overhead,** using free CelesTrak orbit data. It's a small feature that gives us a real-space-data story.
 

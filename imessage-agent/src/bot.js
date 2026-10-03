@@ -4,7 +4,7 @@
 import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../prototype/js/agents.js";
 import { DEFAULT_CENTER } from "../../prototype/js/config.js";
 import { distanceMeters, pathLength } from "../../prototype/js/geo.js";
-import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../../prototype/js/savings.js";
+import { MIN_TRIP_M, estimateRideFare, formatDollars, totalSaved, treeStage } from "../../prototype/js/savings.js";
 import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from "../../prototype/js/services.js";
 
 const [pip, moss, fern] = ["scout", "storyteller", "pathfinder"].map((id) => AGENTS.find((a) => a.id === id));
@@ -65,7 +65,9 @@ async function setLocation(query, session, send) {
 async function explore(session, send) {
   const places = await findNearbyPlaces(session.position);
   const known = new Set([...session.visited, ...(session.discovery ? [session.discovery.place.id] : [])]);
-  const place = choosePlace(places, session.position, known);
+  // Prefer places far enough that you'd otherwise ride there, so walking saves money.
+  const place = choosePlace(places, session.position, known, { minDistance: MIN_TRIP_M })
+    ?? choosePlace(places, session.position, known);
   if (!place) {
     await send({ text: `${pip.name} couldn't find anywhere new nearby. Tell me a new spot with "I'm at <place>".` });
     return session;

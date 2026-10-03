@@ -67,6 +67,20 @@ export async function getRegion(position, fallback) {
   }
 }
 
+// Turns text like "Klarman Hall, Ithaca" into coordinates (OpenStreetMap Nominatim).
+// Returns null when nothing matches.
+export async function searchPlace(query, near) {
+  const params = new URLSearchParams({ format: "jsonv2", q: query, limit: "1" });
+  if (near) {
+    // Prefer matches near the user's last known position (about 0.1° around it).
+    const box = [near.lon - 0.1, near.lat + 0.1, near.lon + 0.1, near.lat - 0.1].join(",");
+    params.set("viewbox", box);
+  }
+  const [match] = await fetchJson(`https://nominatim.openstreetmap.org/search?${params}`);
+  if (!match) return null;
+  return { lat: Number(match.lat), lon: Number(match.lon), name: match.name || match.display_name };
+}
+
 // Walking route; falls back to a straight line if the routing server is unavailable.
 export async function getWalkingRoute(from, to) {
   const coords = `${from.lon},${from.lat};${to.lon},${to.lat}`;
