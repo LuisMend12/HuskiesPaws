@@ -1,4 +1,4 @@
-# Handoff: presentation → backend (Sat Oct 3, ~1 PM)
+# Handoff: presentation → backend (updated Sat Oct 3, afternoon)
 
 **For:** Luis and his coding agent, working on the `backend` branch. Read [SPLIT.md](../SPLIT.md) and [AGENTS.md](../AGENTS.md) first; this file adds what changed and what the screens now expect.
 
@@ -8,11 +8,20 @@
 git checkout backend
 git pull
 git merge main            # brings in everything below
-cd mobile && npm install  # REQUIRED: new packages (Nunito font, splash screen, cloudflared)
+cd mobile && npm install  # REQUIRED: new packages (Nunito font, splash screen, cloudflared,
+                          # three + @react-three/fiber + expo-gl/expo-asset/expo-file-system)
+npx expo start --clear    # once, to drop Metro's old cache
 ```
 
 - **`npm run tunnel` changed.** Expo's built-in ngrok tunnel is broken: it fails with `Cannot read properties of undefined (reading 'body')` because Expo's shared ngrok account is full (`ERR_NGROK_108`). `npm run tunnel` now runs [`mobile/scripts/tunnel.mjs`](../mobile/scripts/tunnel.mjs), a free Cloudflare quick tunnel. Scan the new QR code each time; the address changes per run.
-- After pulling, the app has a new look, a **Pets** tab running on **sample data**, a hatch animation, and rank leagues.
+- After pulling, the app has:
+  - a new look (logo colors, Nunito, floating map controls, pop-up status messages)
+  - rank **leagues** with wood-and-grass badges
+  - a **Pets** tab and **hatch reveal**, on sample data until 4.1 lands
+  - a **Squad** tab (replaces `AgentList`): squad pets with statuses and class actions; Pip, Moss and Fern show as starter pets
+  - a **tilted map** with pets standing on it: the squad follows you, the exploring pet **walks to its place and back**, guards stand on landmarks with HP bars (three **sample rival guards** near PSB until 4.3 lands)
+  - a dev-only **3D test** button in the Pets tab (React Three Fiber). It loads three.js only when pressed; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` (three 0.186 crashes on React Native without it)
+- **How sample data switches off:** every screen reads through `petsView(state)` in `mobile/src/components/fakeData.js`. When `state.pets`, `state.egg`, `state.squad` or `state.turf` is defined (even `[]` / `null`), the real value is used instead of the sample.
 
 ## 2. What presentation changed in backend-owned files
 
