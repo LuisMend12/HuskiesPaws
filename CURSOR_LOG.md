@@ -1,5 +1,13 @@
 # Cursor log
 
+## 2026-10-03 — Paw-trail GIF on `presentation` (Codex)
+
+Prompt: make a quick GIF using the OneTake skills repository. User selected the
+paw-trail concept from three options. Installed the requested skill, composed a
+10-second animation with the app's artwork and palette, and rendered a looping
+GIF plus a 1080p MP4 in `docs/demo-gif/`. OneTake verification passed; the encoded
+GIF contact sheet was inspected. This work was performed in Codex, not Cursor.
+
 ## 2026-10-03 — Code review fixes on `presentation` (Codex)
 
 **Prompt.** Review the complete repository, then fix the nine reported findings on the presentation branch.
