@@ -37,12 +37,25 @@ export async function findNearbyPlaces(position) {
   return results.map((r) => ({ id: r.pageid, title: r.title, lat: r.lat, lon: r.lon }));
 }
 
+// A bigger photo from a thumbnail URL by changing its "NNNpx-" part. Wikimedia
+// only serves standard widths (960 and 1280 work; 1024 or 1080 return HTTP 400),
+// so keep this one of those. Smaller originals are used as they are.
+const PHOTO_LARGE_PX = 960;
+export function largerPhoto(data, width = PHOTO_LARGE_PX) {
+  const original = data.originalimage;
+  const thumb = data.thumbnail?.source;
+  if (!original) return thumb ?? null;
+  if (original.width <= width || !thumb || !/\/\d+px-/.test(thumb)) return original.source;
+  return thumb.replace(/\/\d+px-/, `/${width}px-`);
+}
+
 export async function getPlaceSummary(title) {
   const slug = encodeURIComponent(title.replaceAll(" ", "_"));
   const data = await fetchJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`);
   return {
     extract: data.extract ?? "",
-    photo: data.thumbnail?.source ?? null,
+    photo: data.thumbnail?.source ?? null, // small (~320 px): postcards, album
+    photoLarge: largerPhoto(data), // ~960 px: full-screen backdrops
     url: data.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${slug}`,
   };
 }

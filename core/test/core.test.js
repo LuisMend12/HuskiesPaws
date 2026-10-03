@@ -126,3 +126,13 @@ test("ISS overhead triples the odds of non-common pets", async () => {
   const pet = hatchEgg({ id: "egg-1", startWalked: 0 }, 0, () => 0.5, { issOverhead: true });
   assert.equal(pet.spaceBorn, true);
 });
+
+test("largerPhoto asks Wikimedia for a 960 px thumbnail, or uses a smaller original", async () => {
+  const { largerPhoto } = await import("../services.js");
+  const thumb = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Hall.jpg/320px-Hall.jpg";
+  const original = "https://upload.wikimedia.org/wikipedia/commons/a/ab/Hall.jpg";
+  assert.equal(largerPhoto({ thumbnail: { source: thumb }, originalimage: { source: original, width: 4000 } }), thumb.replace("/320px-", "/960px-"));
+  assert.equal(largerPhoto({ thumbnail: { source: thumb }, originalimage: { source: original, width: 800 } }), original);
+  assert.equal(largerPhoto({ thumbnail: { source: thumb } }), thumb);
+  assert.equal(largerPhoto({}), null);
+});

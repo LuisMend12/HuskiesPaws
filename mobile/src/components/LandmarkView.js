@@ -130,20 +130,20 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     .sort((a, b) => petPower(b, walked) - petPower(a, walked));
   const picked = fighters.find((p) => p.id === pickedId) ?? fighters[0] ?? null;
 
-  // Landmarks you found carry their Wikipedia photo; others look it up by name.
-  const knownPhoto = landmark?.photo ?? null;
+  // A sharp (~1080 px) Wikipedia photo, looked up by name. Landmarks you found
+  // already carry a small one, shown until the sharp one arrives.
   const title = landmark?.title;
   useEffect(() => {
-    if (knownPhoto || !title) return undefined;
+    if (!title) return undefined;
     let alive = true;
     getPlaceSummary(title)
-      .then((summary) => alive && setFetchedPhoto(summary.photo ?? null))
-      .catch(() => {}); // no photo: the field stays
+      .then((summary) => alive && setFetchedPhoto(summary.photoLarge ?? summary.photo ?? null))
+      .catch(() => {}); // no photo: the small one or the field stays
     return () => {
       alive = false;
     };
-  }, [knownPhoto, title]);
-  const photo = knownPhoto ?? fetchedPhoto;
+  }, [title]);
+  const photo = fetchedPhoto ?? landmark?.photo ?? null;
 
   if (!landmark) return null;
 
