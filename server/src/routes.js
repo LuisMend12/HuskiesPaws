@@ -6,8 +6,9 @@ import { join } from "node:path";
 import { MAX_SPEECH_CHARS, VOICES, petPrompt, postcardPrompt } from "./grok.js";
 import { HttpError, clientIp, readJson, sendError, sendJson } from "./http.js";
 import { createRateLimiter } from "./rateLimit.js";
+import { grokVoiceFor } from "./tts.js";
 import { currentHp, decideClaim } from "./turf.js";
-import { validateClaim, validateImagine, validateLeaderboardQuery, validateScore, validateSpeech } from "./validate.js";
+import { validateClaim, validateImagine, validateLeaderboardQuery, validateRecall, validateScore, validateSpeech } from "./validate.js";
 
 const LEADERBOARD_LIMIT = 10;
 const IMAGE_FETCH_TIMEOUT_MS = 30_000;
@@ -19,15 +20,30 @@ function imageExtension(buffer) {
   throw new Error("Unrecognized image format");
 }
 
-export function createRoutes({ store, grok, imagesDir, limits }) {
+const TTS_OFF = { enabled: false };
+
+export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir, limits }) {
+  const voice = tts ?? {
+    enabled: elevenlabs.enabled || grok.enabled,
+    summary: elevenlabs.enabled ? "elevenlabs" : grok.enabled ? "grok" : null,
+    byAgent: {},
+    async speak(text, agent, grokVoice) {
+      if (elevenlabs.enabled) return elevenlabs.speak(text, agent);
+      return grok.speak(text, grokVoice);
+    },
+  };
   const voiceLimit = createRateLimiter(limits.voice);
   const imageLimit = createRateLimiter(limits.image);
   const inFlight = new Map(); // image key -> promise, so one picture is never drawn twice at once
 
-  function requireGrok(req, limiter) {
-    if (!grok.enabled) throw new HttpError(503, "Grok isn't configured on this server (set XAI_API_KEY).");
+  function checkLimit(req, limiter) {
     const check = limiter(clientIp(req));
     if (!check.ok) throw new HttpError(429, check.reason);
+  }
+
+  function requireGrok(req, limiter) {
+    if (!grok.enabled) throw new HttpError(503, "Grok isn't configured on this server (set XAI_API_KEY).");
+    checkLimit(req, limiter);
   }
 
   async function fileExists(path) {
@@ -61,14 +77,22 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
   }
 
   return {
+    async recallGuard(req, res) {
+      const { playerId, petId } = validateRecall(await readJson(req));
+      const recalled = await store.recallGuard(playerId, petId);
+      sendJson(res, 200, { recalled });
+    },
     async health(req, res) {
-      sendJson(res, 200, { grok: grok.enabled, storage: store.kind });
+      sendJson(res, 200, { grok: grok.enabled, tts: voice.summary, ttsByAgent: voice.byAgent, storage: store.kind });
     },
 
     async voice(req, res) {
-      const { text, voice } = validateSpeech(await readJson(req), VOICES, MAX_SPEECH_CHARS);
-      requireGrok(req, voiceLimit);
-      const { audio, contentType } = await grok.speak(text, voice);
+      const { text, voice: grokVoice, agent } = validateSpeech(await readJson(req), VOICES, MAX_SPEECH_CHARS);
+      if (!voice.enabled) {
+        throw new HttpError(503, "Text-to-speech isn't configured on this server (set ELEVENLABS_API_KEY or XAI_API_KEY).");
+      }
+      checkLimit(req, voiceLimit);
+      const { audio, contentType } = await voice.speak(text, agent, grokVoice || grokVoiceFor(agent));
       res.writeHead(200, { "Content-Type": contentType, "Content-Length": audio.length, "Cache-Control": "no-store" });
       res.end(audio);
     },
@@ -136,7 +160,7 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
           };
         })
         .filter(Boolean);
-      sendJson(res, 200, { turf });
+      sendJson(res, 200, { turf, serverNow: now });
     },
 
     async claimTurf(req, res) {

@@ -74,9 +74,51 @@ export function scoutMemo(place, summary) {
   return `I'm back! I found ${place.title}, about ${meters} meters away as the crow flies. ${fact} Want me to lead you there?`;
 }
 
-export function storyMemo(place, summary) {
-  const story = firstSentences(summary.extract, 2);
-  return `Gather round! The closest story is ${place.title}. ${story}`;
+// Moss's story: opening, place name, up to STORY_SENTENCES sentences from the
+// Wikipedia extract (the only source of facts), and a closing invitation.
+// Stays within STORY_MAX_CHARS so the server's text-to-speech accepts it.
+export const STORY_MAX_CHARS = 600;
+const STORY_SENTENCES = 3;
+
+// Each agent tells the same Wikipedia facts in their own voice. Closings stay
+// short so the memo still fits STORY_MAX_CHARS for text-to-speech.
+const STORY_FRAMES = Object.freeze({
+  storyteller: {
+    opening: (title) => `Gather round, sprouts! Let me tell you about ${title}.`,
+    closing: "Shall we wander over and see it for ourselves?",
+    empty: "The old books are quiet about this one, so its story is still waiting to be found.",
+  },
+  scout: {
+    opening: (title) => `Ooh, a trail tale! Here's what I sniffed out about ${title}.`,
+    closing: "Want me to run over and look around?",
+    empty: "I couldn't find a tale for this spot yet, but I can still scout it.",
+  },
+  pathfinder: {
+    opening: (title) => `While we walk, here's what the path knows about ${title}.`,
+    closing: "Say the word and I'll lead you there.",
+    empty: "No trail notes for this place yet. Explore first, then I can guide you.",
+  },
+});
+
+function clipWords(text, maxChars) {
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, Math.max(0, maxChars - 3));
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim()}...`;
+}
+
+export function storyMemo(place, summary, agentId = "storyteller") {
+  const frame = STORY_FRAMES[agentId] ?? STORY_FRAMES.storyteller;
+  const opening = frame.opening(place.title);
+  const extract = (summary?.extract ?? "").trim();
+  const build = (story) => [opening, story, frame.closing].join(" ");
+  if (!extract) return build(frame.empty);
+  for (let count = STORY_SENTENCES; count > 0; count -= 1) {
+    const memo = build(firstSentences(extract, count));
+    if (memo.length <= STORY_MAX_CHARS) return memo;
+  }
+  const room = STORY_MAX_CHARS - build("").length;
+  return build(clipWords(firstSentences(extract, 1), room));
 }
 
 export function routeMemo(place, route) {

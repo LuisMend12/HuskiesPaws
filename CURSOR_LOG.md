@@ -1,16 +1,33 @@
 # Cursor log
 
+## 2026-10-03 — Paw-trail GIF on `presentation` (Codex)
+
+Prompt: make a quick GIF using the OneTake skills repository. User selected the
+paw-trail concept from three options. Installed the requested skill, composed a
+10-second animation with the app's artwork and palette, and rendered a looping
+GIF plus a 1080p MP4 in `docs/demo-gif/`. OneTake verification passed; the encoded
+GIF contact sheet was inspected. This work was performed in Codex, not Cursor.
+
+## 2026-10-03 — Code review fixes on `presentation` (Codex)
+
+**Prompt.** Review the complete repository, then fix the nine reported findings on the presentation branch.
+
+**Execution.** These fixes were made through Codex workspace tools. Cursor Agent was not available to control from this session; this entry does not count them as Cursor usage.
+
+**Changes.** Empty Supabase write responses; database revision checks for concurrent territory claims; ownership-checked guard recall; live leaderboard rows; Grok memo playback and postcard requests; online failures kept separate from local demo claims; foreground territory refresh and HP expiry; server-only Nessie credentials and transfer deduplication; reset cancellation and stale-result guards.
+
+**Setup.** Re-run `server/supabase/schema.sql` for existing Supabase projects. Configure `NESSIE_API_KEY` on the backend and `EXPO_PUBLIC_API_URL` on the phone. Audio uses SDK-compatible `expo-audio`; rebuild existing development clients after installing the new native module.
+
+**Validation.** Core, server, iMessage and mobile regression suites; Expo lint; JS module compilation with TypeScript; Android and iOS Hermes exports. Native playback and the live banking/Supabase services still need device/service verification.
+
 Key prompts and implementation decisions for the SpaceX / Cursor track.
 
-## 2026-10-03 — Root README for HuskiesPaws (`main`)
+## 2026-10-03 — Story TTS: ElevenLabs + Grok Voice (`story-voice`)
 
-**Prompt (summary).** Replace the root `README.md` with a polished open-source-style guide. No demo video. Read `AGENTS.md`, `PLAN.md`, existing README, `core/`, `mobile/`, `server/`, `imessage-agent/`, and each `package.json`. JavaScript/Expo only. Product is the phone app. `core/` is source of truth; `mobile/src/core/` is generated. Keep `wanderlings:` prefix. Placeholders for secrets. Document PLAN.md limits. Do not change application code.
+Prompt: set up ElevenLabs, then use TTS for storytelling and Grok so some agents tell those stories.
 
-**Decisions.**
+Decision: facts still come only from Wikipedia. **Moss** narrates with **ElevenLabs**. **Pip and Fern** tell the same nearby-place story in their own framing, spoken with **Grok Voice** (`ara` / `eve`) via `POST /v1/tts`. If only one key is set, every agent uses that provider. Phone sends `{ text, agent, voice }` to `/api/voice`. iMessage: `"story"` is Moss; `"pip story"` / `"fern story"` use Grok.
 
-- Dropped Devpost/demo-video/pitch TODOs and web-frontend language. Health/Imagine/Voice/score examples taken from `server/test/api.test.js` and `server/src/app.js`.
-- Documented Expo Go vs iOS MapLibre garden map (`canUseNativeMapLibre`), `npm run tunnel` / `start:go` / `npx expo run:ios`, Photon Free outbound allowlist, Grok Voice on the server but expo-speech on the phone, untested live Grok/Nessie/Supabase, undeployed Render.
-- No project license at repo root (`mobile/LICENSE` is Expo’s template MIT). Logo images are the SVGs in `docs/logo/` (PNGs not in the tree).
 
 ## 2026-10-03 — Stylized iOS 3D garden map (`3d-map`)
 

@@ -2,12 +2,13 @@
 import { AGENTS, choosePlace, expeditionDuration, routeMemo, scoutMemo, storyMemo } from "../core/agents.js";
 import { ALBUM_MAX_CARDS } from "../core/config.js";
 import { distanceMeters, pathLength } from "../core/geo.js";
-import { setupBank, transferToSavings } from "../core/nessie.js";
 import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../core/savings.js";
 import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute, setRequestHeaders } from "../core/services.js";
 import { clearKeys, loadAll, saveAll } from "../storage.js";
-import { speakMemo } from "../voice.js";
+import { speakMemo, stopMemo } from "../voice.js";
+import { fetchPostcard } from "../api.js";
+import { createBanking } from "./banking.js";
 import { createOnline } from "./online.js";
 import { createPetsLoop } from "./petsLoop.js";
 import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFields, scoreOf } from "./state.js";
@@ -23,6 +24,8 @@ export function createGame() {
   const get = store.getState;
   const set = store.setState;
   const say = (status) => set({ status });
+  const current = (token) => token === get().generation && !get().resetting;
+  let stopIss = null;
   // Saves only fields that changed since the last save. State updates are
   // immutable, so a new reference means a change. This keeps album photos
   // (big data URIs) from being re-saved on every step, which froze the app.
@@ -42,24 +45,39 @@ export function createGame() {
   };
   const pets = createPetsLoop({ get, set, persist, say, squadSize });
   const online = createOnline({ get, set, persist, say });
+  const banking = createBanking({ get, set, persist, say });
 
   const walking = createWalking(store, {
     onArrive: (place, meters) => arrive(place, meters),
-    onRegionFound: async (position) => set({ region: await getRegion(position, get().region) }),
+    onRegionFound: async (position) => {
+      const token = get().generation;
+      const region = await getRegion(position, get().region);
+      if (!current(token)) return;
+      set({ region });
+      online.pushScore();
+      online.refreshLeaderboard();
+    },
     persist,
     // final: false while a simulated walk is still going (no score upload yet).
     onWalk: ({ final = true } = {}) => {
+      if (get().resetting) return;
+      online.expireTurf();
       pets.tickPets();
       if (final) online.pushScore();
     },
   });
 
   async function load() {
+    const token = get().generation;
     const saved = migrateSaved(await loadAll(SAVED_DEFAULTS));
+    // Remove credentials saved by earlier versions; they never migrate into state.
+    await clearKeys(["nessieKey"]);
+    if (!current(token)) return;
     set({ ...saved, loaded: true, rankName: rankFor(scoreOf({ ...get(), ...saved })).current.name });
     persist();
     walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
-    pets.startIssWatch();
+    stopIss?.();
+    stopIss = pets.startIssWatch();
     online.refreshTurf();
     online.refreshLeaderboard();
     online.pushScore();
@@ -84,10 +102,13 @@ export function createGame() {
   }
 
   async function runExpedition(agent) {
+    const token = get().generation;
+    if (!get().loaded || get().resetting) return;
     set({ away: [...get().away, agent.id], status: `${agent.name} is looking around…` });
     try {
       const state = get();
       const places = await findNearbyPlaces(state.position);
+      if (!current(token)) return;
       const known = new Set([...state.visited, ...state.found.map((p) => p.id)]);
       const place = choosePlace(places, state.position, known);
       if (!place) {
@@ -101,6 +122,7 @@ export function createGame() {
         expedition: { agentId: agent.id, from: state.position, to: { lat: place.lat, lon: place.lon }, startedAt: Date.now(), durationMs },
       });
       const [summary] = await Promise.all([getPlaceSummary(place.title), wait(durationMs)]);
+      if (!current(token)) return;
       const memo = scoutMemo(place, summary);
       const foundPlace = { id: place.id, title: place.title, lat: place.lat, lon: place.lon, photo: summary.photo };
       set({
@@ -112,32 +134,42 @@ export function createGame() {
       });
       award({ landmarksFound: get().progress.landmarksFound + 1 }, agent);
       speakMemo(memo, agent);
+      fetchPostcard({ placeId: String(place.id), title: place.title, fact: summary.extract.slice(0, 300) })
+        .then((image) => {
+          if (image && current(token) && get().discovery?.place.id === place.id) {
+            set({ discovery: { ...get().discovery, image } });
+          }
+        });
     } catch (error) {
       console.error("Expedition failed:", error);
-      say(`${agent.name} got lost (network problem). Try again in a moment.`);
+      if (current(token)) say(`${agent.name} got lost (network problem). Try again in a moment.`);
     } finally {
-      set({ away: get().away.filter((id) => id !== agent.id), expedition: null });
+      if (current(token)) set({ away: get().away.filter((id) => id !== agent.id), expedition: null });
     }
   }
 
   async function tellStory(agent) {
+    const token = get().generation;
+    if (!get().loaded || get().resetting) return;
     say(`${agent.name} is remembering a story…`);
     try {
       const position = get().position;
       const [nearest] = (await findNearbyPlaces(position))
         .map((p) => ({ ...p, distance: distanceMeters(position, p) }))
         .sort((a, b) => a.distance - b.distance);
+      if (!current(token)) return;
       if (!nearest) {
         say(`${agent.name} doesn't know any stories about this spot.`);
         return;
       }
       const memo = storyMemo(nearest, await getPlaceSummary(nearest.title));
+      if (!current(token)) return;
       set({ status: memo, ...gainXp(agent.id) });
       speakMemo(memo, agent);
       persist();
     } catch (error) {
       console.error("Story failed:", error);
-      say(`${agent.name} forgot the story (network problem).`);
+      if (current(token)) say(`${agent.name} forgot the story (network problem).`);
     }
   }
 
@@ -145,34 +177,37 @@ export function createGame() {
   // so double taps (or Demo walk during Take me there) can't start a second walk
   // that fights the first over your position.
   async function oneWalk(run) {
+    if (!get().loaded || get().resetting) return;
+    const token = get().generation;
     if (get().planning || get().walking) {
       say("Already on a walk. Wait until it finishes.");
       return;
     }
     set({ planning: true });
     try {
-      await run();
+      await run(token);
     } finally {
-      set({ planning: false });
+      if (current(token)) set({ planning: false });
     }
   }
 
   async function guideToDiscovery() {
     const target = get().discovery?.place;
     if (!target) return;
-    await oneWalk(() => guideWalk(target));
+    await oneWalk((token) => guideWalk(target, token));
   }
 
-  async function guideWalk(target) {
+  async function guideWalk(target, token) {
     const agent = agentById("pathfinder");
     set({ postcardOpen: false, status: `${agent.name} is planning a route…` });
     const route = await getWalkingRoute(get().position, target);
+    if (!current(token)) return;
     const meters = route.distance ?? pathLength(route.points);
     set({ route: route.points, ...gainXp(agent.id) });
     speakMemo(routeMemo(target, route), agent);
     persist();
     if (get().demoMode) {
-      await walking.walkAlong(route.points);
+      if (!(await walking.walkAlong(route.points)) || !current(token)) return;
       arrive(target, meters);
       return;
     }
@@ -181,6 +216,7 @@ export function createGame() {
   }
 
   function arrive(place, meters) {
+    if (get().resetting) return;
     const arrived = get().found.find((p) => p.id === place.id) ?? null;
     set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
     const savings = recordWalkSavings(place.title, meters);
@@ -193,24 +229,26 @@ export function createGame() {
 
   const demoWalk = () => oneWalk(demoWalkNow);
 
-  async function demoWalkNow() {
+  async function demoWalkNow(token) {
     say("Going for a little walk…");
     try {
       const state = get();
       const target = choosePlace(await findNearbyPlaces(state.position), state.position, new Set(state.visited));
+      if (!current(token)) return;
       if (!target) {
         say("Nowhere new to walk to nearby.");
         return;
       }
       const route = await getWalkingRoute(state.position, target);
+      if (!current(token)) return;
       const rankBefore = get().rankName;
-      await walking.walkAlong(route.points);
+      if (!(await walking.walkAlong(route.points)) || !current(token)) return;
       const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
       checkRankUp(null);
       if (get().rankName === rankBefore) say(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);
     } catch (error) {
       console.error("Demo walk failed:", error);
-      say("Couldn't plan a walk (network problem).");
+      if (current(token)) say("Couldn't plan a walk (network problem).");
     }
   }
 
@@ -221,42 +259,10 @@ export function createGame() {
     const trip = { id: `${Date.now()}`, title, meters, amount, date: new Date().toISOString(), nessieId: null };
     set({ trips: [trip, ...get().trips] });
     persist();
-    syncTripToNessie(trip);
+    banking.syncTrip(trip);
     const stageAfter = treeStage(totalSaved(get().trips)).current;
     const grew = stageAfter.name !== stageBefore.name ? ` Your tree grew into a ${stageAfter.emoji} ${stageAfter.name}!` : "";
     return `You skipped a ~${formatDollars(amount)} ride, and it went into savings 🌳.${grew}`;
-  }
-
-  async function syncTripToNessie(trip) {
-    const { bank, nessieKey } = get();
-    if (!bank || !nessieKey) return;
-    try {
-      const nessieId = await transferToSavings(nessieKey, bank, trip.amount, `Walked to ${trip.title} instead of riding`);
-      set({ trips: get().trips.map((t) => (t.id === trip.id ? { ...t, nessieId } : t)) });
-      persist();
-    } catch (error) {
-      console.warn("Nessie transfer failed; kept in the local ledger:", error);
-      say(`Saved ${formatDollars(trip.amount)} locally. Nessie didn't respond, so the transfer wasn't sent.`);
-    }
-  }
-
-  async function connectBank(key) {
-    const trimmed = key.trim();
-    if (!trimmed) {
-      say("Paste your Nessie API key first.");
-      return false;
-    }
-    say("Connecting to Capital One Nessie…");
-    try {
-      const bank = await setupBank(trimmed, "HuskiesPaws");
-      set({ bank, nessieKey: trimmed, status: "Connected! New walks will move their savings into your Nessie savings account." });
-      persist();
-      return true;
-    } catch (error) {
-      console.error("Nessie setup failed:", error);
-      say(`Couldn't connect to Nessie (${error.message}). Savings still work in demo mode.`);
-      return false;
-    }
   }
 
   function saveCapture(image) {
@@ -276,11 +282,28 @@ export function createGame() {
   }
 
   async function resetProgress() {
+    if (get().resetting) return;
+    set({ generation: get().generation + 1, resetting: true });
+    walking.stop();
+    online.invalidate();
+    stopMemo();
     await clearKeys(RESETTABLE_KEYS);
     walking.resetTrail();
     const fresh = Object.fromEntries(RESETTABLE_KEYS.map((key) => [key, SAVED_DEFAULTS[key]]));
     set({
       ...fresh,
+      resetting: false,
+      planning: false,
+      walking: false,
+      guide: null,
+      route: null,
+      away: [],
+      expedition: null,
+      visited: [],
+      petHp: {},
+      postcardOpen: false,
+      captureOpen: false,
+      landmarkOpen: null,
       blooms: [],
       trailSegments: [],
       capturable: null,
@@ -293,6 +316,10 @@ export function createGame() {
       status: "Progress reset. Fresh start! 🌱",
     });
     walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
+    lastSaved = {};
+    persist();
+    online.refreshTurf();
+    online.pushScore();
   }
 
   const actions = {
@@ -308,13 +335,27 @@ export function createGame() {
     guideToDiscovery,
     demoWalk,
     startLiveLocation: walking.startLiveLocation,
-    connectBank,
+    connectBank: banking.connect,
     saveCapture,
     resetProgress,
     setSquad: pets.setSquad,
     closeHatch: pets.closeHatch,
     hatchEgg: pets.hatchEggNow,
     claimTurf: online.claimLandmark,
+    recallGuard: online.recallPet,
+    refreshOnline: () => {
+      if (!get().loaded || get().resetting) return;
+      online.expireTurf();
+      online.refreshTurf();
+      online.refreshLeaderboard();
+    },
+    dispose: () => {
+      set({ generation: get().generation + 1 });
+      walking.stop();
+      stopIss?.();
+      online.invalidate();
+      stopMemo();
+    },
     replayMemo: () => {
       const { discovery } = get();
       if (discovery) speakMemo(discovery.memo, agentById(discovery.agentId));

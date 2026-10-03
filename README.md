@@ -138,8 +138,7 @@ Keys are **optional** unless you want that integration. Never commit `.env`. Nev
 ```ini
 # xAI Grok Voice + Imagine (console.x.ai → API Keys). Leave empty to keep Grok off.
 XAI_API_KEY=
-
-# Optional. Without these, leaderboards/turf/images persist in server/data/db.json.
+# Optional: keeps leaderboards and turf across restarts (Supabase -> Project Settings -> API)
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 

@@ -155,11 +155,13 @@ export function PetsPanel({ state, game }) {
   const shown = filter ? pets.filter((p) => p.rarity === filter) : pets;
 
   const setSquad = (ids) => (game.setSquad ? game.setSquad(ids) : game.set({ squad: ids }));
-  const toggle = (id) => {
+  const toggle = async (id) => {
     if (squadIds.includes(id)) {
       if (squadIds.length === 1) return game.set({ status: "Keep at least one pet in your squad." });
       // Taking a guard out of the squad calls it back and frees its landmark.
-      if (game.recallGuard) game.recallGuard(id);
+      if (game.recallGuard) {
+        if (!(await game.recallGuard(id))) return;
+      }
       else {
         const recall = recallLocally(state, id);
         if (recall) game.set(recall);

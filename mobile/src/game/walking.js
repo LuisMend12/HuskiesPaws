@@ -18,6 +18,11 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
   let lastBloom = null;
   let bloomCount = 0;
   let stepsLast = null;
+  let cancelWalk = null;
+  let locationSubscription = null;
+  let stepSubscription = null;
+  let watchEpoch = 0;
+  let locationStart = null;
 
   function capturableAt(position, state) {
     const captured = new Set(state.album.map((card) => card.id));
@@ -86,6 +91,8 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
   }
 
   function walkAlong(points) {
+    cancelWalk?.();
+    if (!points?.length) return Promise.resolve(false);
     store.setState({ walking: true, capturable: null });
     return new Promise((resolve) => {
       let segment = 0;
@@ -101,11 +108,12 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
         }
         if (segment >= points.length - 1) {
           clearInterval(timer);
+          cancelWalk = null;
           stepTo(points.at(-1), { notifyWalk: false });
           store.setState({ walking: false });
           persist();
           onWalk?.();
-          resolve();
+          resolve(true);
           return;
         }
         const length = distanceMeters(points[segment], points[segment + 1]);
@@ -113,18 +121,25 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
         ticks += 1;
         if (ticks % MID_WALK_EVERY === 0) onWalk?.({ final: false }); // eggs appear and hatch mid-walk
       }, WALK_TICK_MS);
+      cancelWalk = () => {
+        clearInterval(timer);
+        cancelWalk = null;
+        store.setState({ walking: false });
+        resolve(false);
+      };
     });
   }
 
-  async function startPedometer() {
+  async function startPedometer(epoch) {
     try {
       if (!(await Pedometer.isAvailableAsync())) return false;
       const { granted } = await Pedometer.requestPermissionsAsync();
-      if (!granted) return false;
-      Pedometer.watchStepCount(({ steps }) => {
+      if (!granted || epoch !== watchEpoch) return false;
+      stepSubscription = Pedometer.watchStepCount(({ steps }) => {
+        if (epoch !== watchEpoch) return;
         const added = stepsLast === null ? steps : steps - stepsLast;
         stepsLast = steps;
-        if (added <= 0) return;
+        if (added <= 0 || get().walking || get().resetting) return;
         const state = get();
         store.setState({
           progress: withWalkXp(
@@ -143,32 +158,51 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     }
   }
 
-  async function startLiveLocation() {
-    if (get().liveLocation) return true;
+  async function beginLocation(epoch) {
     const { granted } = await Location.requestForegroundPermissionsAsync();
+    if (epoch !== watchEpoch) return false;
     if (!granted) {
       store.setState({ status: "Location permission denied. Demo walks still work." });
       return false;
     }
-    const hasPedometer = await startPedometer();
+    const hasPedometer = await startPedometer(epoch);
+    if (epoch !== watchEpoch) return false;
     let firstFix = true;
-    await Location.watchPositionAsync(
+    const subscription = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, distanceInterval: 5 },
       ({ coords }) => {
         const position = { lat: coords.latitude, lon: coords.longitude };
-        if (get().walking) return; // a simulated walk is playing
+        if (epoch !== watchEpoch || get().walking || get().resetting) return;
         stepTo(position, { countDistance: !firstFix, countSteps: !hasPedometer });
         if (firstFix) {
           firstFix = false;
           store.setState({ mapFocus: { ...position, key: Date.now() } });
-          onRegionFound(position);
+          onRegionFound?.(position);
         }
         persist();
       },
-      (error) => store.setState({ status: `Location unavailable: ${error}` }),
+      (error) => { if (epoch === watchEpoch) store.setState({ status: `Location unavailable: ${error}` }); },
     );
+    if (epoch !== watchEpoch) { subscription.remove(); return false; }
+    locationSubscription = subscription;
     store.setState({ liveLocation: true, status: "Live walking on. Your path will bloom as you move." });
     return true;
+  }
+
+  function startLiveLocation() {
+    if (get().resetting || !get().loaded) return Promise.resolve(false);
+    if (get().liveLocation) return Promise.resolve(true);
+    if (locationStart) return locationStart;
+    const epoch = ++watchEpoch;
+    const pending = beginLocation(epoch).catch(() => {
+      if (epoch === watchEpoch) {
+        stop();
+        store.setState({ status: "Location unavailable. Try Go live again." });
+      }
+      return false;
+    }).finally(() => { if (locationStart === pending) locationStart = null; });
+    locationStart = pending;
+    return pending;
   }
 
   function resetTrail() {
@@ -176,5 +210,17 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     bloomCount = 0;
   }
 
-  return { stepTo, walkAlong, startLiveLocation, resetTrail };
+  function stop() {
+    watchEpoch += 1;
+    locationStart = null;
+    cancelWalk?.();
+    locationSubscription?.remove();
+    stepSubscription?.remove();
+    locationSubscription = null;
+    stepSubscription = null;
+    stepsLast = null;
+    store.setState({ liveLocation: false, pedometer: false });
+  }
+
+  return { stepTo, walkAlong, startLiveLocation, resetTrail, stop };
 }

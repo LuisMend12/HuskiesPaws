@@ -37,6 +37,12 @@ You need:
 
 No API keys are needed for Expo Go or the garden map tiles (OpenFreeMap is free and has no registration).
 
+For live leaderboards, shared turf, Grok memos/postcards and Nessie, set `EXPO_PUBLIC_API_URL` in `mobile/.env` to the backend's HTTPS URL and restart Expo. Configure `XAI_API_KEY` and optional `NESSIE_API_KEY` on the backend only. Connect savings in the Savings tab; old Nessie keys saved on the phone are removed on startup.
+
+The app refreshes territory every 15 seconds while active and immediately on resume. Offline territory claims are allowed only in demo mode with no API URL; connection errors do not grant local territory.
+
+After pulling the audio change, run `npm install`. Existing development builds must be rebuilt to include `expo-audio`; Expo Go includes it. Regression checks: `npm test`, `npx expo lint`, and `npx expo export --platform android --platform ios`.
+
 ## iOS garden map (development build)
 
 The tilted **garden map** is a MapLibre Native vector map styled from [OpenFreeMap Liberty](https://openfreemap.org/) (OpenStreetMap data, OpenMapTiles schema). It is **not in Expo Go**. Official MapLibre docs require a custom native binary.

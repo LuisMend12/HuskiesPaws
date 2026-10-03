@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>HuskiesPaws — Paw trail</title>
+<style>
+@font-face{font-family:Nunito;src:url('../../mobile/node_modules/@expo-google-fonts/nunito/900Black/Nunito_900Black.ttf');font-weight:900}
+@font-face{font-family:Nunito;src:url('../../mobile/node_modules/@expo-google-fonts/nunito/600SemiBold/Nunito_600SemiBold.ttf');font-weight:600}
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;overflow:hidden}canvas{width:100vw;height:100vh;object-fit:contain}
+</style></head><body><canvas id="film" width="1920" height="1080"></canvas>
+<script src="motion.js"></script><script>
+const c=document.getElementById('film'),ctx=c.getContext('2d');
+const opening=document.createElement('canvas');opening.width=1920;opening.height=1080;
+const C={bg:'#f3f6fa',ink:'#0b1f3a',muted:'#5b6b82',green:'#2e9d4f',soft:'#e6f4ea',coral:'#ff7a59',pink:'#f48fb1'};
+const svg=document.createElementNS('http://www.w3.org/2000/svg','path');
+svg.setAttribute('d','M 680 700 C 760 700 795 570 885 570 S 1050 700 1130 620 S 1150 400 1275 400 S 1405 525 1490 450');
+const len=svg.getTotalLength(),logo=new Image();logo.src='../../mobile/assets/logo-badge.png';
+const progress=(t,a,b,curve=OM.ease.sineInOut)=>curve(OM.clamp((t-a)/(b-a),0,1));
+function point(u){const p=svg.getPointAtLength(OM.clamp(u,0,1)*len);return [p.x,p.y]}
+function paw(x,y,s,angle=0){ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(s,s);ctx.fillStyle=C.green;
+ for(const [px,py,r] of [[-23,-21,10],[-8,-34,10],[10,-34,10],[25,-20,10]]){ctx.beginPath();ctx.ellipse(px,py,r,r*1.3,0,0,Math.PI*2);ctx.fill()}
+ ctx.beginPath();ctx.moveTo(-25,13);ctx.bezierCurveTo(-25,-7,-8,-19,0,-17);ctx.bezierCurveTo(9,-19,27,-5,26,14);ctx.bezierCurveTo(24,31,9,19,0,21);ctx.bezierCurveTo(-10,20,-23,31,-25,13);ctx.fill();ctx.restore()}
+function text(str,x,y,size,color=C.ink,weight=900){ctx.fillStyle=color;ctx.font=`${weight} ${size}px Nunito`;ctx.fillText(str,x,y)}
+function flower(x,y,size){ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.fillStyle=C.pink;for(let j=0;j<5;j++){const a=j*Math.PI*2/5;ctx.beginPath();ctx.arc(Math.cos(a)*7,Math.sin(a)*7,6,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#ffd54f';ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();ctx.restore()}
+function state(t){const u=progress(t,1.1,4.2);const p=point(u),land=progress(t,5.7,6.5,OM.ease.expoOut),M=OM.view(OM.camera(t,[{t:0,x:960,y:540},{t:2.7,x:990,y:532,zoom:1.025},{t:4.2,x:1005,y:520,zoom:1.025},{t:5.7,x:1005,y:520,zoom:1.025},{t:6.5,x:960,y:540},{t:10,x:960,y:540}]));return {u,p:[OM.lerp(p[0],640,land),OM.lerp(p[1],470,land)],M,land}}
+function seek(t){t=OM.clamp(t,0,10);const {u,p,M,land}=state(t),restart=progress(t,9.2,9.8);ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.fillStyle=C.bg;ctx.fillRect(0,0,1920,1080);ctx.save();ctx.setTransform(...M);
+ctx.globalAlpha=1-land;
+text('A little walk.',180,285,78);text('A new adventure.',180,375,78);
+text('Discover what’s around you.',184,448,30,C.muted,600);
+ctx.strokeStyle='#e4e9f0';ctx.lineWidth=5;ctx.lineCap='round';
+for(const [x,y,w,h] of [[740,410,170,120],[1000,300,140,170],[1000,720,220,90],[1350,630,160,120]]){ctx.fillStyle='#ffffff';ctx.beginPath();ctx.roundRect(x,y,w,h,24);ctx.fill();ctx.stroke()}
+ctx.strokeStyle='#dde8df';ctx.lineWidth=70;ctx.lineJoin='round';ctx.stroke(new Path2D(svg.getAttribute('d')));
+ctx.strokeStyle=C.coral;ctx.lineWidth=8;ctx.setLineDash([len*u,len]);ctx.stroke(new Path2D(svg.getAttribute('d')));ctx.setLineDash([]);
+for(let i=0;i<19;i++){const f=i/19;if(u>f){const a=point(f);flower(a[0],a[1]+26,progress(t,1.1+f*3.1,1.4+f*3.1,OM.ease.backOut))}}
+const arrival=progress(t,4.2,4.5,OM.ease.expoOut);ctx.globalAlpha=(1-land)*arrival;
+ctx.fillStyle=C.ink;ctx.beginPath();ctx.roundRect(1295,270,340,86,22);ctx.fill();text('Landmark discovered',1320,325,27,'#ffffff');
+ctx.strokeStyle=C.green;ctx.lineWidth=7;ctx.beginPath();ctx.arc(1490,450,76*arrival,0,Math.PI*2);ctx.stroke();
+ctx.globalAlpha=1;ctx.fillStyle='#ffffff';ctx.shadowColor='#0b1f3a18';ctx.shadowBlur=28;ctx.beginPath();ctx.arc(p[0],p[1],64+land*42,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ctx.globalAlpha=1-land;paw(p[0],p[1],1.15+land*.6,t>1.1&&t<4.2?Math.sin((t-1.1)*10)*.1:0);
+ctx.globalAlpha=land;ctx.drawImage(logo,p[0]-106,p[1]-106,212,212);
+text('HuskiesPaws',805,478,90);text('Walk more. Explore more.',809,544,32,C.muted,600);text('Every step starts something.',809,596,27,C.green,600);
+ctx.restore();
+// Return to the opening state through the same persistent paw, rather than a cut.
+if(restart>0){ctx.globalAlpha=restart;ctx.drawImage(opening,0,0)}
+ctx.globalAlpha=1;return true}
+window.__meta={dur:10,fps:30,inFrame:{paw:[0,9.2,'whole']}};
+window.__seek=seek;
+window.__track=t=>{const {p,M}=state(t);return {paw:OM.projectBox(M,{x:p[0]-106,y:p[1]-106,w:212,h:212,op:1}),surface:{x:0,y:0,w:1920,h:1080,op:1}}};
+window.__motion=(a,b)=>{const A=state(a),B=state(b),p=OM.project(A.M,...A.p),q=OM.project(B.M,...B.p);return Math.hypot(p[0]-q[0],p[1]-q[1])+OM.screenTravel(OM.camera(a,[]),OM.camera(b,[]),OM.camera((a+b)/2,[]))};
+window.__ready=Promise.all([document.fonts.load('900 78px Nunito'),document.fonts.load('600 30px Nunito'),logo.decode()]).then(()=>{seek(0);opening.getContext('2d').drawImage(c,0,0);return true});
+if(location.search.includes('play'))window.__ready.then(()=>{const start=performance.now();function frame(now){seek(((now-start)/1000)%10);requestAnimationFrame(frame)}requestAnimationFrame(frame)});
+</script></body></html>

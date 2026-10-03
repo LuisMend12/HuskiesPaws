@@ -13,6 +13,7 @@ import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { petPower } from "../core/pets.js";
+import { apiAvailable } from "../api.js";
 import { getPlaceSummary } from "../core/services.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
@@ -155,6 +156,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   // With local rules, damage stays and heals slowly: the new guard keeps its HP,
   // a guard that held on keeps its HP, and a pet that lost drops to 0 and rests.
   const finish = (outcome, attacker, after) => {
+    if (game.store.getState().generation !== state.generation) return;
     const now = clockNow();
     const patch = { status: outcome.message };
     if (after && !outcome.won) patch.petHp = { ...state.petHp, [attacker.id]: { hp: 0, hpAt: now } }; // the loser rests
@@ -195,9 +197,11 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     if (!picked) return;
     setBusy(true);
     const power = petPower(picked, walked);
-    // The server decides when it can be reached; otherwise the same rules run here.
+    // Local claims are allowed only in the explicit demo without a configured API.
     const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark) : null;
-    const outcome = online ?? { ...claimLocally(state, landmark, picked, power), local: true };
+    if (game.store.getState().generation !== state.generation) { setBusy(false); return; }
+    const outcome = online ?? (!apiAvailable() && state.demoMode
+      ? { ...claimLocally(state, landmark, picked, power), local: true } : null);
     if (!outcome) {
       setBusy(false);
       return;
@@ -279,7 +283,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
           {result ? (
             <>
               <Text style={styles.resultTitle}>
-                {result.won ? (result.result === "captured" ? "🏰 Captured!" : "🐾 It's yours!") : result.result === "capped" ? "✋ Limit reached" : "🛡️ They held on"}
+                {result.won ? (result.result === "captured" ? "🏰 Captured!" : "🐾 It's yours!") : result.result === "unavailable" ? "Claim unconfirmed" : result.result === "capped" ? "✋ Limit reached" : "🛡️ They held on"}
               </Text>
               <Text style={type.body}>{result.message}</Text>
               {!result.won && result.attacker && result.result === "defended" && (

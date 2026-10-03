@@ -17,16 +17,21 @@ export function createPetsLoop({ get, set, persist, say, squadSize = () => 3 }) 
   }
 
   async function refreshIss() {
+    const generation = get().generation;
     try {
-      iss = await getIssPosition();
+      const position = await getIssPosition();
+      if (generation !== get().generation || get().resetting) return;
+      iss = position;
       set({ issOverhead: issOverheadNow() });
     } catch (error) {
+      if (generation !== get().generation) return;
       console.warn("ISS position unavailable:", error);
       set({ issOverhead: false });
     }
   }
 
   async function drawPortrait(pet) {
+    const generation = get().generation;
     const art = await fetchPetPortrait({
       petId: pet.id,
       species: pet.species,
@@ -34,7 +39,7 @@ export function createPetsLoop({ get, set, persist, say, squadSize = () => 3 }) 
       petClass: pet.petClass,
       color: pet.color,
     });
-    if (!art) return;
+    if (!art || generation !== get().generation || get().resetting) return;
     set({ pets: get().pets.map((p) => (p.id === pet.id ? { ...p, art } : p)) });
     const hatching = get().hatching;
     if (hatching?.id === pet.id) set({ hatching: { ...hatching, art } });

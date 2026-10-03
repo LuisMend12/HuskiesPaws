@@ -2,20 +2,22 @@
 // kept on the server. Tables: see ../../supabase/schema.sql.
 // UNTESTED against a live project: verify after creating the tables.
 
-export function createSupabaseStore({ url, serviceKey }) {
+export function createSupabaseStore({ url, serviceKey, fetchImpl = fetch }) {
   const base = `${url.replace(/\/$/, "")}/rest/v1`;
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" };
 
   async function request(path, { method = "GET", body, prefer } = {}) {
-    const response = await fetch(`${base}${path}`, {
+    const response = await fetchImpl(`${base}${path}`, {
       method,
       headers: prefer ? { ...headers, Prefer: prefer } : headers,
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) {
       throw new Error(`Supabase ${method} ${path} failed (${response.status}): ${(await response.text()).slice(0, 200)}`);
     }
-    return response.status === 204 ? null : response.json();
+    const text = await response.text();
+    return text.trim() ? JSON.parse(text) : null;
   }
 
   const toPlayer = (row) => ({
@@ -85,18 +87,54 @@ export function createSupabaseStore({ url, serviceKey }) {
       return toTurf(rows[0]) ?? null;
     },
 
-    // Not atomic across instances (fine for a single hackathon server); a real
-    // version would do the power check in a Postgres function.
+    // The database revision covers ALL turf, including the per-owner cap.
+    // A conflict requires a new snapshot and a new decision, never a blind upsert.
     async claimTurf(landmarkId, decide) {
-      const outcome = decide(await this.getTurf(landmarkId), await this.listTurf());
-      if (outcome.claim) {
-        await request("/turf?on_conflict=landmark_id", {
+      for (let retry = 0; retry < 10; retry += 1) {
+        const snapshot = await request("/rpc/turf_snapshot", { method: "POST", body: {} });
+        const all = snapshot.turf.map(toTurf);
+        const outcome = decide(all.find((t) => t.landmarkId === landmarkId) ?? null, all);
+        if (!outcome.claim) return outcome;
+        const committed = await request("/rpc/commit_turf", {
           method: "POST",
-          prefer: "resolution=merge-duplicates",
-          body: fromTurf(outcome.claim),
+          body: { expected_revision: snapshot.revision, claim: fromTurf(outcome.claim) },
         });
+        if (committed) return outcome;
       }
-      return outcome;
+      throw new Error("Turf changed too often; retry the claim");
+    },
+
+    async recallGuard(ownerId, petId) {
+      return request("/rpc/recall_guard", { method: "POST", body: { player_id: ownerId, pet_id: petId } });
+    },
+
+    async getBank(playerId) {
+      const rows = await request(`/banks?select=bank&player_id=eq.${encodeURIComponent(playerId)}`);
+      return rows[0]?.bank ?? null;
+    },
+
+    async saveBank(playerId, bank) {
+      await request("/banks?on_conflict=player_id", {
+        method: "POST", prefer: "resolution=merge-duplicates", body: { player_id: playerId, bank },
+      });
+    },
+
+    async getTransfer(playerId, tripId) {
+      const query = new URLSearchParams({ select: "transfer", player_id: `eq.${playerId}`, trip_id: `eq.${tripId}` });
+      const rows = await request(`/bank_transfers?${query}`);
+      return rows[0]?.transfer ?? null;
+    },
+
+    async saveTransfer(playerId, tripId, transfer) {
+      await request("/bank_transfers?on_conflict=player_id,trip_id", {
+        method: "POST", prefer: "resolution=merge-duplicates", body: { player_id: playerId, trip_id: tripId, transfer },
+      });
+    },
+
+    async reserveTransfer(playerId, tripId, transfer) {
+      return request("/rpc/reserve_transfer", {
+        method: "POST", body: { owner: playerId, trip: tripId, pending: transfer },
+      });
     },
 
     async getImage(key) {
