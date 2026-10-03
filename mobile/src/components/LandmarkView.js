@@ -9,9 +9,11 @@ import "./threePolyfill.js"; // must stay first: three crashes on React Native w
 import { Canvas } from "@react-three/fiber/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { petPower } from "../core/pets.js";
+import { getPlaceSummary } from "../core/services.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
@@ -47,6 +49,27 @@ function hpAfter(b, round) {
   const loser = (start) => Math.max(0, start - (start / BATTLE_ROUNDS) * round);
   const winner = (start) => Math.max(8, start - scratch * round);
   return youWin ? { you: winner(b.start.you), them: loser(b.start.them) } : { you: loser(b.start.you), them: winner(b.start.them) };
+}
+
+// The landmark's own photo behind the 3D scene, darkened a little at the top
+// (for the title) and at the bottom (so the food and pets stand out).
+function Photo({ uri, title }) {
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityLabel={`Photo of ${title}`} />
+      <Svg style={StyleSheet.absoluteFill} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <Defs>
+          <LinearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#0b1f3a" stopOpacity={0.45} />
+            <Stop offset="0.3" stopColor="#0b1f3a" stopOpacity={0} />
+            <Stop offset="0.6" stopColor="#0b1f3a" stopOpacity={0} />
+            <Stop offset="1" stopColor="#0b1f3a" stopOpacity={0.4} />
+          </LinearGradient>
+        </Defs>
+        <Rect width="100" height="100" fill="url(#shade)" />
+      </Svg>
+    </View>
+  );
 }
 
 const SCENE_WIDTH = 3.8; // world units to fit across the screen at rest
@@ -97,6 +120,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const [ar, setAr] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   useTicker(3000);
+  const [fetchedPhoto, setFetchedPhoto] = useState(null);
 
   const walked = state.progress.walked;
   const landmark = landmarksView(state).find((l) => l.landmarkId === landmarkId);
@@ -105,6 +129,22 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     .map((s) => s.pet)
     .sort((a, b) => petPower(b, walked) - petPower(a, walked));
   const picked = fighters.find((p) => p.id === pickedId) ?? fighters[0] ?? null;
+
+  // Landmarks you found carry their Wikipedia photo; others look it up by name.
+  const knownPhoto = landmark?.photo ?? null;
+  const title = landmark?.title;
+  useEffect(() => {
+    if (knownPhoto || !title) return undefined;
+    let alive = true;
+    getPlaceSummary(title)
+      .then((summary) => alive && setFetchedPhoto(summary.photo ?? null))
+      .catch(() => {}); // no photo: the field stays
+    return () => {
+      alive = false;
+    };
+  }, [knownPhoto, title]);
+  const photo = knownPhoto ?? fetchedPhoto;
+
   if (!landmark) return null;
 
   const guard = landmark.guard;
@@ -180,7 +220,13 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.screen}>
-        {showCamera ? <CameraView style={StyleSheet.absoluteFill} facing="back" /> : <Field />}
+        {showCamera ? (
+          <CameraView style={StyleSheet.absoluteFill} facing="back" />
+        ) : photo ? (
+          <Photo uri={photo} title={landmark.title} />
+        ) : (
+          <Field />
+        )}
         <Canvas style={styles.canvas} gl={{ alpha: true }} camera={{ fov: 40 }} onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
           <FitCamera width={battle ? BATTLE_WIDTH : SCENE_WIDTH} />
           <ambientLight intensity={1.1} />
@@ -202,7 +248,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
           <Button title="✕ Close" variant="secondary" onPress={onClose} disabled={Boolean(battle)} />
-          <Button title={showCamera ? "🌳 Field" : "📷 AR"} variant={showCamera ? "primary" : "secondary"} onPress={toggleAr} />
+          <Button title={showCamera ? (photo ? "🖼️ Photo" : "🌳 Field") : "📷 AR"} variant={showCamera ? "primary" : "secondary"} onPress={toggleAr} />
         </View>
         <View style={[styles.titleWrap, { top: insets.top + 64 }]}>
           <Text style={styles.title} numberOfLines={2}>{landmark.title}</Text>

@@ -40,11 +40,14 @@ export function landmarksView(state) {
   const { turf } = petsView(state);
   const byId = new Map();
   for (const place of state.found) {
-    byId.set(String(place.id), { landmarkId: String(place.id), title: place.title, lat: place.lat, lon: place.lon, guard: null });
+    byId.set(String(place.id), { landmarkId: String(place.id), title: place.title, lat: place.lat, lon: place.lon, photo: place.photo ?? null, guard: null });
   }
   for (const t of turf) {
     const free = t.maxHp && hpNow(t) <= 0; // a guard at 0 HP has left
-    byId.set(String(t.landmarkId), { landmarkId: String(t.landmarkId), title: t.title, lat: t.lat, lon: t.lon, guard: free ? null : t });
+    const known = byId.get(String(t.landmarkId));
+    byId.set(String(t.landmarkId), {
+      landmarkId: String(t.landmarkId), title: t.title, lat: t.lat, lon: t.lon, photo: known?.photo ?? t.photo ?? null, guard: free ? null : t,
+    });
   }
   return [...byId.values()].map((l) => ({ ...l, food: foodOf(l.landmarkId) }));
 }
