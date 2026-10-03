@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 220" width="1680" height="440" role="img" aria-label="HuskiesPaws: walk more, explore more, save more">
+  <title>HuskiesPaws</title>
+  <svg x="10" y="10" width="200" height="200" viewBox="0 0 200 200">
+  
+  <defs>
+    <radialGradient id="badge" cx="50%" cy="38%" r="65%">
+      <stop offset="0" stop-color="#1c3a66"/>
+      <stop offset="1" stop-color="#0b1f3a"/>
+    </radialGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7d8ca3"/>
+      <stop offset="1" stop-color="#5b6b82"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Badge -->
+  <circle cx="100" cy="100" r="96" fill="url(#badge)"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="3"/>
+  <!-- Trail of tiny paw dots curving under the head -->
+  <g fill="#9fd8a3">
+    <circle cx="44" cy="150" r="3"/><circle cx="56" cy="160" r="3"/><circle cx="70" cy="167" r="3"/>
+  </g>
+
+  <!-- Ears -->
+  <path d="M56 86 L66 30 L98 66 Z" fill="url(#fur)"/>
+  <path d="M144 86 L134 30 L102 66 Z" fill="url(#fur)"/>
+  <path d="M64 74 L69 44 L87 64 Z" fill="#f4c6d2"/>
+  <path d="M136 74 L131 44 L113 64 Z" fill="#f4c6d2"/>
+
+  <!-- Head (dark fur) -->
+  <path d="M100 58 C138 58 154 84 152 110 C150 138 128 158 100 158 C72 158 50 138 48 110 C46 84 62 58 100 58 Z" fill="url(#fur)"/>
+
+  <!-- White husky mask: eye patches dipping into a "widow's peak" V between the eyes -->
+  <path d="M60 124 C55 109 59 95 69 88 C75 84 84 84 90 89 L100 106 L110 89 C116 84 125 84 131 88 C141 95 145 109 140 124 C134 142 118 154 100 154 C82 154 66 142 60 124 Z" fill="#ffffff"/>
+
+  <!-- Eyebrow dots (classic husky markings) -->
+  <ellipse cx="80" cy="79" rx="5" ry="3" fill="#ffffff"/>
+  <ellipse cx="120" cy="79" rx="5" ry="3" fill="#ffffff"/>
+
+  <!-- Ice-blue eyes -->
+  <g>
+    <ellipse cx="81" cy="104" rx="7.5" ry="6.5" fill="#0b1f3a"/>
+    <ellipse cx="81" cy="104" rx="5.5" ry="5" fill="#6ec6ff"/>
+    <circle cx="81" cy="104" r="2.4" fill="#0b1f3a"/>
+    <circle cx="83" cy="102" r="1.3" fill="#ffffff"/>
+    <ellipse cx="119" cy="104" rx="7.5" ry="6.5" fill="#0b1f3a"/>
+    <ellipse cx="119" cy="104" rx="5.5" ry="5" fill="#6ec6ff"/>
+    <circle cx="119" cy="104" r="2.4" fill="#0b1f3a"/>
+    <circle cx="121" cy="102" r="1.3" fill="#ffffff"/>
+  </g>
+
+  <!-- Nose and smile -->
+  <path d="M92 120 Q100 115 108 120 Q106 128 100 130 Q94 128 92 120 Z" fill="#0b1f3a"/>
+  <ellipse cx="97" cy="120" rx="2.2" ry="1.2" fill="#ffffff" opacity="0.6"/>
+  <path d="M100 130 L100 136 M100 136 Q93 143 87 137 M100 136 Q107 143 113 137" stroke="#0b1f3a" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <!-- Pink cheeks -->
+  <ellipse cx="70" cy="126" rx="6" ry="3.5" fill="#f4a3b8" opacity="0.55"/>
+  <ellipse cx="130" cy="126" rx="6" ry="3.5" fill="#f4a3b8" opacity="0.55"/>
+
+  <!-- Blooming paw print: toe pads are flower petals -->
+  <g transform="translate(150 148)">
+    <circle r="27" fill="#ffffff"/>
+    <circle r="27" fill="none" stroke="#0b1f3a" stroke-width="2.5"/>
+    <ellipse cx="0" cy="6" rx="10" ry="8.5" fill="#4caf50"/>
+    <ellipse cx="-12" cy="-6" rx="5" ry="6.5" fill="#f48fb1" transform="rotate(-20 -12 -6)"/>
+    <ellipse cx="-4" cy="-12" rx="5" ry="6.5" fill="#ffd54f"/>
+    <ellipse cx="6" cy="-11" rx="5" ry="6.5" fill="#f48fb1" transform="rotate(10 6 -11)"/>
+    <ellipse cx="13" cy="-3" rx="5" ry="6.5" fill="#ffd54f" transform="rotate(25 13 -3)"/>
+    <circle cx="0" cy="6" r="3" fill="#ffd54f"/>
+  </g>
+</svg>
+  <text x="232" y="122" font-family="Nunito, 'Arial Rounded MT Bold', 'Trebuchet MS', Arial, sans-serif" font-size="78" font-weight="900" letter-spacing="-1">
+    <tspan fill="#0b1f3a">Huskies</tspan><tspan fill="#2e9d4f">Paws</tspan>
+  </text>
+  <text x="236" y="168" font-family="Nunito, 'Arial Rounded MT Bold', 'Trebuchet MS', Arial, sans-serif" font-size="24" font-weight="800" fill="#5b6b82" letter-spacing="1.2">WALK MORE · EXPLORE MORE · SAVE MORE</text>
+</svg>
