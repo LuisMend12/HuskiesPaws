@@ -27,11 +27,11 @@ You need:
    npm run tunnel
    ```
 
-   This is the same as `npx expo start --tunnel`.
+   This runs [`scripts/tunnel.mjs`](scripts/tunnel.mjs): a free **Cloudflare quick tunnel** (no account), then Expo pointed at it.
 
-   - `npm install` already installs `@expo/ngrok` (it's a dev dependency), so the tunnel starts right away.
-   - **If Expo still asks to install `@expo/ngrok`,** say **yes**. If it then stops with `CommandError: Install @expo/ngrok@^4.1.0 and try again`, even though the install worked, **run the same command again** and it works.
-   - Wait for **Tunnel ready**. The QR code's address should look like `exp://….exp.direct`. The first load takes about 30 seconds.
+   - Wait for **Tunnel ready**. The QR code's address should look like `exp://….trycloudflare.com`. The first load takes about 30 seconds.
+   - The address changes every time you start it, so scan the new QR code each time.
+   - **Why not `expo start --tunnel`?** Expo's built-in tunnel uses one ngrok account shared by every Expo user. When it's full, it fails with `CommandError: TypeError: Cannot read properties of undefined (reading 'body')` (ngrok error `ERR_NGROK_108`). The old way is still there as `npm run tunnel:ngrok`.
 
 4. **Scan the QR code.** On iPhone, use the Camera app. On Android, scan from inside Expo Go. Allow **location, camera and motion** access when the app asks.
 
@@ -109,7 +109,7 @@ npx expo export --platform android --platform ios   # bundles the app; catches i
 
 Run all three before pushing changes to the phone app. The export writes to `dist/`, which git ignores.
 
-The app now runs on a real phone through Expo Go with `--tunnel`. Still test the full loop (explore, walk there, capture) on both iPhone and Android before the demo.
+The app now runs on a real phone through Expo Go with `npm run tunnel`. Still test the full loop (explore, walk there, capture) on both iPhone and Android before the demo.
 
 ## Known limits and next steps
 
