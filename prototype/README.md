@@ -12,8 +12,13 @@ A quick concept demo of [Wanderlings](../docs/ideas/12-wanderlings.tex): a walki
   - On Mac, use `python3` instead of `python` in the commands below.
 - An internet connection. The app loads map tiles and Wikipedia data live.
 - A modern browser such as Chrome, Edge, Firefox or Safari.
+- A free **Mapbox access token** for the map. Sign up at [mapbox.com](https://account.mapbox.com/) and copy your **default public token**, which starts with `pk.`. Put it in a `.env` file at the **repo root** (git ignores it):
 
-No API keys, no `npm install` and no build step.
+  ```
+  MAPBOXKEY = pk.your-token-here
+  ```
+
+There's no `npm install` and no build step.
 
 ### Steps
 
@@ -26,12 +31,16 @@ No API keys, no `npm install` and no build step.
 2. **Start the local server.**
 
    ```bash
-   python -m http.server 8765
+   python serve.py
    ```
 
-   You should see `Serving HTTP on :: port 8765`. Leave this terminal open.
+   You should see `Serving Wanderlings at http://localhost:8765`. Leave this terminal open.
+
+   `serve.py` works like `python -m http.server`, but also passes the Mapbox token from `.env` to the page. It only passes `MAPBOXKEY`, so other keys in `.env` never reach the browser.
 
 3. **Open the app** at **http://localhost:8765**.
+
+   If the map asks for a token instead, `serve.py` didn't find `MAPBOXKEY` in `.env`. You can also paste the token there and click **Show map**. That's saved in the browser, which is how the map works on hosts without `serve.py`, such as GitHub Pages.
 
 4. **Stop the server** when you're done by pressing `Ctrl+C` in the terminal.
 
@@ -64,9 +73,10 @@ Phone browsers only share location over **HTTPS** or on **localhost**. Opening `
 | Problem | Fix |
 |---|---|
 | `python: command not found` | Try `python3` or `py`. Otherwise, install Python 3. |
-| `Address already in use` | Port 8765 is taken. Use another port, such as `python -m http.server 8800`, and open that port. |
+| `Address already in use` | Port 8765 is taken. Use another port, such as `python serve.py 8800`, and open that port. |
 | The page is blank or buttons don't work | Make sure you opened `http://localhost:...` and not the file directly. Check the browser console (F12) for errors. |
-| The map is gray and has no tiles | No internet connection, or map tiles are blocked on this network. |
+| The map asks for a token | Check that `.env` is at the repo root, has a line `MAPBOXKEY = pk.…`, and that you started the app with `python serve.py`. Or paste the token into the form. To change it later, clear the site's data in the browser, or run `localStorage.removeItem("wanderlings:mapboxToken")` in the console and reload. |
+| The map stays blank after adding a token | The token is wrong, or it's restricted to other URLs. Check the console (F12) for a Mapbox error. No internet connection, or a network that blocks `api.mapbox.com`, also causes this. |
 | "Pip got lost (network problem)" | Wikipedia didn't respond. Wait a moment and try again. |
 | The route is a straight line | The walking-route server was unavailable, so the app fell back to a straight line. It's still usable. |
 | No sound | Unmute the tab. Some browsers only speak after you've clicked something on the page. |
@@ -141,7 +151,7 @@ The game logic is plain JavaScript with no browser-specific code, so it can be c
 | `js/agents.js`: agents and memos | `js/app.js`, `js/views.js`, `index.html`, `styles.css`: the screens |
 | `js/rank.js`: points, ranks and trail unlocks |
 | `js/savings.js`: fare estimates and tree stages |
-| `js/nessie.js`: Capital One Nessie client (`fetch`) | `js/map.js`: Leaflet, replaced by `react-native-maps` |
+| `js/nessie.js`: Capital One Nessie client (`fetch`) | `js/map.js`: Mapbox GL JS, replaced by `react-native-maps` |
 | `js/leaderboard.js`: leaderboard building | `js/capture.js`: the camera, replaced by `expo-camera` or AR |
 | `js/geo.js`: distances and math | `js/storage.js`: localStorage, replaced by AsyncStorage |
 | `js/config.js`: settings | `js/voice.js`: browser speech, replaced by the Grok Voice API |
@@ -163,4 +173,4 @@ Call Grok from a small backend that holds the API key. Never put the key in brow
 - Walking routes: routing.openstreetmap.de (OSRM foot profile). If it's unavailable, the app falls back to a straight line.
 - Your region, for leaderboards: OpenStreetMap Nominatim, called once per session
 - Banking: Capital One Nessie (mock data), when connected
-- Map tiles: OpenStreetMap
+- Map: Mapbox GL JS with the Mapbox Standard style (needs a public access token)
