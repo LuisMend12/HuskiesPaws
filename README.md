@@ -129,18 +129,115 @@ _TODO (team): describe how you used Cursor (Agent mode, Tab, rules files), with 
 - Friends and shared campus gardens.
 - Real accounts, and server-side checks against fake steps.
 
-## Run it
+## Getting started
 
-| Version | Run it | Guide |
+### 1. Install the tools
+
+| Tool | Version | Needed for |
 |---|---|---|
-| 🌐 **Web app + server** (Grok, leaderboards, turf) | `cd server` then `npm start`, and open http://localhost:8765 | [server/README.md](server/README.md) |
-| 🌐 Web app only (no server features) | `cd prototype` then `python serve.py` | [prototype/README.md](prototype/README.md) |
-| 📱 **Phone app** | `cd mobile`, `npm install`, `npx expo start`, then scan with Expo Go | [mobile/README.md](mobile/README.md) |
-| 💬 **iMessage agent** | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys) or `npm start` | [imessage-agent/README.md](imessage-agent/README.md) |
+| [Node.js](https://nodejs.org/) | **22.9 or newer** | Server, phone app, iMessage agent, tests |
+| [Python](https://www.python.org/) | 3.8 or newer | Only for the no-server web app (`serve.py`) |
+| [Git](https://git-scm.com/) | any | Cloning the repo |
+| **Expo Go** app on your phone | latest (SDK 57) | The phone app (App Store or Google Play) |
 
-Keys go in a root `.env` file, which git ignores. See [server/.env.example](server/.env.example) and [imessage-agent/.env.example](imessage-agent/.env.example). The app runs without keys, using fallbacks.
+Check them with `node --version`, `python --version` and `git --version`.
 
-**Tests:** `npm test` in `prototype/` (game logic), `server/` (API, using a fake Grok service) and `imessage-agent/` (full conversation).
+### 2. Clone the repo and add your keys
+
+```bash
+git clone https://github.com/LuisMend12/big-red-hacks2026.git
+cd big-red-hacks2026
+```
+
+Create a file named **`.env`** in the repo root. It's git-ignored, so keys never get committed. **Every key is optional:** without one, that feature uses a fallback.
+
+```ini
+# Grok Voice + Grok Imagine (console.x.ai -> API Keys)
+XAI_API_KEY=
+# Map (public Mapbox token, starts with pk.)
+MAPBOXKEY=
+# Optional: keeps leaderboards and turf across restarts (Supabase -> Project Settings -> API)
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=
+```
+
+The iMessage agent has its own `.env` (step 6). Templates: [server/.env.example](server/.env.example) and [imessage-agent/.env.example](imessage-agent/.env.example).
+
+### 3. 🌐 Web app + server (the full app: Grok, live leaderboards, turf)
+
+```bash
+cd server
+npm start
+```
+
+Then open **http://localhost:8765**. The server has no dependencies, so there's no `npm install` step. The startup line shows what's on, for example `Grok: on · storage: file · map: Mapbox`. Stop it with `Ctrl+C`. Guide: [server/README.md](server/README.md).
+
+### 4. 🌐 Web app only (no server)
+
+For a quick look without Node. It has no Grok, live leaderboards or turf; it uses browser speech and sample leaderboards instead.
+
+```bash
+cd prototype
+python serve.py
+```
+
+Then open **http://localhost:8765**. On a Mac, use `python3`. Guide: [prototype/README.md](prototype/README.md).
+
+### 5. 📱 Phone app (Expo)
+
+```bash
+cd mobile
+npm install
+npm run tunnel
+```
+
+Wait for **"Tunnel ready."**, then scan the QR code: with the **Camera** app on iPhone, or **inside Expo Go** on Android. Tunnel mode works on any network, including the venue's guest Wi-Fi, which blocks the normal mode. On a home network where the phone and laptop share Wi-Fi, `npx expo start` is faster. Guide and troubleshooting: [mobile/README.md](mobile/README.md).
+
+### 6. 💬 iMessage agent (Photon)
+
+Try it in your terminal first. No keys are needed:
+
+```bash
+cd imessage-agent
+npm install
+npm run terminal
+```
+
+Type `hi`, `explore`, `take me there`, `arrived` and `savings`.
+
+To use it on real iMessage, add your Photon keys (from [app.photon.codes](https://app.photon.codes/) → your project → **Settings**):
+
+```bash
+cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
+# edit .env: SPECTRUM_PROJECT_ID, SPECTRUM_PROJECT_SECRET, and DEMO_PHONE_NUMBER (your number)
+npm start
+```
+
+Pip texts your `DEMO_PHONE_NUMBER` first, so just reply. Guide: [imessage-agent/README.md](imessage-agent/README.md).
+
+### 7. ✅ Run the tests
+
+```bash
+cd prototype && npm test        # game logic: eggs, pets, ranks, savings
+cd ../server && npm test        # API: Grok requests (fake xAI), turf, leaderboards, security
+cd ../imessage-agent && npm test   # a full iMessage conversation (needs internet)
+cd ../mobile && npx expo lint   # phone app lint
+```
+
+### 8. 🚀 Deploy with HTTPS (for phones and judging)
+
+Push to GitHub. Then in [Render](https://render.com) choose **New → Blueprint**, pick this repo (it reads [render.yaml](render.yaml)), and enter `XAI_API_KEY` and `MAPBOXKEY`. Open the `https://…onrender.com` link and check `/api/health`. Details: [server/README.md](server/README.md#deploy-with-https-render-free).
+
+### Quick fixes
+
+| Problem | Fix |
+|---|---|
+| `npx` / `npm` "running scripts is disabled" (PowerShell) | Use **Command Prompt**, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once |
+| `python` not found | Try `python3` or `py` |
+| Port 8765 is already in use | Stop the other server (`Ctrl+C`), or run `PORT=8800 npm start` (PowerShell: `$env:PORT=8800; npm start`) |
+| Phone app spins forever | Use `npm run tunnel` (guest Wi-Fi blocks the normal mode) |
+| Map asks for a token | Add `MAPBOXKEY` to the root `.env`, or paste the token into the map's form |
+| `/api/health` shows `"grok":false` | Add `XAI_API_KEY` to the root `.env` and restart the server |
 
 ## Submission checklist (due Sunday 8:30 AM on Devpost)
 

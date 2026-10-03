@@ -6,18 +6,32 @@ The mobile version of [Wanderlings](../README.md): walk, and your trail blooms. 
 
 ## Run it on your phone (Expo Go)
 
-You need Node.js 18 or newer, and the **Expo Go** app on your phone (from the App Store or Google Play).
+You need Node.js 18 or newer, and the latest **Expo Go** app on your phone (from the App Store or Google Play). This project uses **Expo SDK 57**.
+
+**At the hackathon, use tunnel mode.** Guest Wi-Fi (like Cornell-Visitor) blocks phones from reaching your laptop, so the normal mode times out. Tunnel mode serves the app through a public HTTPS link that works on any network, even cellular:
 
 ```bash
 cd big-red-hacks2026/mobile
 npm install
-npx expo start
+npm run tunnel
 ```
 
-Scan the QR code. On iPhone, use the Camera app. On Android, scan from inside Expo Go. Your phone and laptop must be on the same Wi-Fi.
+Wait for **"Tunnel ready."**, then scan the QR code. On iPhone, use the Camera app. On Android, scan from inside Expo Go. The first load takes about 30 seconds.
 
-- **Venue Wi-Fi blocks the connection?** Use `npx expo start --tunnel`.
+On a home network where the phone and laptop share Wi-Fi, `npx expo start` (no tunnel) also works and is faster.
+
 - **No phone?** `npx expo start --android` opens an Android emulator, if you have Android Studio installed. Running on iOS needs a Mac.
+
+### If it won't open
+
+| What you see | Fix |
+|---|---|
+| Loading spins forever, "Could not connect to development server", or a timeout | The network blocks it. Use `npm run tunnel`. |
+| "Project is incompatible with this version of Expo Go" | Update Expo Go from the app store. The project needs SDK 57. |
+| `npx` isn't recognized in PowerShell, or "running scripts is disabled" | Run the commands in **Command Prompt** instead, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once. |
+| Tunnel says ngrok is missing | Run `npm install` again in `mobile/`. `@expo/ngrok` is a dev dependency. |
+| A red error screen on the phone | Take a photo of it and send it over. That's a code bug, not a setup problem. |
+| The QR code shows an address like `172.21.…` or `10.195.…` | Your laptop has several network adapters (WSL, VPN). Use `npm run tunnel`. |
 
 No API keys are needed. Allow location, camera and motion access when the app asks.
 
