@@ -32,6 +32,7 @@
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="squad" aria-selected="true">Squad</button>
         <button role="tab" data-tab="ranks" aria-selected="false">Ranks</button>
+        <button role="tab" data-tab="savings" aria-selected="false">Savings</button>
         <button role="tab" data-tab="album" aria-selected="false">Album</button>
       </nav>
 
@@ -53,6 +54,26 @@
         <ol id="leaderboard" class="leaderboard"></ol>
         <p class="hint">Other players are sample data until the app has a backend.</p>
         <button id="btn-reset" class="secondary">Reset my progress</button>
+      </div>
+
+      <div id="tab-savings" class="tab-panel" hidden>
+        <div class="savings-hero">
+          <div id="tree" class="tree"></div>
+          <div>
+            <p id="savings-total" class="savings-total"></p>
+            <p id="savings-stage" class="savings-stage"></p>
+            <p class="hint">Every walk over 300 m counts as a rideshare trip you skipped. The fare is an estimate, not a real Uber price.</p>
+          </div>
+        </div>
+        <h3 class="leaderboard-title">Recent walks</h3>
+        <ul id="trips" class="trips"></ul>
+        <h3 class="leaderboard-title">Capital One Nessie</h3>
+        <p id="bank-status" class="hint"></p>
+        <form id="bank-form" class="bank-form">
+          <label for="nessie-key">Nessie API key</label>
+          <input id="nessie-key" type="password" autocomplete="off" placeholder="Paste your key from the Nessie site">
+          <button type="submit">Connect</button>
+        </form>
       </div>
 
       <div id="tab-album" class="tab-panel" hidden>

@@ -94,6 +94,10 @@ export function renderSavings(nodes, { saved, stage, trips, bankStatus, treeMark
     ? `${stage.current.emoji} ${stage.current.name} · ${format(stage.next.min - saved)} to ${stage.next.emoji} ${stage.next.name}`
     : `${stage.current.emoji} ${stage.current.name} · fully grown!`;
   nodes.bank.textContent = bankStatus;
+  if (trips.length === 0) {
+    nodes.trips.replaceChildren(el("li", "hint", "No walks yet. Walk somewhere instead of riding to plant your first savings."));
+    return;
+  }
   nodes.trips.replaceChildren(
     ...trips.slice(0, 8).map((trip) => {
       const li = el("li");

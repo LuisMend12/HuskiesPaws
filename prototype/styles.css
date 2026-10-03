@@ -209,3 +209,32 @@ button.secondary:hover:not(:disabled) { background: #dfe9d9; }
 .frame-corners { position: absolute; inset: 15%; border: 3px dashed rgba(255, 255, 255, 0.7); border-radius: 16px; }
 .capture-hint { color: #ccc; padding: 8px 16px 0; margin: 0; }
 .capture .postcard-actions { padding-top: 12px; }
+
+/* ---------- Savings ---------- */
+.savings-hero { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: center; }
+.tree svg { width: 140px; height: 140px; display: block; }
+.savings-total { font-size: 1.4rem; font-weight: 700; color: var(--leaf-dark); margin: 0; }
+.savings-stage { margin: 4px 0; font-size: 0.9rem; }
+.trips { list-style: none; margin: 0; padding: 0; }
+.trips li:not(.hint) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "place amount" "meta amount";
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.trips li:nth-child(odd):not(.hint) { background: #f8f6ee; }
+.trip-place { grid-area: place; font-weight: 600; font-size: 0.9rem; }
+.trip-meta { grid-area: meta; font-size: 0.75rem; color: var(--muted); }
+.trip-amount { grid-area: amount; align-self: center; font-weight: 700; color: var(--leaf-dark); }
+.bank-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bank-form label { width: 100%; font-size: 0.85rem; font-weight: 600; }
+.bank-form input {
+  flex: 1;
+  min-width: 180px;
+  font: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.bank-form input:focus { outline: 2px solid var(--leaf); outline-offset: 1px; }

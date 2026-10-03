@@ -115,10 +115,11 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 | 🏆 **Ranks** | Points come from steps walked, landmarks found and landmarks captured. The ranks run 🌱 Seedling → 🌿 Sprout → 🌷 Bud → 🌸 Blossom → 🌳 Grove → 🌲 Ancient Oak. |
 | 🌍 **Leaderboards** | **Local** (your city), **Statewide** and **National** rankings, based on your GPS location. |
 | 🌸 **Custom trails** | Each rank unlocks a new trail with its own flowers and path color, such as Rose Garden, Cherry Blossom, Forest Floor and Starlight. Your trail upgrades when you rank up, or you can pick any trail you've unlocked. |
+| 💰 **Walk-instead-of-ride savings** | Each walk over 300 m counts as an Uber you skipped. The estimated fare moves into a savings account through **Capital One's Nessie API**, and the money **grows your savings tree** from 🌰 seed to 🍎 fruit tree. |
 | 📸 **AR landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
 | 🎙️ **Grok** | **Grok Voice** gives agents their voice memos. **Grok Imagine** makes postcard illustrations and creature art. |
 
-**Tracks:** Cursor (SpaceX), Big Red, People's Choice and Design. It can also enter Photon if the agents text you in iMessage.
+**Tracks:** Cursor (SpaceX), **Capital One (Best Use of Nessie)**, Big Red, People's Choice and Design. It can also enter Photon if the agents text you in iMessage.
 
 - **Try it:** a working prototype of everything above is in [`prototype/`](prototype/). See [prototype/README.md](prototype/README.md) to run it. It's a throwaway prototype; the submission must be built in Cursor.
 - **Idea sheet:** [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex)

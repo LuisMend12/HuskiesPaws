@@ -1,0 +1,266 @@
+// Game actions. A port of prototype/js/app.js without the DOM: everything the
+// screens show comes from the store, and screens call these actions.
+import { AGENTS, choosePlace, expeditionDuration, routeMemo, scoutMemo, storyMemo } from "../core/agents.js";
+import { ALBUM_MAX_CARDS } from "../core/config.js";
+import { distanceMeters, pathLength } from "../core/geo.js";
+import { setupBank, transferToSavings } from "../core/nessie.js";
+import { rankFor } from "../core/rank.js";
+import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../core/savings.js";
+import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute } from "../core/services.js";
+import { clearKeys, loadAll, saveAll } from "../storage.js";
+import { speakMemo } from "../voice.js";
+import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, savedFields, scoreOf } from "./state.js";
+import { createStore } from "./store.js";
+import { createWalking } from "./walking.js";
+
+const agentById = (id) => AGENTS.find((a) => a.id === id);
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export function createGame() {
+  const store = createStore(INITIAL_STATE);
+  const get = store.getState;
+  const set = store.setState;
+  const say = (status) => set({ status });
+  const persist = () => saveAll(savedFields(get()));
+  const gainXp = (agentId) => ({ xp: { ...get().xp, [agentId]: get().xp[agentId] + 1 } });
+
+  const walking = createWalking(store, {
+    onArrive: (place, meters) => arrive(place, meters),
+    onRegionFound: async (position) => set({ region: await getRegion(position, get().region) }),
+    persist,
+  });
+
+  async function load() {
+    const saved = await loadAll(SAVED_DEFAULTS);
+    set({ ...saved, loaded: true, rankName: rankFor(scoreOf({ ...get(), ...saved })).current.name });
+    walking.stepTo(get().position, { countDistance: false, countSteps: false }); // first bloom
+  }
+
+  function checkRankUp(agent) {
+    const rank = rankFor(scoreOf(get())).current;
+    if (rank.name === get().rankName) return;
+    const message = `Rank up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`;
+    set({ rankName: rank.name, status: message });
+    speakMemo(message, agent ?? agentById("scout"));
+  }
+
+  function award(progressPatch, agent) {
+    set({ progress: { ...get().progress, ...progressPatch } });
+    persist();
+    checkRankUp(agent);
+  }
+
+  // ---------- Agents ----------
+
+  async function runExpedition(agent) {
+    set({ away: [...get().away, agent.id], status: `${agent.name} is looking around…` });
+    try {
+      const state = get();
+      const places = await findNearbyPlaces(state.position);
+      const known = new Set([...state.visited, ...state.found.map((p) => p.id)]);
+      const place = choosePlace(places, state.position, known);
+      if (!place) {
+        say(`${agent.name} couldn't find anywhere new nearby. Try walking somewhere else!`);
+        return;
+      }
+      say(`${agent.name} is heading toward ${place.title}…`);
+      const [summary] = await Promise.all([getPlaceSummary(place.title), wait(expeditionDuration(place.distance))]);
+      const memo = scoutMemo(place, summary);
+      const foundPlace = { id: place.id, title: place.title, lat: place.lat, lon: place.lon, photo: summary.photo };
+      set({
+        discovery: { place, summary, memo, agentId: agent.id },
+        postcardOpen: true,
+        found: [...get().found, foundPlace],
+        status: `${agent.name} found ${place.title}!`,
+        ...gainXp(agent.id),
+      });
+      award({ landmarksFound: get().progress.landmarksFound + 1 }, agent);
+      speakMemo(memo, agent);
+    } catch (error) {
+      console.error("Expedition failed:", error);
+      say(`${agent.name} got lost (network problem). Try again in a moment.`);
+    } finally {
+      set({ away: get().away.filter((id) => id !== agent.id) });
+    }
+  }
+
+  async function tellStory(agent) {
+    say(`${agent.name} is remembering a story…`);
+    try {
+      const position = get().position;
+      const [nearest] = (await findNearbyPlaces(position))
+        .map((p) => ({ ...p, distance: distanceMeters(position, p) }))
+        .sort((a, b) => a.distance - b.distance);
+      if (!nearest) {
+        say(`${agent.name} doesn't know any stories about this spot.`);
+        return;
+      }
+      const memo = storyMemo(nearest, await getPlaceSummary(nearest.title));
+      set({ status: memo, ...gainXp(agent.id) });
+      speakMemo(memo, agent);
+      persist();
+    } catch (error) {
+      console.error("Story failed:", error);
+      say(`${agent.name} forgot the story (network problem).`);
+    }
+  }
+
+  async function guideToDiscovery() {
+    const agent = agentById("pathfinder");
+    const target = get().discovery?.place;
+    if (!target) return;
+    set({ postcardOpen: false, status: `${agent.name} is planning a route…` });
+    const route = await getWalkingRoute(get().position, target);
+    const meters = route.distance ?? pathLength(route.points);
+    set({ route: route.points, ...gainXp(agent.id) });
+    speakMemo(routeMemo(target, route), agent);
+    persist();
+    if (get().demoMode) {
+      await walking.walkAlong(route.points);
+      arrive(target, meters);
+      return;
+    }
+    set({ guide: { place: target, meters }, status: `Walk to ${target.title}. Fern will tell you when you arrive!` });
+    if (!(await walking.startLiveLocation())) set({ guide: null });
+  }
+
+  function arrive(place, meters) {
+    const arrived = get().found.find((p) => p.id === place.id) ?? null;
+    set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
+    const savings = recordWalkSavings(place.title, meters);
+    say(`You made it to ${place.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
+    speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
+    checkRankUp(null);
+  }
+
+  async function demoWalk() {
+    say("Going for a little walk…");
+    try {
+      const state = get();
+      const target = choosePlace(await findNearbyPlaces(state.position), state.position, new Set(state.visited));
+      if (!target) {
+        say("Nowhere new to walk to nearby.");
+        return;
+      }
+      const route = await getWalkingRoute(state.position, target);
+      const rankBefore = get().rankName;
+      await walking.walkAlong(route.points);
+      const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
+      checkRankUp(null);
+      if (get().rankName === rankBefore) say(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);
+    } catch (error) {
+      console.error("Demo walk failed:", error);
+      say("Couldn't plan a walk (network problem).");
+    }
+  }
+
+  // ---------- Savings (Capital One Nessie) ----------
+
+  function recordWalkSavings(title, meters) {
+    const amount = estimateRideFare(meters);
+    if (amount === null) return "";
+    const stageBefore = treeStage(totalSaved(get().trips)).current;
+    const trip = { id: `${Date.now()}`, title, meters, amount, date: new Date().toISOString(), nessieId: null };
+    set({ trips: [trip, ...get().trips] });
+    persist();
+    syncTripToNessie(trip);
+    const stageAfter = treeStage(totalSaved(get().trips)).current;
+    const grew = stageAfter.name !== stageBefore.name ? ` Your tree grew into a ${stageAfter.emoji} ${stageAfter.name}!` : "";
+    return `You skipped a ~${formatDollars(amount)} ride, and it went into savings 🌳.${grew}`;
+  }
+
+  async function syncTripToNessie(trip) {
+    const { bank, nessieKey } = get();
+    if (!bank || !nessieKey) return;
+    try {
+      const nessieId = await transferToSavings(nessieKey, bank, trip.amount, `Walked to ${trip.title} instead of riding`);
+      set({ trips: get().trips.map((t) => (t.id === trip.id ? { ...t, nessieId } : t)) });
+      persist();
+    } catch (error) {
+      console.warn("Nessie transfer failed; kept in the local ledger:", error);
+      say(`Saved ${formatDollars(trip.amount)} locally. Nessie didn't respond, so the transfer wasn't sent.`);
+    }
+  }
+
+  async function connectBank(key) {
+    const trimmed = key.trim();
+    if (!trimmed) {
+      say("Paste your Nessie API key first.");
+      return false;
+    }
+    say("Connecting to Capital One Nessie…");
+    try {
+      const bank = await setupBank(trimmed, "Wanderlings");
+      set({ bank, nessieKey: trimmed, status: "Connected! New walks will move their savings into your Nessie savings account." });
+      persist();
+      return true;
+    } catch (error) {
+      console.error("Nessie setup failed:", error);
+      say(`Couldn't connect to Nessie (${error.message}). Savings still work in demo mode.`);
+      return false;
+    }
+  }
+
+  // ---------- Capture ----------
+
+  function saveCapture(image) {
+    const place = get().capturable;
+    if (!place) return;
+    const scout = agentById("scout");
+    const card = { id: place.id, title: place.title, image, date: new Date().toISOString(), agentId: scout.id };
+    set({
+      album: [card, ...get().album].slice(0, ALBUM_MAX_CARDS),
+      capturable: null,
+      captureOpen: false,
+      tab: "album",
+      status: `${place.title} added to your album!`,
+    });
+    speakMemo(`Got it! ${place.title} is in your album.`, scout);
+    award({ landmarksCaptured: get().progress.landmarksCaptured + 1 }, scout);
+  }
+
+  // ---------- Settings ----------
+
+  async function resetProgress() {
+    await clearKeys(RESETTABLE_KEYS);
+    walking.resetTrail();
+    const fresh = Object.fromEntries(RESETTABLE_KEYS.map((key) => [key, SAVED_DEFAULTS[key]]));
+    set({
+      ...fresh,
+      blooms: [],
+      trailSegments: [],
+      capturable: null,
+      discovery: null,
+      rankName: rankFor(0).current.name,
+      status: "Progress reset. Fresh start! 🌱",
+    });
+    walking.stepTo(get().position, { countDistance: false, countSteps: false });
+  }
+
+  const actions = {
+    scout: runExpedition,
+    storyteller: tellStory,
+    pathfinder: guideToDiscovery,
+  };
+
+  return {
+    store,
+    load,
+    runAgent: (agent) => actions[agent.id](agent),
+    guideToDiscovery,
+    demoWalk,
+    startLiveLocation: walking.startLiveLocation,
+    connectBank,
+    saveCapture,
+    resetProgress,
+    replayMemo: () => {
+      const { discovery } = get();
+      if (discovery) speakMemo(discovery.memo, agentById(discovery.agentId));
+    },
+    set: (patch) => set(patch),
+    setTrailChoice: (trailChoice) => {
+      set({ trailChoice });
+      persist();
+    },
+  };
+}

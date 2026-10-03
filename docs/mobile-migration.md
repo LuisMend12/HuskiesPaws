@@ -37,7 +37,7 @@ Real leaderboards also need a **backend**. That's true on the web too, but it be
 
 | Copy as-is | Rewrite |
 |---|---|
-| `agents.js`, `rank.js` (including trails), `leaderboard.js`, `geo.js`, `config.js` | Screens: `app.js`, `views.js`, `index.html` and `styles.css` become React Native components |
+| `agents.js`, `rank.js` (including trails), `leaderboard.js`, `geo.js`, `config.js`, `savings.js`, `art.js` (SVG strings render with `react-native-svg`'s `SvgXml`), `nessie.js` (no CORS limits on mobile) | Screens: `app.js`, `views.js`, `index.html` and `styles.css` become React Native components |
 | `services.js` (`fetch` works in React Native) | `map.js` becomes `react-native-maps` |
 | | `capture.js` becomes `expo-camera`, then ViroReact for real AR |
 | | `storage.js` becomes AsyncStorage (same `load`/`save` interface) |

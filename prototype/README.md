@@ -43,9 +43,10 @@ No API keys, no `npm install` and no build step.
 2. On the postcard, click **Take me there**. Fern plans a walking route and walks you there, and flowers bloom along your trail.
 3. When you arrive, click **📸 Capture**. The camera opens with Pip in the frame. Snap the landmark, and it's saved as a postcard in your **Album** tab.
 4. Open the **Ranks** tab, or click the rank badge at the top right. Watch your points go up, and switch between the **Local**, **Statewide** and **National** leaderboards. After your first rank-up, your trail changes from 🌱 sprouts to 🌼 meadow flowers. You can pick any unlocked trail under **Your trail**.
-5. Click **Tell a story**. Moss reads the history of the nearest landmark.
-6. Click **Demo walk** to take a quick walk somewhere new, then click **Explore** again from there.
-7. Optional: click **Use my location** to make your real walk bloom (see the phone notes below).
+5. Open the **Savings** tab. The walk you just took counted as an ~$8 ride you skipped, so your tree has sprouted. Optionally, connect a Capital One Nessie key there.
+6. Click **Tell a story**. Moss reads the history of the nearest landmark.
+7. Click **Demo walk** to take a quick walk somewhere new, then click **Explore** again from there.
+8. Optional: click **Use my location** to make your real walk bloom (see the phone notes below).
 
 Your progress (steps, landmarks, album, agent levels) is saved in the browser. To start over before a demo, use **Ranks → Reset my progress**.
 
@@ -71,7 +72,9 @@ Phone browsers only share location over **HTTPS** or on **localhost**. Opening `
 | No sound | Unmute the tab. Some browsers only speak after you've clicked something on the page. |
 | The Capture button is grayed out | You need to be at a landmark Pip found. Use **Take me there** first. |
 | The camera doesn't open | Allow camera access in the browser. The camera only works on localhost or HTTPS. Without it, capture uses the Wikipedia photo. |
-| You want a clean slate for a demo | **Ranks → Reset my progress** |
+| You want a clean slate for a demo | **Ranks → Reset my progress**. This keeps your Nessie connection. |
+| "Couldn't connect to Nessie" | Check the key. Nessie may also be down or blocked on this network. Savings keep working in demo mode. |
+| A walk didn't add savings | Walks under 300 m don't count as a skipped ride. |
 
 ## What works
 
@@ -111,6 +114,18 @@ By default (**Auto**), your trail upgrades the moment you rank up, even in the m
 
 The leaderboards show **Local** (your city), **Statewide** and **National**. **The other players are sample data:** they're generated the same way every time for each region, and they become real once there's a backend.
 
+### Walk instead of ride: savings tree (Capital One track)
+
+Every walk over **300 m** counts as a rideshare trip you didn't take. The app estimates the fare you avoided and moves it into savings, and that money **grows your tree** in the **Savings** tab: 🌰 Seed → 🌱 Sprout ($5) → 🌿 Sapling ($20) → 🌳 Young tree ($50) → 🌸 Blooming tree ($100) → 🍎 Fruit tree ($250).
+
+- **The fare is an estimate.** Uber has no public pricing API, so `js/savings.js` uses an UberX-style formula: base fare, booking fee, per mile and per minute, with an $8 minimum. You can tune the numbers there.
+- **Capital One Nessie:** in **Savings → Capital One Nessie**, paste your Nessie API key and click **Connect**. The app creates a Nessie customer with a checking account and a savings account. Each walk then sends a **transfer from checking to savings**, and the trip list shows **✓ Nessie** next to synced walks.
+- **Without a key, or if Nessie is down,** savings are kept in the app (demo mode) and the trip shows **local**.
+
+> ⚠️ **The Nessie calls in `js/nessie.js` are untested.** Nessie was resetting every connection while this was built. They follow Nessie's documented endpoints, but confirm them with the Capital One team. If the browser blocks the requests (CORS), the mobile app won't have that problem.
+>
+> The key is stored in the browser for this demo only, since Nessie is a sandbox of fake data. A real banking app must keep keys on a server.
+
 ### AR-style capture
 
 You can capture a landmark when you're within 50 m of one Pip found. The web version shows a live camera viewfinder with your agent bobbing in the frame. It then combines the photo, the agent and the place name into a postcard and saves it to your album. Without a camera, such as on a desktop, it uses the landmark's Wikipedia photo instead.
@@ -124,7 +139,9 @@ The game logic is plain JavaScript with no browser-specific code, so it can be c
 | Moves to mobile as-is (pure logic) | Rewritten for mobile (screens and device) |
 |---|---|
 | `js/agents.js`: agents and memos | `js/app.js`, `js/views.js`, `index.html`, `styles.css`: the screens |
-| `js/rank.js`: points, ranks and trail unlocks | `js/map.js`: Leaflet, replaced by `react-native-maps` |
+| `js/rank.js`: points, ranks and trail unlocks |
+| `js/savings.js`: fare estimates and tree stages |
+| `js/nessie.js`: Capital One Nessie client (`fetch`) | `js/map.js`: Leaflet, replaced by `react-native-maps` |
 | `js/leaderboard.js`: leaderboard building | `js/capture.js`: the camera, replaced by `expo-camera` or AR |
 | `js/geo.js`: distances and math | `js/storage.js`: localStorage, replaced by AsyncStorage |
 | `js/config.js`: settings | `js/voice.js`: browser speech, replaced by the Grok Voice API |
@@ -145,4 +162,5 @@ Call Grok from a small backend that holds the API key. Never put the key in brow
 - Places and facts: Wikipedia geosearch and the page summary API
 - Walking routes: routing.openstreetmap.de (OSRM foot profile). If it's unavailable, the app falls back to a straight line.
 - Your region, for leaderboards: OpenStreetMap Nominatim, called once per session
+- Banking: Capital One Nessie (mock data), when connected
 - Map tiles: OpenStreetMap
