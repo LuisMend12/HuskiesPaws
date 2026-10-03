@@ -31,6 +31,7 @@ npx expo start --clear    # once, to drop Metro's old cache
 |---|---|---|
 | `core/rank.js` | `RANKS` is now **5 leagues × 3 divisions**: Bronze III → Crystal I (thresholds 0, 100, 200 / 300, 450, 600 / 800, 1100, 1400 / 1800, 2300, 2800 / 3500, 4200, 5000 XP). New exports `LEAGUES`, `leagueOf`. Each rank has `id`, `name`, `emoji`, `league`, `division` (3 = III … 1 = I), `min`, `trail`. One trail per league, so `TRAILS.length === 5`. | Agreed with Abdullah: Clash of Clans-style leagues |
 | `core/test/core.test.js` | Rank assertions updated; egg-tier test added | Matches the leagues and egg tiers |
+| `core/services.js` | `getPlaceSummary` also returns `photoLarge` (a 960 px Wikimedia thumbnail, or the original if smaller) via new `largerPhoto()`; tested | Full-screen landmark photos were pixelated. Wikimedia only serves standard widths (960, 1280); 1024 or 1080 return HTTP 400 |
 | `core/pets.js` | `PET_SPECIES`, `EGG_TIERS`, `rollEggTier`, `eggTierOf`, `hatchMetersOf`; `maybeNewEgg` adds `tier`; `hatchEgg` uses tier odds and adds `species` | Agreed with Abdullah: rarer long eggs, more animals |
 | `mobile/src/core/rank.js` | Re-synced (`npm run sync-core`) | Generated copy |
 | `mobile/src/game/game.js`, `state.js` | `runExpedition` sets `expedition: { agentId, from, to: { lat, lon }, startedAt, durationMs }` while a pet is out, and clears it in `finally` (new `expedition: null` in `INITIAL_STATE`) | The map walks the exploring pet to the place and back. If you rework expeditions as `game.runPet`, keep setting `expedition` |
@@ -125,7 +126,7 @@ Action: `game.claimTurf(landmarkId, petId)` (a squad pet chooses to guard, with 
 - **Recall:** taking a guarding pet out of the squad (Pets tab) calls it back and frees its landmark. Please add `game.recallGuard(petId)`; until then the app does it locally (`recallLocally`).
 - **XP boost shown:** the rank pill shows `×1.2 XP` from `state.xpBoost` (or `1 + 0.1 × landmarks you hold`).
 - **Foods:** each landmark shows a dog-food bag, a tuna can or a jar of treats, picked from its id on the phone. Nothing to store.
-- **Photos:** the landmark screen uses the landmark's Wikipedia photo as its backdrop (`found[].photo`, or looked up by title). If turf entries can carry a `photo` URL, the app uses it too.
+- **Photos:** the landmark screen uses the landmark's Wikipedia photo as its backdrop (looked up by title for `photoLarge`; `found[].photo` shows first). If turf entries can carry a `photo` URL, the app uses it too.
 
 ### 4.4 Squad, statuses and starter pets (agreed with Abdullah)
 
