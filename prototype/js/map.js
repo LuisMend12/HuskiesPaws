@@ -28,6 +28,7 @@ function showTokenForm(container) {
   const form = document.createElement("form");
   form.className = "map-token-form";
   form.innerHTML = `
+    <img class="brand-logo" src="assets/huskiespaws-icon.svg" alt="HuskiesPaws" width="72" height="72">
     <p><strong>Add a Mapbox token to show the map.</strong><br>
     Copy your public token (starts with <code>pk.</code>) from your Mapbox account page.</p>
     <input type="text" autocomplete="off" placeholder="pk.…" aria-label="Mapbox access token">
