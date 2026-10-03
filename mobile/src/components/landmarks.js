@@ -31,7 +31,8 @@ export const healMinutes = (hp, target = MAX_HP) => Math.max(0, Math.ceil((targe
 
 // 1 + 0.1 for each landmark you hold (max 1.3 with the cap of 3). Worked out
 // from the turf list, so it matches what walking uses (state.xpBoost).
-export const xpBoostFromTurf = (turf) => 1 + (turf ?? []).filter((t) => t.mine).length * XP_BOOST_PER_LANDMARK;
+const livingMine = (t) => t.mine && hpNow(t) > 0;
+export const xpBoostFromTurf = (turf) => 1 + (turf ?? []).filter(livingMine).length * XP_BOOST_PER_LANDMARK;
 export const xpBoostOf = (state) => xpBoostFromTurf(state.turf);
 
 // Which food sits at a landmark: always the same one for the same place.
@@ -80,7 +81,7 @@ export function claimLocally(state, landmark, pet, power, guardHp = MAX_HP) {
   if (defender?.mine) {
     return { result: "reinforced", won: true, message: `${pet.name} now guards ${landmark.title}.`, turf: replace({ ...claim, claimedAt: defender.claimedAt }) };
   }
-  if (turf.filter((t) => t.mine).length >= MAX_TURF) {
+  if (turf.filter(livingMine).length >= MAX_TURF) {
     return { result: "capped", won: false, message: `You already guard ${MAX_TURF} landmarks. That's the limit, so explore and let others have a turn!`, turf: null };
   }
   if (!defender) {

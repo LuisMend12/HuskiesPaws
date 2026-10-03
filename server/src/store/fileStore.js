@@ -11,10 +11,24 @@ export function createFileStore(dataDir) {
   let cache = null;
   let queue = Promise.resolve();
 
+  function asMap(value) {
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  }
+
+  function normalize(raw) {
+    return {
+      players: asMap(raw.players),
+      turf: asMap(raw.turf),
+      images: asMap(raw.images),
+      banks: asMap(raw.banks),
+      transfers: asMap(raw.transfers),
+    };
+  }
+
   async function load() {
     if (cache) return cache;
     try {
-      cache = { ...EMPTY, ...JSON.parse(await readFile(file, "utf8")) };
+      cache = normalize({ ...EMPTY, ...JSON.parse(await readFile(file, "utf8")) });
     } catch (error) {
       if (error.code !== "ENOENT") console.warn("Could not read store, starting empty:", error.message);
       cache = { ...EMPTY };

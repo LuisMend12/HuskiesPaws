@@ -1,5 +1,19 @@
 # Cursor log
 
+## 2026-10-03 — Bug-hunt tests
+
+**Prompt (summary).** Add more tests and try to find as many bugs as possible.
+
+**Caught and fixed.**
+
+- `walkingMinutes(0)` reported 1 minute.
+- `rankFor` / `treeStage` with scores below the first threshold produced `-Infinity` progress.
+- File store crashed on `db.json` with `null` collections.
+- iMessage treated “come here” as arriving (`\bhere\b`).
+- Local turf cap and XP boost counted dead holdings; server already ignored them.
+
+**Tests added.** `core/test/invariants.test.js`, `server/test/invariants.test.js`, `imessage-agent/test/routing.test.js`, `mobile/test/pets-and-turf.test.mjs`.
+
 ## 2026-10-03 — ElevenLabs for Moss story voice
 
 **Prompt (summary).** Use the ElevenLabs API key for storytelling voice.
