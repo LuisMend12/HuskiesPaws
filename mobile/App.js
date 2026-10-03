@@ -14,7 +14,9 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { AgentList } from "./src/components/AgentList.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
+import { HatchModal } from "./src/components/HatchModal.js";
 import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapControls.js";
+import { PetsPanel } from "./src/components/PetsPanel.js";
 import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
@@ -32,6 +34,7 @@ SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts 
 
 const TABS = [
   { id: "squad", label: "Squad" },
+  { id: "pets", label: "Pets" },
   { id: "ranks", label: "Ranks" },
   { id: "savings", label: "Savings" },
   { id: "album", label: "Album" },
@@ -107,6 +110,7 @@ function Main() {
         <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
         <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
           {state.tab === "squad" && <AgentList state={state} onAction={game.runAgent} />}
+          {state.tab === "pets" && <PetsPanel state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
           {state.tab === "savings" && <SavingsPanel state={state} game={game} />}
           {state.tab === "album" && <AlbumPanel album={state.album} />}
@@ -119,6 +123,11 @@ function Main() {
         onClose={() => game.set({ postcardOpen: false })}
         onGo={game.guideToDiscovery}
         onReplay={game.replayMemo}
+      />
+      <HatchModal
+        pet={state.hatching}
+        walked={state.progress.walked}
+        onClose={() => (game.closeHatch ? game.closeHatch() : game.set({ hatching: null }))}
       />
       <CaptureModal
         visible={state.captureOpen}
