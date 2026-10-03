@@ -2,6 +2,16 @@
 
 Key prompts and implementation decisions for the SpaceX / Cursor track.
 
+## 2026-10-03 — Root README for HuskiesPaws (`main`)
+
+**Prompt (summary).** Replace the root `README.md` with a polished open-source-style guide. No demo video. Read `AGENTS.md`, `PLAN.md`, existing README, `core/`, `mobile/`, `server/`, `imessage-agent/`, and each `package.json`. JavaScript/Expo only. Product is the phone app. `core/` is source of truth; `mobile/src/core/` is generated. Keep `wanderlings:` prefix. Placeholders for secrets. Document PLAN.md limits. Do not change application code.
+
+**Decisions.**
+
+- Dropped Devpost/demo-video/pitch TODOs and web-frontend language. Health/Imagine/Voice/score examples taken from `server/test/api.test.js` and `server/src/app.js`.
+- Documented Expo Go vs iOS MapLibre garden map (`canUseNativeMapLibre`), `npm run tunnel` / `start:go` / `npx expo run:ios`, Photon Free outbound allowlist, Grok Voice on the server but expo-speech on the phone, untested live Grok/Nessie/Supabase, undeployed Render.
+- No project license at repo root (`mobile/LICENSE` is Expo’s template MIT). Logo images are the SVGs in `docs/logo/` (PNGs not in the tree).
+
 ## 2026-10-03 — Stylized iOS 3D garden map (`3d-map`)
 
 **Prompt (summary).** Build a tilted, playful geographic 3D map for the iOS Expo app, inspired by location-based games like Pikmin Bloom, without copying Niantic assets. Prefer OSM vector tiles + MapLibre if Expo SDK 57 allows it. Keep Android and Expo Go on the existing map. Do not add a web app. Do not edit `mobile/src/core/`.
