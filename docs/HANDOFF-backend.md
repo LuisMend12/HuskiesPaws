@@ -1,0 +1,113 @@
+# Handoff: presentation → backend (Sat Oct 3, ~1 PM)
+
+**For:** Luis and his coding agent, working on the `backend` branch. Read [SPLIT.md](../SPLIT.md) and [AGENTS.md](../AGENTS.md) first; this file adds what changed and what the screens now expect.
+
+## 1. Get up to date (do this first)
+
+```bash
+git checkout backend
+git pull
+git merge main            # brings in everything below
+cd mobile && npm install  # REQUIRED: new packages (Nunito font, splash screen, cloudflared)
+```
+
+- **`npm run tunnel` changed.** Expo's built-in ngrok tunnel is broken: it fails with `Cannot read properties of undefined (reading 'body')` because Expo's shared ngrok account is full (`ERR_NGROK_108`). `npm run tunnel` now runs [`mobile/scripts/tunnel.mjs`](../mobile/scripts/tunnel.mjs), a free Cloudflare quick tunnel. Scan the new QR code each time; the address changes per run.
+- After pulling, the app has a new look, a **Pets** tab running on **sample data**, a hatch animation, and rank leagues.
+
+## 2. What presentation changed in backend-owned files
+
+| File | Change | Why |
+|---|---|---|
+| `core/rank.js` | `RANKS` is now **5 leagues × 3 divisions**: Bronze III → Crystal I (thresholds 0, 100, 200 / 300, 450, 600 / 800, 1100, 1400 / 1800, 2300, 2800 / 3500, 4200, 5000 XP). New exports `LEAGUES`, `leagueOf`. Each rank has `id`, `name`, `emoji`, `league`, `division` (3 = III … 1 = I), `min`, `trail`. One trail per league, so `TRAILS.length === 5`. | Agreed with Abdullah: Clash of Clans-style leagues |
+| `core/test/core.test.js` | Rank assertions updated | Matches the leagues |
+| `mobile/src/core/rank.js` | Re-synced (`npm run sync-core`) | Generated copy |
+| `mobile/src/game/game.js` | `checkRankUp`: only a league change (`rank.division === 3`) says "League up! New trail unlocked"; division changes say "Rank up!" | The old message claimed a new trail on every rank-up |
+
+Please pull before editing these.
+
+## 3. Don't edit these (presentation owns them)
+
+`mobile/src/components/**`, `mobile/src/theme.js`, and the layout and styles in `mobile/App.js`. If you need a new tab or modal in `App.js`, ask in chat; presentation adds the line. **`TrailMap.js` included:** presentation is about to add pets on the map there, and will also add `tracksViewChanges={false}` to the flower markers (likely part of the Android map slowness). Send findings from your Android map work instead of editing it.
+
+## 4. Tasks, in priority order
+
+### 4.1 Pets and eggs (the screens are waiting on this)
+
+The Pets tab and hatch modal already read these. While `state.pets` is `undefined` they show sample pets; as soon as it exists (even `[]`), the real data shows.
+
+**Add to `INITIAL_STATE` / `SAVED_DEFAULTS` in `mobile/src/game/state.js`:**
+
+```js
+pets: [],           // saved. [{ id, name, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
+                    //   exactly what core/pets.js hatchEgg() returns; art = FULL image URL or null
+egg: null,          // saved. { id, startWalked } or null (from maybeNewEgg)
+eggsReceived: 0,    // saved. for maybeNewEgg
+activePetId: null,  // saved. selected pet id; screens fall back to pets[0]
+hatching: null,     // NOT saved. the pet that just hatched; while set, the hatch animation shows
+issOverhead: false, // NOT saved. true while the ISS is overhead (shows a banner)
+```
+
+Also add `pets`, `egg`, `eggsReceived` and `activePetId` to `RESETTABLE_KEYS`.
+
+**Add to the object `createGame()` returns (`mobile/src/game/game.js`):**
+
+| Action | Does |
+|---|---|
+| `game.setActivePet(id)` | sets `activePetId`, persists |
+| `game.closeHatch()` | sets `hatching: null` |
+| `game.hatchEgg()` | if the egg is ready, hatch it now (manual trigger; optional if hatching is automatic) |
+
+The screens call these when they exist and fall back to `game.set(...)` until then.
+
+**Logic** (port from the web version in git history: `git show bfe74e7^:prototype/js/pets-ui.js`, function `tick`):
+- After walking (`walking.stepTo`, or after `walkAlong` finishes), call a `tickPets()`:
+  - If `egg` and `eggProgress(egg, walked) >= 1`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, set `egg: null`, `hatching: pet`, `activePetId ??= pet.id`, persist, speak "Your egg hatched! Meet …".
+  - Else `maybeNewEgg({ egg, eggsReceived, steps, walked })`: if it returns an egg, set it, `eggsReceived + 1`, status "🥚 You found an egg!".
+- ISS: `getIssPosition()` from `core/services.js` every 60 s; `issOverhead = issIsOverhead(iss, position, distanceMeters)`.
+- Only call `tickPets()` once a walk tick is done; don't hatch mid-modal (skip while `hatching` is set).
+- **Never** let Nessie money buy eggs (see PLAN.md: it would look like gambling).
+
+**Grok portraits:** after hatching, ask the server for a portrait and set `pet.art` to the **absolute** URL (`${EXPO_PUBLIC_API_URL}/images/x.png`). The screens show the image as is. Please update `petPrompt` in `server/src/grok.js` to match the in-app look: *"a chunky rounded-cube husky pup in the style of a Roblox simulator pet, big glossy ice-blue eyes, white face mask, {color} fur, {class accessory}, soft studio lighting, plain light background"*. Accessories: Scout = leaf sprout on the head, Storyteller = red scarf, Pathfinder = explorer hat, Guardian = small shield.
+
+### 4.2 XP rules (agreed with Abdullah)
+
+- **XP comes from walking** (10 steps = 1 XP) **plus a bonus per camera capture** (keep `landmarkCaptured` points).
+- **Remove the XP for Pip finding a landmark** (`landmarkFound` points → 0). Keep counting `landmarksFound`; it just stops giving XP.
+- **Turf boost:** walking XP is multiplied by **1 + 0.1 × landmarks you currently hold** (max 1.3× with the cap of 3). It applies only to XP earned *while* holding, so it can't be computed from total steps afterwards. Suggestion: accumulate walking XP as steps arrive (`progress.walkXp += addedSteps / 10 * xpBoost`) and have `scoreFor` use it.
+- Expose **`xpBoost`** in state (e.g. `1.2`); presentation shows it next to the XP pill.
+- The leaderboard uses the same score.
+
+### 4.3 Turf (claim → hold → HP)
+
+Server (`server/src/turf.js`, `routes.js`, `validate.js`, both stores):
+- **Replace `heldXp` / `XP_PER_HOUR_HELD`** with **pet HP**: a guard starts at `maxHp`, loses HP over time, and refills when its owner walks back to the landmark (claims it again within `CAPTURE_RADIUS_M`). Compute HP when read (no timers or background jobs). At 0 HP the landmark is free and the boost ends. A stronger pet capturing it also ends the boost.
+- Return `hp` and `maxHp` per turf entry.
+- **Store and return `pet.color` and `pet.spaceBorn`** (validate `color` against `PET_COLORS`). Presentation draws each guard pet on the map and needs them.
+
+App state:
+
+```js
+turf: [{ landmarkId, title, lat, lon, ownerName, mine, claimedAt, hp, maxHp,
+         pet: { id, name, rarity, petClass, color, spaceBorn, power, art } }],
+xpBoost: 1,         // 1 + 0.1 × turf.filter((t) => t.mine).length
+```
+
+Action: `game.claimTurf(landmarkId)` (use the active pet with `petPower(pet, walked)`; set `status` to the server's message). Ship a plain component that proves it works; presentation will restyle it.
+
+### 4.4 Live leaderboards
+
+`state.leaderboard = { scope, rows: [{ position, name, score, isYou }] }` from `/api/leaderboard`. When it's `null` (offline), presentation keeps using `core/leaderboard.js` sample rows. Tell presentation when it lands; `RanksPanel.js` switches over then.
+
+### 4.5 `mobile/src/api.js`
+
+Base URL from `EXPO_PUBLIC_API_URL`, no keys in the app, return `null` on any network failure so screens fall back to sample data.
+
+## 5. Before merging into `main`
+
+| You changed | Run |
+|---|---|
+| `core/` | `npm test` in `core/`, then `npm run sync-core` in `mobile/`, and `npm test` in `imessage-agent/` |
+| `server/` | `npm test` in `server/` |
+| `mobile/` | `npx expo lint` and `npx expo export --platform ios --platform android` in `mobile/`, then open it on a phone with `npm run tunnel` |
+
+Post in chat when a piece lands (pets state, turf state, leaderboard), so presentation can switch that screen to real data.

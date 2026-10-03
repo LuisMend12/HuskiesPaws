@@ -6,6 +6,8 @@ We split **by layer**: one person builds what the app *does*, the other builds w
 
 **Deadline: Sunday Oct 4, 8:30 AM on Devpost.** Feature freeze Sunday around 5 AM.
 
+**Latest handoff to `backend`:** [docs/HANDOFF-backend.md](docs/HANDOFF-backend.md) (state names the screens read, XP and turf rules, what changed).
+
 | Branch | Owner | Focus |
 |---|---|---|
 | `backend` | _(name)_ | Server, game logic and state: every feature works, even if it looks plain |
