@@ -3,7 +3,7 @@ import * as Location from "expo-location";
 import { Pedometer } from "expo-sensors";
 import { BLOOM_EVERY_M, CAPTURE_RADIUS_M, DEMO_WALK_SPEED_MPS } from "../core/config.js";
 import { distanceMeters, interpolate } from "../core/geo.js";
-import { stepsFromMeters } from "../core/rank.js";
+import { stepsFromMeters, walkingXpFromSteps } from "../core/rank.js";
 import { currentTrail } from "./state.js";
 
 const WALK_TICK_MS = 100; // 10 updates a second is smooth enough and cheap to render
@@ -12,7 +12,7 @@ const ARRIVAL_RADIUS_M = 40;
 
 const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
 
-export function createWalking(store, { onArrive, onRegionFound, persist }) {
+export function createWalking(store, { onArrive, onRegionFound, persist, onWalk } = {}) {
   const get = store.getState;
   let lastBloom = null;
   let bloomCount = 0;
@@ -28,7 +28,6 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
     return current && distanceMeters(position, current) <= CAPTURE_RADIUS_M * 3 ? current : null;
   }
 
-  // Adds a point to the trail, starting a new segment when the trail style changes.
   function extendTrail(segments, position, trail) {
     const coord = toCoord(position);
     const last = segments.at(-1);
@@ -47,15 +46,27 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
     return [...blooms, { id: `${bloomCount}`, ...position, emoji }].slice(-MAX_BLOOMS);
   }
 
+  function withWalkXp(progress, addedSteps, boost) {
+    return {
+      ...progress,
+      walkXp: (progress.walkXp ?? 0) + walkingXpFromSteps(addedSteps, boost),
+    };
+  }
+
   // countSteps: estimate steps from distance (simulated walks, or no pedometer).
-  function stepTo(position, { countDistance = true, countSteps = true } = {}) {
+  function stepTo(position, { countDistance = true, countSteps = true, notifyWalk = true } = {}) {
     const state = get();
     const moved = countDistance ? distanceMeters(state.position, position) : 0;
-    const progress = {
-      ...state.progress,
-      walked: state.progress.walked + moved,
-      steps: state.progress.steps + (countSteps ? stepsFromMeters(moved) : 0),
-    };
+    const addedSteps = countSteps ? stepsFromMeters(moved) : 0;
+    const progress = withWalkXp(
+      {
+        ...state.progress,
+        walked: state.progress.walked + moved,
+        steps: state.progress.steps + addedSteps,
+      },
+      addedSteps,
+      state.xpBoost ?? 1,
+    );
     const trail = currentTrail({ ...state, progress });
     store.setState({
       position,
@@ -65,6 +76,7 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
       capturable: capturableAt(position, state),
     });
     checkArrival(position);
+    if (notifyWalk) onWalk?.();
   }
 
   function checkArrival(position) {
@@ -87,14 +99,15 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
         }
         if (segment >= points.length - 1) {
           clearInterval(timer);
-          stepTo(points.at(-1));
+          stepTo(points.at(-1), { notifyWalk: false });
           store.setState({ walking: false });
           persist();
+          onWalk?.();
           resolve();
           return;
         }
         const length = distanceMeters(points[segment], points[segment + 1]);
-        stepTo(interpolate(points[segment], points[segment + 1], length ? into / length : 1));
+        stepTo(interpolate(points[segment], points[segment + 1], length ? into / length : 1), { notifyWalk: false });
       }, WALK_TICK_MS);
     });
   }
@@ -104,13 +117,19 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
       if (!(await Pedometer.isAvailableAsync())) return false;
       const { granted } = await Pedometer.requestPermissionsAsync();
       if (!granted) return false;
-      // Reports steps since the subscription started; add only the new ones.
       Pedometer.watchStepCount(({ steps }) => {
         const added = stepsLast === null ? steps : steps - stepsLast;
         stepsLast = steps;
         if (added <= 0) return;
         const state = get();
-        store.setState({ progress: { ...state.progress, steps: state.progress.steps + added } });
+        store.setState({
+          progress: withWalkXp(
+            { ...state.progress, steps: state.progress.steps + added },
+            added,
+            state.xpBoost ?? 1,
+          ),
+        });
+        onWalk?.();
       });
       store.setState({ pedometer: true });
       return true;
@@ -134,7 +153,6 @@ export function createWalking(store, { onArrive, onRegionFound, persist }) {
       ({ coords }) => {
         const position = { lat: coords.latitude, lon: coords.longitude };
         if (get().walking) return; // a simulated walk is playing
-        // Real steps come from the pedometer when available, else from distance.
         stepTo(position, { countDistance: !firstFix, countSteps: !hasPedometer });
         if (firstFix) {
           firstFix = false;

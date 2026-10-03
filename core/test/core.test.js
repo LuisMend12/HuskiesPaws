@@ -7,7 +7,7 @@ import {
   EGG_EVERY_STEPS, HATCH_METERS, LEVEL_EVERY_M, MAX_LEVEL, RARITIES,
   eggProgress, eggsEarned, hatchEgg, maybeNewEgg, metersToHatch, petLevel, petPower, rollRarity, stepsToNextEgg,
 } from "../pets.js";
-import { TRAILS, activeTrail, rankFor, scoreFor } from "../rank.js";
+import { LEAGUES, TRAILS, activeTrail, rankFor, scoreFor, xpBoostFor } from "../rank.js";
 import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
 
 // Deterministic "random" that walks through a list of values.
@@ -54,12 +54,18 @@ test("hatched pets get power in their rarity's range and level up by walking", (
   assert.equal(petPower(pet, 500 + LEVEL_EVERY_M), pet.basePower + 4);
 });
 
-test("score counts steps, landmarks, captures and turf bonus", () => {
-  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 160);
-  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 200);
-  assert.equal(rankFor(100).current.name, "Sprout");
-  assert.equal(activeTrail(150, "starlight").id, "meadow", "locked trail falls back");
-  assert.equal(TRAILS.length, 6);
+test("score counts walking XP and captures; finds give no XP", () => {
+  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 110);
+  assert.equal(scoreFor({ steps: 100, walkXp: 15, landmarksFound: 9, landmarksCaptured: 1 }), 115);
+  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 150);
+  assert.equal(xpBoostFor(0), 1);
+  assert.equal(xpBoostFor(3), 1.3);
+  assert.equal(rankFor(0).current.name, "Bronze III");
+  assert.equal(rankFor(100).current.name, "Bronze II");
+  assert.equal(rankFor(100).current.division, 2);
+  assert.equal(activeTrail(150, "starlight").id, "sprouts", "locked trail falls back");
+  assert.equal(TRAILS.length, 5);
+  assert.equal(LEAGUES.length, 5);
 });
 
 test("savings: fares, totals and tree stages", () => {

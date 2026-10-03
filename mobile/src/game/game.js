@@ -1,5 +1,4 @@
-// Game actions. A port of prototype/js/app.js without the DOM: everything the
-// screens show comes from the store, and screens call these actions.
+// Game actions. Screens read the store and call these.
 import { AGENTS, choosePlace, expeditionDuration, routeMemo, scoutMemo, storyMemo } from "../core/agents.js";
 import { ALBUM_MAX_CARDS } from "../core/config.js";
 import { distanceMeters, pathLength } from "../core/geo.js";
@@ -9,12 +8,13 @@ import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../core/
 import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute, setRequestHeaders } from "../core/services.js";
 import { clearKeys, loadAll, saveAll } from "../storage.js";
 import { speakMemo } from "../voice.js";
-import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, savedFields, scoreOf } from "./state.js";
+import { createOnline } from "./online.js";
+import { createPetsLoop } from "./petsLoop.js";
+import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFields, scoreOf } from "./state.js";
 import { createStore } from "./store.js";
 import { createWalking } from "./walking.js";
 
 const agentById = (id) => AGENTS.find((a) => a.id === id);
-// Without this, Wikipedia and OpenStreetMap answer 403 to the app's default User-Agent.
 setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (BigRed//Hacks 2026 demo app)" });
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -26,22 +26,37 @@ export function createGame() {
   const persist = () => saveAll(savedFields(get()));
   const gainXp = (agentId) => ({ xp: { ...get().xp, [agentId]: get().xp[agentId] + 1 } });
 
+  const pets = createPetsLoop({ get, set, persist, say });
+  const online = createOnline({ get, set, persist, say });
+
   const walking = createWalking(store, {
     onArrive: (place, meters) => arrive(place, meters),
     onRegionFound: async (position) => set({ region: await getRegion(position, get().region) }),
     persist,
+    onWalk: () => {
+      pets.tickPets();
+      online.pushScore();
+    },
   });
 
   async function load() {
-    const saved = await loadAll(SAVED_DEFAULTS);
+    const saved = migrateSaved(await loadAll(SAVED_DEFAULTS));
     set({ ...saved, loaded: true, rankName: rankFor(scoreOf({ ...get(), ...saved })).current.name });
-    walking.stepTo(get().position, { countDistance: false, countSteps: false }); // first bloom
+    persist();
+    walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
+    pets.startIssWatch();
+    online.refreshTurf();
+    online.refreshLeaderboard();
+    online.pushScore();
   }
 
   function checkRankUp(agent) {
     const rank = rankFor(scoreOf(get())).current;
     if (rank.name === get().rankName) return;
-    const message = `Rank up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`;
+    const newLeague = rank.division === 3;
+    const message = newLeague
+      ? `League up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`
+      : `Rank up! You're now ${rank.emoji} ${rank.name}.`;
     set({ rankName: rank.name, status: message });
     speakMemo(message, agent ?? agentById("scout"));
   }
@@ -50,9 +65,8 @@ export function createGame() {
     set({ progress: { ...get().progress, ...progressPatch } });
     persist();
     checkRankUp(agent);
+    online.pushScore();
   }
-
-  // ---------- Agents ----------
 
   async function runExpedition(agent) {
     set({ away: [...get().away, agent.id], status: `${agent.name} is looking around…` });
@@ -133,6 +147,8 @@ export function createGame() {
     say(`You made it to ${place.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
     checkRankUp(null);
+    pets.tickPets();
+    online.pushScore();
   }
 
   async function demoWalk() {
@@ -155,8 +171,6 @@ export function createGame() {
       say("Couldn't plan a walk (network problem).");
     }
   }
-
-  // ---------- Savings (Capital One Nessie) ----------
 
   function recordWalkSavings(title, meters) {
     const amount = estimateRideFare(meters);
@@ -203,8 +217,6 @@ export function createGame() {
     }
   }
 
-  // ---------- Capture ----------
-
   function saveCapture(image) {
     const place = get().capturable;
     if (!place) return;
@@ -221,8 +233,6 @@ export function createGame() {
     award({ landmarksCaptured: get().progress.landmarksCaptured + 1 }, scout);
   }
 
-  // ---------- Settings ----------
-
   async function resetProgress() {
     await clearKeys(RESETTABLE_KEYS);
     walking.resetTrail();
@@ -233,10 +243,14 @@ export function createGame() {
       trailSegments: [],
       capturable: null,
       discovery: null,
+      hatching: null,
+      turf: [],
+      xpBoost: 1,
+      leaderboard: null,
       rankName: rankFor(0).current.name,
       status: "Progress reset. Fresh start! 🌱",
     });
-    walking.stepTo(get().position, { countDistance: false, countSteps: false });
+    walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
   }
 
   const actions = {
@@ -255,11 +269,18 @@ export function createGame() {
     connectBank,
     saveCapture,
     resetProgress,
+    setActivePet: pets.setActivePet,
+    closeHatch: pets.closeHatch,
+    hatchEgg: pets.hatchEggNow,
+    claimTurf: online.claimLandmark,
     replayMemo: () => {
       const { discovery } = get();
       if (discovery) speakMemo(discovery.memo, agentById(discovery.agentId));
     },
-    set: (patch) => set(patch),
+    set: (patch) => {
+      set(patch);
+      if (patch.scope) online.refreshLeaderboard();
+    },
     setTrailChoice: (trailChoice) => {
       set({ trailChoice });
       persist();

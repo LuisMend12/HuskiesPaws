@@ -9,6 +9,7 @@ import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
 import { TrailMap } from "./src/components/TrailMap.js";
+import { PetsTurfProbe } from "./src/game/PetsTurfProbe.js";
 import { Button, Hint } from "./src/components/ui.js";
 import { AGENTS, levelFor } from "./src/core/agents.js";
 import { rankFor } from "./src/core/rank.js";
@@ -19,6 +20,7 @@ import { colors } from "./src/theme.js";
 
 const TABS = [
   { id: "squad", label: "Squad" },
+  { id: "pets", label: "Pets" },
   { id: "ranks", label: "Ranks" },
   { id: "savings", label: "Savings" },
   { id: "album", label: "Album" },
@@ -89,6 +91,7 @@ export default function App() {
           </View>
 
           {state.tab === "squad" && <AgentList state={state} onAction={game.runAgent} />}
+          {state.tab === "pets" && <PetsTurfProbe state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
           {state.tab === "savings" && <SavingsPanel state={state} game={game} />}
           {state.tab === "album" && <AlbumPanel album={state.album} />}

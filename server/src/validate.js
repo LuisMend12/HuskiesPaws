@@ -1,9 +1,11 @@
 // Input validation at the API boundary. Each validator returns a clean object
 // or throws HttpError(400) with a message that's safe to show the user.
+import { PET_COLORS } from "../../core/pets.js";
 import { HttpError } from "./http.js";
 
 const RARITIES = ["common", "rare", "epic", "legendary"];
 const PET_CLASSES = ["Scout", "Storyteller", "Pathfinder", "Guardian"];
+const PET_COLOR_NAMES = PET_COLORS.map((c) => c.name);
 const SCOPES = ["local", "state", "national"];
 const ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
@@ -82,8 +84,17 @@ export function validateImagine(body) {
     key: `pet:${playerId(body.petId)}`,
     rarity: oneOf(body.rarity, "rarity", RARITIES),
     petClass: oneOf(body.petClass, "petClass", PET_CLASSES),
-    color: str(body.color, "color", { max: 20 }),
+    color: oneOf(body.color, "color", PET_COLOR_NAMES),
   };
+}
+
+function petArt(value) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string") fail("pet.art must be text");
+  const art = value.trim();
+  if (art.startsWith("/images/")) return art.slice(0, 80);
+  if (/^https:\/\//i.test(art)) return art.slice(0, 240);
+  fail("pet.art must be an /images/ path or https URL");
 }
 
 export function validateClaim(body) {
@@ -100,9 +111,11 @@ export function validateClaim(body) {
       name: str(pet.name, "pet.name", { max: 24 }),
       rarity: oneOf(pet.rarity, "pet.rarity", RARITIES),
       petClass: oneOf(pet.petClass, "pet.petClass", PET_CLASSES),
+      color: oneOf(pet.color ?? "snowy", "pet.color", PET_COLOR_NAMES),
+      spaceBorn: Boolean(pet.spaceBorn),
       power: Math.floor(num(pet.power, "pet.power", { min: 1, max: 200 })),
       emoji: str(pet.emoji ?? "🐾", "pet.emoji", { max: 8 }),
-      art: typeof pet.art === "string" && pet.art.startsWith("/images/") ? pet.art.slice(0, 80) : null,
+      art: petArt(pet.art),
     },
   };
 }

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { MAX_SPEECH_CHARS, VOICES, petPrompt, postcardPrompt } from "./grok.js";
 import { HttpError, clientIp, readJson, sendError, sendJson } from "./http.js";
 import { createRateLimiter } from "./rateLimit.js";
-import { decideClaim, heldXp } from "./turf.js";
+import { currentHp, decideClaim } from "./turf.js";
 import { validateClaim, validateImagine, validateLeaderboardQuery, validateScore, validateSpeech } from "./validate.js";
 
 const LEADERBOARD_LIMIT = 10;
@@ -108,18 +108,35 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
     async listTurf(req, res, url) {
       const me = url.searchParams.get("me");
       const now = Date.now();
-      const turf = (await store.listTurf()).map((t) => ({
-        landmarkId: t.landmarkId,
-        title: t.title,
-        lat: t.lat,
-        lon: t.lon,
-        ownerName: t.ownerName,
-        pet: t.pet,
-        claimedAt: t.claimedAt,
-        heldXp: heldXp(t, now),
-        mine: t.ownerId === me,
-      }));
-      sendJson(res, 200, { turf, myHeldXp: turf.filter((t) => t.mine).reduce((sum, t) => sum + t.heldXp, 0) });
+      const turf = (await store.listTurf())
+        .map((t) => {
+          const hp = currentHp(t, now);
+          if (hp <= 0) return null;
+          const pet = t.pet ?? {};
+          return {
+            landmarkId: t.landmarkId,
+            title: t.title,
+            lat: t.lat,
+            lon: t.lon,
+            ownerName: t.ownerName,
+            claimedAt: t.claimedAt,
+            hp,
+            maxHp: t.maxHp ?? pet.power ?? hp,
+            mine: t.ownerId === me,
+            pet: {
+              id: pet.id,
+              name: pet.name,
+              rarity: pet.rarity,
+              petClass: pet.petClass,
+              color: pet.color ?? "snowy",
+              spaceBorn: Boolean(pet.spaceBorn),
+              power: pet.power,
+              art: pet.art ?? null,
+            },
+          };
+        })
+        .filter(Boolean);
+      sendJson(res, 200, { turf });
     },
 
     async claimTurf(req, res) {

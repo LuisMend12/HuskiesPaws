@@ -1,0 +1,11 @@
+---
+description: Presentation owns screens; backend owns server, core, and game state.
+globs: mobile/src/components/**,mobile/App.js,mobile/src/theme.js
+alwaysApply: false
+---
+
+# Split ownership (SPLIT.md)
+
+- Do not restyle `mobile/src/components/**`, `mobile/src/theme.js`, or App.js layout/styles from the backend branch.
+- Backend may add one tab or modal line in `App.js` and a plain probe under `mobile/src/game/`.
+- Presentation reads `state.pets`, `egg`, `hatching`, `turf`, `xpBoost`, and `leaderboard`.

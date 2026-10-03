@@ -66,13 +66,13 @@ export function postcardPrompt({ title, fact }) {
 }
 
 const PET_LOOKS = Object.freeze({
-  common: "simple and friendly",
-  rare: "with a shimmering leaf crown",
-  epic: "glowing softly with flower petals swirling around it",
-  legendary: "radiant and majestic, with a halo of tiny stars and blossoms",
+  Scout: "a leaf sprout on the head",
+  Storyteller: "a red scarf",
+  Pathfinder: "an explorer hat",
+  Guardian: "a small shield",
 });
 
 export function petPrompt({ rarity, petClass, color }) {
-  const look = PET_LOOKS[rarity] ?? PET_LOOKS.common;
-  return `A cute round ${color} husky-puppy-like forest spirit pet, a ${petClass} companion, ${look}, standing on a mossy path. Character portrait, centered, plain light background, ${STYLE}.`;
+  const accessory = PET_LOOKS[petClass] ?? PET_LOOKS.Scout;
+  return `a chunky rounded-cube husky pup in the style of a Roblox simulator pet, big glossy ice-blue eyes, white face mask, ${color} fur, ${accessory}, ${rarity} rarity, soft studio lighting, plain light background`;
 }
