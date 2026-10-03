@@ -119,7 +119,7 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 | 📸 **AR landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
 | 🎙️ **Grok** | **Grok Voice** gives agents their voice memos. **Grok Imagine** makes postcard illustrations and creature art. |
 
-**Tracks:** Cursor (SpaceX), **Capital One (Best Use of Nessie)**, Big Red, People's Choice and Design. It can also enter Photon if the agents text you in iMessage.
+**Tracks:** Cursor (SpaceX), **Capital One (Best Use of Nessie)**, Big Red, People's Choice and Design. It can also enter **Photon**: the agents already work in iMessage (see [`imessage-agent/`](imessage-agent/)).
 
 - **Try it:** a working prototype of everything above is in [`prototype/`](prototype/). See [prototype/README.md](prototype/README.md) to run it. It's a throwaway prototype; the submission must be built in Cursor.
 - **Idea sheet:** [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex)
@@ -180,7 +180,7 @@ There's a quick concept demo in [`prototype/`](prototype/). It's a throwaway pro
 
 ```bash
 cd big-red-hacks2026/prototype
-python -m http.server 8765
+python serve.py      # reads the Mapbox token (MAPBOXKEY) from the root .env
 # then open http://localhost:8765
 ```
 
@@ -197,6 +197,21 @@ npx expo start      # scan the QR code with Expo Go
 ```
 
 See [mobile/README.md](mobile/README.md) for the full guide and known limits. It was built outside Cursor, so keep building it in Cursor for the track.
+
+### Wanderlings on iMessage (Photon)
+
+The squad also works as an iMessage agent in [`imessage-agent/`](imessage-agent/). You text "explore", "story" and "take me there", and "arrived" grows your savings tree.
+
+```bash
+cd big-red-hacks2026/imessage-agent
+npm install
+npm run terminal    # try it in the terminal, no keys needed
+npm start           # real iMessage, after adding Photon keys to .env
+```
+
+To set up the Photon keys (Project ID and Secret from app.photon.codes), see [imessage-agent/README.md](imessage-agent/README.md).
+
+### Open the project in Cursor
 
 ```bash
 git clone <repo-url>
