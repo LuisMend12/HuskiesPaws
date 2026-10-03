@@ -1,8 +1,44 @@
-# Big Red Hacks 2026
+# 🐾 HuskiesPaws
 
-Our project repo for [Big Red Hacks](https://bigredhacks2026.devpost.com/) 2026, Cornell's annual hackathon.
+**Walk more, explore more, save more.** HuskiesPaws is a walking game for [Big Red Hacks 2026](https://bigredhacks2026.devpost.com/) (theme: **Navigation**). Every walk blooms a flower trail on the map. AI agent companions scout real places for you. And every ride you skip by walking grows a savings tree.
 
-> **Status:** Brainstorming. **Target: SpaceX track (built with Cursor).** Score the ideas below and pick one by Saturday morning.
+> **Status:** building for the **Sunday 8:30 AM** Devpost deadline. See [PLAN.md](PLAN.md) for scope and priorities.
+
+## The app
+
+| Feature | What it does |
+|---|---|
+| 🌸 **Blooming trails** | Your walk leaves a trail of flowers on the map. Each rank unlocks a new trail (Meadow, Rose Garden, Cherry Blossom, Starlight…). |
+| 🤖 **Agent squad** | **Pip (Scout)** finds places you've never been, **Moss (Storyteller)** tells their history, and **Fern (Pathfinder)** walks you there. They only report facts from real data (Wikipedia and OpenStreetMap). |
+| 🏆 **Ranks and leaderboards** | Points come from steps, landmarks found and landmarks captured. The ranks go 🌱 Seedling → 🌲 Ancient Oak, with **Local**, **Statewide** and **National** leaderboards. |
+| 📸 **Landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
+| 💰 **Walk-instead-of-ride savings** | Each walk over 300 m counts as an Uber you skipped. The fare moves into savings through **Capital One's Nessie API** and grows your 🌰 → 🍎 savings tree. |
+| 💬 **iMessage agents** | Text the squad: "explore", "story", "take me there". Built with **Photon Spectrum**. |
+| 🎙️ **Grok** *(in progress)* | **Grok Voice** for agent voice memos and **Grok Imagine** for postcards and pet art. These are required for the Cursor track. |
+
+### Three ways to use it
+
+| Version | Folder | Run it |
+|---|---|---|
+| 🌐 **Web app** | [`prototype/`](prototype/) | `cd prototype` then `python serve.py`, and open http://localhost:8765 ([guide](prototype/README.md)) |
+| 📱 **Phone app** (Expo) | [`mobile/`](mobile/) | `cd mobile`, `npm install`, `npx expo start`, then scan the QR code with Expo Go ([guide](mobile/README.md)) |
+| 💬 **iMessage agent** | [`imessage-agent/`](imessage-agent/) | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys), or `npm start` with Photon keys ([guide](imessage-agent/README.md)) |
+
+All three share the same game logic in [`prototype/js/`](prototype/js/). Notes for AI coding agents (Cursor, Claude Code) are in [AGENTS.md](AGENTS.md).
+
+### Prize tracks
+
+**Cursor (SpaceX)**, **Capital One (Best Use of Nessie)**, **Photon (iMessage agents)**, **Big Red** (best fit to the Navigation theme), **Design**, **Software** and **People's Choice**.
+
+### Still to do
+
+Hook up Grok Voice and Grok Imagine (required for the Cursor track), a backend for real leaderboards, an HTTPS deploy, and a tested demo. The full list is in [PLAN.md](PLAN.md).
+
+---
+
+## Hackathon notes and brainstorming
+
+The rest of this file is the background: hackathon facts, track rules, and every idea we considered before choosing HuskiesPaws, which was called **Wanderlings** during brainstorming.
 
 ## Key facts from the opening ceremony
 
@@ -105,25 +141,9 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 | **PictureRoute** | Directions as illustrated landmark cards, made with Grok Imagine | Design track |
 | **Wanderlings** | Pikmin Bloom with AI agents: walk to make your trail bloom, and send agent companions to scout real places. They return with Grok Imagine postcards and Grok Voice memos. | People's Choice, Design, and Photon if agents text you |
 
-## ⭐ Wanderlings: the current front-runner
+## ⭐ Wanderlings: the idea we chose
 
-**Pikmin Bloom meets AI agents.** Walk, and your trail blooms on the map. Send agent companions to scout real places. Climb the ranks, and capture landmarks as postcards, Pokémon Go style.
-
-| Feature | What it does |
-|---|---|
-| 🤖 **Agent squad** | **Pip (Scout)** finds places you've never been. **Moss (Storyteller)** tells their history. **Fern (Pathfinder)** walks you there. Agents only report facts from real data (Wikipedia and maps). |
-| 🏆 **Ranks** | Points come from steps walked, landmarks found and landmarks captured. The ranks run 🌱 Seedling → 🌿 Sprout → 🌷 Bud → 🌸 Blossom → 🌳 Grove → 🌲 Ancient Oak. |
-| 🌍 **Leaderboards** | **Local** (your city), **Statewide** and **National** rankings, based on your GPS location. |
-| 🌸 **Custom trails** | Each rank unlocks a new trail with its own flowers and path color, such as Rose Garden, Cherry Blossom, Forest Floor and Starlight. Your trail upgrades when you rank up, or you can pick any trail you've unlocked. |
-| 💰 **Walk-instead-of-ride savings** | Each walk over 300 m counts as an Uber you skipped. The estimated fare moves into a savings account through **Capital One's Nessie API**, and the money **grows your savings tree** from 🌰 seed to 🍎 fruit tree. |
-| 📸 **AR landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
-| 🎙️ **Grok** | **Grok Voice** gives agents their voice memos. **Grok Imagine** makes postcard illustrations and creature art. |
-
-**Tracks:** Cursor (SpaceX), **Capital One (Best Use of Nessie)**, Big Red, People's Choice and Design. It can also enter **Photon**: the agents already work in iMessage (see [`imessage-agent/`](imessage-agent/)).
-
-- **Try it:** a working prototype of everything above is in [`prototype/`](prototype/). See [prototype/README.md](prototype/README.md) to run it. It's a throwaway prototype; the submission must be built in Cursor.
-- **Idea sheet:** [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex)
-- **Mobile app:** started in [`mobile/`](mobile/) (Expo), with real step counting. For what's left (Grok, a backend for leaderboards, background GPS, true AR), see [docs/mobile-migration.md](docs/mobile-migration.md).
+This became **HuskiesPaws**. See [The app](#the-app) at the top of this file. The original idea sheet is [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex), and the mobile plan is [docs/mobile-migration.md](docs/mobile-migration.md).
 
 ## Other ideas that fit the Navigation theme
 
@@ -174,9 +194,9 @@ Score each idea from 1 to 5 on each column.
 
 ## Getting started
 
-### Try the Wanderlings prototype
+### Web app
 
-There's a quick concept demo in [`prototype/`](prototype/). It's a throwaway prototype, not the Cursor-built submission.
+The HuskiesPaws web app is in [`prototype/`](prototype/).
 
 ```bash
 cd big-red-hacks2026/prototype
@@ -186,7 +206,7 @@ python serve.py      # reads the Mapbox token (MAPBOXKEY) from the root .env
 
 For full steps, demo instructions, phone setup and troubleshooting, see [prototype/README.md](prototype/README.md).
 
-### Wanderlings mobile app (Expo)
+### Phone app (Expo)
 
 The phone version is in [`mobile/`](mobile/). It has a real step counter, a native map, the camera and saved progress, and it runs in **Expo Go** without app store setup.
 
@@ -198,7 +218,7 @@ npx expo start      # scan the QR code with Expo Go
 
 See [mobile/README.md](mobile/README.md) for the full guide and known limits. It was built outside Cursor, so keep building it in Cursor for the track.
 
-### Wanderlings on iMessage (Photon)
+### iMessage agent (Photon)
 
 The squad also works as an iMessage agent in [`imessage-agent/`](imessage-agent/). You text "explore", "story" and "take me there", and "arrived" grows your savings tree.
 
@@ -214,7 +234,7 @@ To set up the Photon keys (Project ID and Secret from app.photon.codes), see [im
 ### Open the project in Cursor
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/LuisMend12/big-red-hacks2026.git
 cd big-red-hacks2026
 # Open in Cursor, add the Grok API key to .env (never commit it)
 ```
