@@ -1,11 +1,12 @@
 // Pets standing on the tilted map, like Google Maps' car: your squad follows
-// you, an exploring pet walks out to its place and back, and each guard stands
-// on its landmark with an HP bar.
+// you, an exploring pet walks out to its place and back, and every landmark has
+// a food bag on a ring, with its guard pet and HP bar when someone holds it.
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Marker, Polyline } from "react-native-maps";
 import { colors, fonts, radius } from "../theme.js";
-import { PetSvg } from "./PetArt.js";
+import { ringOf } from "./landmarks.js";
+import { FoodBagSvg, PetSvg } from "./PetArt.js";
 
 const METERS_PER_DEGREE = 111320;
 // Where squad pets stand, in meters from you (east, north): a little group behind you.
@@ -70,27 +71,36 @@ function ExplorerPet({ pet, expedition, home }) {
   );
 }
 
-function Guard({ turf }) {
+// A landmark: its food bag on a ring (grey free, green yours, coral rival), and
+// the guard pet with its owner and HP when someone holds it. Tap to open it.
+function Landmark({ landmark, onOpen }) {
   const tracking = useSettled();
-  const hp = turf.maxHp ? Math.max(0, Math.min(1, turf.hp / turf.maxHp)) : 1;
+  const guard = landmark.guard;
+  const ring = ringOf(landmark);
+  const hp = guard?.maxHp ? Math.max(0, Math.min(1, guard.hp / guard.maxHp)) : 1;
   const hpColor = hp > 0.5 ? colors.green : hp > 0.25 ? colors.yellow : colors.coral;
   return (
     <Marker
-      coordinate={{ latitude: turf.lat, longitude: turf.lon }}
+      coordinate={{ latitude: landmark.lat, longitude: landmark.lon }}
       anchor={{ x: 0.5, y: 1 }}
       tracksViewChanges={tracking}
-      title={turf.title}
-      description={`${turf.mine ? "Your" : `${turf.ownerName}'s`} ${turf.pet.name} guards it · ⚡${turf.pet.power}`}
+      onPress={() => onOpen(landmark.landmarkId)}
+      accessibilityLabel={`${landmark.title}, ${!guard ? "free" : guard.mine ? "guarded by your pet" : `guarded by ${guard.ownerName}`}`}
     >
-      <View style={styles.guard}>
-        <View style={[styles.owner, turf.mine ? styles.mine : styles.rival]}>
-          <Text style={styles.ownerText} numberOfLines={1}>{turf.mine ? "You" : turf.ownerName}</Text>
-        </View>
-        <View style={styles.hpTrack}>
-          <View style={[styles.hpFill, { width: `${Math.round(hp * 100)}%`, backgroundColor: hpColor }]} />
-        </View>
-        <View style={[styles.base, turf.mine ? styles.baseMine : styles.baseRival]}>
-          <PetSvg pet={turf.pet} size={48} />
+      <View style={styles.landmark}>
+        {guard && (
+          <>
+            <View style={[styles.owner, guard.mine ? styles.mine : styles.rival]}>
+              <Text style={styles.ownerText} numberOfLines={1}>{guard.mine ? "You" : guard.ownerName}</Text>
+            </View>
+            <View style={styles.hpTrack}>
+              <View style={[styles.hpFill, { width: `${Math.round(hp * 100)}%`, backgroundColor: hpColor }]} />
+            </View>
+          </>
+        )}
+        <View style={styles.landmarkRow}>
+          {guard && <PetSvg pet={guard.pet} size={44} />}
+          <FoodBagSvg size={guard ? 34 : 38} ring={ring} />
         </View>
       </View>
     </Marker>
@@ -98,13 +108,15 @@ function Guard({ turf }) {
 }
 
 // squad: [{ pet, status, agentId }] from squadStatuses().
-export function MapPets({ position, squad, turf, expedition }) {
+// landmarks: from landmarksView(); onOpenLandmark(id) opens the landmark screen.
+export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark }) {
   const following = squad.filter((s) => s.status === "with-you").map((s) => s.pet).slice(0, FOLLOW_SPOTS.length);
   const explorer = expedition ? squad.find((s) => s.status === "exploring" && s.agentId === expedition.agentId)?.pet : null;
   return (
     <>
-      {turf.map((t) => (
-        <Guard key={`turf-${t.landmarkId}`} turf={t} />
+      {landmarks.map((l) => (
+        // Keyed by who holds it, so the marker redraws after a claim.
+        <Landmark key={`landmark-${l.landmarkId}-${ringOf(l)}-${l.guard?.pet.id ?? ""}`} landmark={l} onOpen={onOpenLandmark} />
       ))}
       {explorer && <ExplorerPet key={`explore-${expedition.startedAt}`} pet={explorer} expedition={expedition} home={position} />}
       {following.map((pet, i) => (
@@ -117,14 +129,12 @@ export function MapPets({ position, squad, turf, expedition }) {
 const styles = StyleSheet.create({
   mystery: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.navy, borderWidth: 3, borderColor: colors.ice, alignItems: "center", justifyContent: "center" },
   mysteryText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },
-  guard: { alignItems: "center", width: 84 },
+  landmark: { alignItems: "center", width: 96 },
+  landmarkRow: { flexDirection: "row", alignItems: "flex-end" },
   owner: { borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 1, maxWidth: 84 },
   mine: { backgroundColor: colors.green },
   rival: { backgroundColor: colors.navy },
   ownerText: { fontFamily: fonts.bold, fontSize: 10, color: colors.white },
   hpTrack: { width: 40, height: 5, borderRadius: 3, backgroundColor: "rgba(11,31,58,0.25)", marginTop: 2, overflow: "hidden" },
   hpFill: { height: "100%", borderRadius: 3 },
-  base: { borderRadius: 30, borderWidth: 3, padding: 2, marginTop: 2, backgroundColor: "rgba(255,255,255,0.75)" },
-  baseMine: { borderColor: colors.green },
-  baseRival: { borderColor: colors.coral },
 });

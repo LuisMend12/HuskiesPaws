@@ -8,12 +8,13 @@ export const CLASS_AGENT = Object.freeze({ Scout: "scout", Storyteller: "storyte
 // [{ pet, status, agentId }] in squad order.
 export function squadStatuses(squad, state) {
   const seen = new Set();
+  const guarding = new Set((state.turf ?? []).filter((t) => t.mine).map((t) => t.pet?.id));
   return squad.map((pet) => {
     const agentId = CLASS_AGENT[pet.petClass] ?? null;
     const firstOfClass = !seen.has(pet.petClass);
     seen.add(pet.petClass);
     const away = Boolean(agentId) && firstOfClass && state.away.includes(agentId);
-    return { pet, agentId, status: pet.status ?? (away ? "exploring" : "with-you") };
+    return { pet, agentId, status: pet.status ?? (guarding.has(pet.id) ? "defending" : away ? "exploring" : "with-you") };
   });
 }
 

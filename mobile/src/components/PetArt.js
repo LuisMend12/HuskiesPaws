@@ -154,3 +154,25 @@ export function EggArt({ size = 64, seed = "", tier }) {
 const styles = StyleSheet.create({
   portrait: { backgroundColor: colors.stripe },
 });
+
+// The dog-food bag every landmark has on the map, standing on its ring.
+// ring: "free" (grey), "mine" (green) or "rival" (coral).
+const BAG_RINGS = { free: "#aab4bf", mine: colors.green, rival: colors.coral };
+
+export function FoodBagSvg({ size = 40, ring = "free" }) {
+  return (
+    <Svg width={size} height={size * 1.15} viewBox="0 0 60 69" accessibilityLabel="Landmark food bag">
+      <Ellipse cx={30} cy={60} rx={26} ry={8} fill={BAG_RINGS[ring]} />
+      <Ellipse cx={30} cy={60} rx={19} ry={5} fill={INK} opacity={0.25} />
+      <Rect x={14} y={14} width={32} height={44} rx={6} fill="#1f3b63" stroke={INK} strokeWidth={2} />
+      <Rect x={13} y={10} width={34} height={7} rx={2} fill="#2b4f80" stroke={INK} strokeWidth={2} />
+      <Rect x={18} y={26} width={24} height={20} rx={4} fill={colors.green} />
+      <Circle cx={30} cy={38} r={4} fill="#ffffff" />
+      <Circle cx={25} cy={32} r={1.7} fill="#ffffff" />
+      <Circle cx={28.5} cy={30} r={1.7} fill="#ffffff" />
+      <Circle cx={31.5} cy={30} r={1.7} fill="#ffffff" />
+      <Circle cx={35} cy={32} r={1.7} fill="#ffffff" />
+      <Rect x={17} y={17} width={4} height={36} rx={2} fill="#ffffff" opacity={0.18} />
+    </Svg>
+  );
+}

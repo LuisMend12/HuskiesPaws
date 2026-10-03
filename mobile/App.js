@@ -8,7 +8,7 @@ import {
 } from "@expo-google-fonts/nunito";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo } from "react";
+import { Suspense, lazy, useEffect, useMemo } from "react";
 import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
@@ -32,6 +32,9 @@ import { useStore } from "./src/game/store.js";
 import { colors, radius, shadow, space, type } from "./src/theme.js";
 
 SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts load
+
+// The landmark screen pulls in three.js, so it loads only when opened.
+const LandmarkView = lazy(() => import("./src/components/LandmarkView.js"));
 
 const TABS = [
   { id: "squad", label: "Squad" },
@@ -82,7 +85,7 @@ function Main() {
       <StatusBar style="dark" />
 
       <View style={styles.map}>
-        <TrailMap state={state} />
+        <TrailMap state={state} onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })} />
         <MapTopBar rank={current} score={score} onRankPress={() => game.set({ tab: "ranks" })} />
         <StatusToast message={state.status} />
         <MapControls state={state} game={game} />
@@ -127,6 +130,11 @@ function Main() {
         onGo={game.guideToDiscovery}
         onReplay={game.replayMemo}
       />
+      {state.landmarkOpen && (
+        <Suspense fallback={null}>
+          <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={() => game.set({ landmarkOpen: null })} />
+        </Suspense>
+      )}
       <HatchModal
         pet={state.hatching}
         walked={state.progress.walked}

@@ -8,6 +8,7 @@ import { distanceMeters } from "../core/geo.js";
 import { colors } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { MapPets, useSettled } from "./MapPets.js";
+import { landmarksView } from "./landmarks.js";
 import { squadStatuses } from "./petStatus.js";
 
 const TILT = 50; // degrees; makes standing pets and 3D buildings read as 3D
@@ -31,9 +32,10 @@ function Bloom({ bloom }) {
   );
 }
 
-export function TrailMap({ state }) {
+// onOpenLandmark(id): called when a landmark's food bag is tapped.
+export function TrailMap({ state, onOpenLandmark }) {
   const mapRef = useRef(null);
-  const { squad, turf } = petsView(state);
+  const { squad } = petsView(state);
 
   useEffect(() => {
     if (!state.mapFocus) return;
@@ -74,10 +76,13 @@ export function TrailMap({ state }) {
       {state.blooms.map((bloom) => (
         <Bloom key={`bloom-${bloom.id}`} bloom={bloom} />
       ))}
-      {state.found.map((place) => (
-        <Marker key={`place-${place.id}`} coordinate={toCoord(place)} title={place.title} description="Found by your squad" />
-      ))}
-      <MapPets position={state.position} squad={squadStatuses(squad, state)} turf={turf} expedition={state.expedition} />
+      <MapPets
+        position={state.position}
+        squad={squadStatuses(squad, state)}
+        landmarks={landmarksView(state)}
+        expedition={state.expedition}
+        onOpenLandmark={onOpenLandmark}
+      />
       <Marker coordinate={toCoord(state.position)} anchor={{ x: 0.5, y: 0.5 }} title="You" tracksViewChanges={false}>
         <View style={styles.me} />
       </Marker>

@@ -24,22 +24,23 @@ function spotFor(i, count) {
   return [x, 0, -Math.abs(x) * 0.3];
 }
 
-// Frames the row: far enough back that every pet fits across the screen, and
-// looking down a little so they stand in the lower part, as if on the ground.
-function CameraRig({ count }) {
+// Moves the camera back until `width` world units fit across the screen, and
+// looks down a little so things stand in the lower part, as if on the ground.
+export function FitCamera({ width }) {
   const { camera, size } = useThree();
   useEffect(() => {
     const halfWidthTan = Math.tan((camera.fov * Math.PI) / 360) * (size.width / size.height);
-    const rowWidth = ((Math.max(1, count) - 1) * SPACING + PET_WIDTH) * PET_SCALE;
-    const distance = Math.max(5.5, (rowWidth / 2 / halfWidthTan) * 1.2);
+    const distance = Math.max(5.5, (width / 2 / halfWidthTan) * 1.2);
     camera.position.set(0, distance * 0.28, distance);
     camera.lookAt(0, distance * 0.16, 0);
     camera.updateProjectionMatrix();
-  }, [camera, size, count]);
+  }, [camera, size, width]);
   return null;
 }
 
-function Field() {
+const rowWidth = (count) => ((Math.max(1, count) - 1) * SPACING + PET_WIDTH) * PET_SCALE;
+
+export function Field() {
   return (
     <Svg style={StyleSheet.absoluteFill} viewBox="0 0 100 100" preserveAspectRatio="none">
       <Defs>
@@ -95,7 +96,7 @@ export default function SquadView({ visible, squad, onClose }) {
         >
           <ambientLight intensity={1.1} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.4} />
-          <CameraRig count={pets.length} />
+          <FitCamera width={rowWidth(pets.length)} />
           <group scale={PET_SCALE}>
             {pets.map((pet, i) => (
               <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 1.7} wander />

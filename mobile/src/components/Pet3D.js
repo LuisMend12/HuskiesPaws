@@ -11,7 +11,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { colorOf, rarityOf } from "../core/pets.js";
 import { colors } from "../theme.js";
 
-const INK = colors.navy;
+export const INK = colors.navy;
 const OUTLINE = 1.07; // outline shell size relative to the part
 
 // Three flat light bands, like cel shading. One texture shared by every pet.
@@ -25,11 +25,11 @@ const RAMP = (() => {
 const BODY = new RoundedBoxGeometry(1.5, 1.25, 1.2, 4, 0.36);
 const FOOT = new RoundedBoxGeometry(0.36, 0.26, 0.42, 2, 0.1);
 
-const Toon = ({ color }) => <meshToonMaterial color={color} gradientMap={RAMP} />;
-const Flat = ({ color }) => <meshBasicMaterial color={color} />;
+export const Toon = ({ color }) => <meshToonMaterial color={color} gradientMap={RAMP} />;
+export const Flat = ({ color }) => <meshBasicMaterial color={color} />;
 
 // A part with a dark outline: the same shape, slightly bigger, drawn inside-out behind it.
-function Outlined({ geometry, color, position, rotation, scale = 1, children }) {
+export function Outlined({ geometry, color, position, rotation, scale = 1, children }) {
   const s = Array.isArray(scale) ? scale : [scale, scale, scale];
   return (
     <group position={position} rotation={rotation}>
@@ -226,8 +226,8 @@ function turnToward(from, to, step) {
 
 // One pet. `phase` offsets its motion so a group doesn't move in lockstep.
 // wander: walk a small triangle (the shadow moves with it, so it stays grounded);
-// otherwise stand in place, hop and look around.
-export function Pup({ pet, position = [0, 0, 0], phase = 0, turn = 0, wander = false }) {
+// otherwise stand in place and hop, looking around unless lookAround is false.
+export function Pup({ pet, position = [0, 0, 0], phase = 0, turn = 0, wander = false, lookAround = true }) {
   const mover = useRef(null);
   const ref = useRef(null);
   const heading = useRef(turn);
@@ -249,7 +249,7 @@ export function Pup({ pet, position = [0, 0, 0], phase = 0, turn = 0, wander = f
       ref.current.position.y = Math.abs(Math.sin(t * STEP_RATE)) * 0.06; // small steps, feet near the ground
       return;
     }
-    ref.current.rotation.y = turn + Math.sin(t * 0.8) * 0.45; // look around
+    ref.current.rotation.y = turn + (lookAround ? Math.sin(t * 0.8) * 0.45 : 0); // look around
     ref.current.position.y = Math.abs(Math.sin(t * 2.4)) * 0.12; // little hops
   });
 
