@@ -5,12 +5,15 @@ import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
-  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggProgress, metersToHatch, petLevel, petPower, rarityOf, stepsToNextEgg,
+  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggProgress, hatchEgg, metersToHatch, petLevel, petPower, rarityOf, stepsToNextEgg,
 } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
-import { sampleEgg, samplePets } from "./fakeData.js";
+import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { Button, Card, Hint } from "./ui.js";
+
+// A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
+const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked }, walked);
 
 // Runs an animation loop unless the phone asks for reduced motion.
 function useLoop(makeLoop) {
@@ -158,14 +161,11 @@ function PetTile({ pet, walked, active, onPress }) {
 export function PetsPanel({ state, game }) {
   const [filter, setFilter] = useState(null);
   const { walked, steps } = state.progress;
-  const sample = state.pets === undefined; // the backend hasn't added pets yet
-  const pets = sample ? samplePets(walked) : state.pets;
-  const egg = state.egg === undefined ? sampleEgg(walked) : state.egg;
-  const active = pets.find((p) => p.id === state.activePetId) ?? pets[0] ?? null;
+  const { sample, pets, egg, active } = petsView(state); // sample data until the backend adds pets
   const shown = filter ? pets.filter((p) => p.rarity === filter) : pets;
 
   const setActive = (id) => (game.setActivePet ? game.setActivePet(id) : game.set({ activePetId: id }));
-  const previewHatch = () => game.set({ hatching: pets[Math.floor(Math.random() * pets.length)] });
+  const previewHatch = () => game.set({ hatching: previewPet(walked) });
 
   return (
     <View style={styles.panel}>
