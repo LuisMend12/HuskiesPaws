@@ -1,0 +1,112 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{Wanderlings}{Pikmin Bloom, but your little companions are AI agents that scout the real world for you.}
+
+\section{The Idea}
+In Pikmin Bloom, you walk, flowers bloom along your path, and you send little
+creatures on expeditions. Wanderlings keeps that cozy walking loop but makes the
+creatures \emph{real agents}: each one can plan, use tools, and come back with
+something useful.
+
+Send your Scout Wanderling to that park you've never visited. It ``travels'' there
+(taking real time based on distance), looks the place up using real map and
+Wikipedia data, decides if you'd like it, and returns with an illustrated postcard
+(Grok Imagine) and a short voice memo (Grok Voice): \emph{``Found a waterfall
+12 minutes away. Mostly flat path. Want me to lead you there?''} Then it guides you
+there while your walk blooms on the map.
+
+\textbf{Navigation angle:} instead of the shortest path, you navigate by
+curiosity. Your agents discover places and routes worth walking.
+
+\section{The Agents}
+\begin{tabular}{@{}P{0.2\textwidth}P{0.74\textwidth}@{}}
+\toprule
+\textbf{Scout} & Finds nearby places you've never been and reports back. \\
+\textbf{Storyteller} & Tells you the history of landmarks you pass (from Wikipedia, not made up). \\
+\textbf{Pathfinder} & Plans a scenic or step-free route to wherever the Scout found. \\
+\textbf{Forager} & Finds coffee, food, water fountains, and benches along your walk. \\
+\bottomrule
+\end{tabular}
+
+Each agent levels up and changes appearance based on where you walk
+(parks make it leafy, libraries make it bookish), like Pikmin's decor variants.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Agent logic, map, and game UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Imagine} for postcards and creature art; \textbf{Voice} for agent voice memos. Uses both.}
+\req{Space data}{Not used.}
+\req{Navigation theme}{Discovery-driven navigation; agents as scouts.}
+\req{Also eligible}{Big Red, Software, Design, People's Choice. \textbf{Photon} if agents text you in iMessage.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Map with your walked path drawn as a trail of flowers.
+  \item Three agents (Scout, Storyteller, Pathfinder), each with its own personality.
+  \item \textbf{Expedition:} pick a nearby place; the agent researches it with real tools (map data, Wikipedia) and returns after a short timer.
+  \item Return gift: Grok Imagine postcard + Grok Voice memo + ``Take me there'' button.
+  \item Walking directions to the place, with the trail blooming as you go.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Agents evolve based on the kinds of places you visit.
+  \item Daily quests the agents invent (\emph{``Visit 2 places you've never been''}).
+  \item Agents text you in iMessage with Photon (\emph{``I'm back from the gorge!''}).
+  \item Friends' agents meet when you walk near each other.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Frontend: mobile web app (PWA), Leaflet map, browser geolocation.
+  \item Agents: an LLM with tool calls (Grok chat API fits the track), tools for:
+    nearby places (OpenStreetMap Overpass API), place summaries (Wikipedia API),
+    walking routes (OSRM / Google Directions).
+  \item Media: Grok Imagine (postcards, creature art), Grok Voice (memos).
+  \item Backend: small Node or Python server holding API keys and expedition timers.
+  \item Optional: Photon Spectrum for iMessage.
+\end{itemize}
+
+\section{Demo Plan (2 minutes)}
+\begin{enumerate}
+  \item Show Saturday's real walk around campus, blooming on the map.
+  \item Send the Scout on an expedition live (shortened timer for the demo).
+  \item It returns: play the voice memo and show the postcard.
+  \item Tap ``Take me there''; the Pathfinder plans the route.
+\end{enumerate}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Indoor judging, no walking}{You can't go on a real walk at the judging table.}{Record real walks Saturday and add a ``replay walk'' mode; expeditions themselves work anywhere.}
+\limitation{Background location on the web}{Web apps can't reliably track location with the screen off, especially on iPhone. Real walking games are native apps for this reason.}{Keep the app open during walks for the MVP; say a native app is the next step.}
+\limitation{Agents making things up}{An LLM may invent facts about a place (``famous waterfall'' that doesn't exist).}{Agents may only report facts returned by their tools; show the sources on the postcard.}
+\limitation{Postcards aren't real photos}{Grok Imagine illustrations won't look exactly like the place.}{Keep a clear illustrated, storybook style so nobody mistakes them for photos.}
+\limitation{Copyright and trademarks}{Pikmin is Nintendo/Niantic's. Using its name, art, or creatures is not allowed.}{Original creatures and name; say ``inspired by walking games'' in the pitch.}
+\limitation{Scope creep}{Games invite endless features (levels, items, friends).}{Lock the MVP to one loop: walk, send, return, go. Everything else is stretch.}
+\limitation{Cost and speed}{Each expedition calls an LLM several times plus image and voice generation.}{Cache results per place; pre-generate the demo expedition as a backup.}
+\limitation{Location privacy}{The app stores where people walk.}{Keep walk history on the device; send the server only the place being researched.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Cute and memorable; walking must be replayed.}
+\rating{Buildable in 24h}{3}{Several APIs, but each piece is standard.}
+\rating{Navigation theme}{4}{Navigation by curiosity; slightly playful take.}
+\rating{Wow factor}{5}{Charming creatures that really do things.}
+\rating{Technical risk (5 = riskiest)}{3}{Moderate (many integrations).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Strong contender, especially for People's Choice and Design.} It uses
+both Grok APIs naturally, and the agents do real work instead of only chatting.
+Keep the MVP to a single expedition loop.
+
+\end{document}

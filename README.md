@@ -103,6 +103,7 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 | **HillSmart** | Routes that avoid Ithaca's hills and stairs, with voice guidance | A practical, relatable pick |
 | **VoiceRover** | A Raspberry Pi robot car you drive by voice | Hardware track too, if motors are available |
 | **PictureRoute** | Directions as illustrated landmark cards, made with Grok Imagine | Design track |
+| **Wanderlings** | Pikmin Bloom with AI agents: walk to make your trail bloom, and send agent companions to scout real places. They return with Grok Imagine postcards and Grok Voice memos. | People's Choice, Design, and Photon if agents text you |
 
 ## Other ideas that fit the Navigation theme
 
@@ -130,6 +131,7 @@ Score each idea from 1 to 5 on each column.
 | 9 | HillSmart | | | | | | |
 | 10 | VoiceRover | | | | | | |
 | 11 | PictureRoute | | | | | | |
+| 12 | Wanderlings | | | | | | |
 
 ## Team
 
