@@ -154,6 +154,20 @@ Score each idea from 1 to 5 on each column.
 
 ## Getting started
 
+### Try the Wanderlings prototype
+
+There's a quick concept demo in [`prototype/`](prototype/). It's a throwaway prototype, not the Cursor-built submission.
+
+```bash
+cd big-red-hacks2026/prototype
+python -m http.server 8765
+# then open http://localhost:8765
+```
+
+For full steps, demo instructions, phone setup and troubleshooting, see [prototype/README.md](prototype/README.md).
+
+### The real project
+
 _To be filled in once we pick an idea._
 
 ```bash
