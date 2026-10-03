@@ -12,7 +12,6 @@ import { useEffect, useMemo } from "react";
 import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
-import { AgentList } from "./src/components/AgentList.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
 import { HatchModal } from "./src/components/HatchModal.js";
 import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapControls.js";
@@ -20,6 +19,7 @@ import { PetsPanel } from "./src/components/PetsPanel.js";
 import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
+import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
 import { Hint, PillTabs } from "./src/components/ui.js";
@@ -109,7 +109,7 @@ function Main() {
         </View>
         <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
         <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
-          {state.tab === "squad" && <AgentList state={state} onAction={game.runAgent} />}
+          {state.tab === "squad" && <SquadPanel state={state} game={game} />}
           {state.tab === "pets" && <PetsPanel state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
           {state.tab === "savings" && <SavingsPanel state={state} game={game} />}

@@ -92,7 +92,8 @@ src/game/state.js       initial state, saved fields, derived values
 src/game/store.js       tiny state store (getState / setState / useStore)
 src/game/game.js        game actions: agents, guided walks, capture, savings, Nessie
 src/game/walking.js     movement: simulated walks, GPS, step counter, blooms, trails
-src/components/         TrailMap, AgentList, RanksPanel, SavingsPanel, AlbumPanel, PostcardModal, CaptureModal
+src/components/         TrailMap + MapPets, SquadPanel, PetsPanel + PetArt + HatchModal, RanksPanel + RankBadge,
+                        SavingsPanel, AlbumPanel, PostcardModal, CaptureModal, MapControls, StatusToast, ui
 src/storage.js          AsyncStorage
 src/voice.js            speech (placeholder for Grok Voice)
 ```

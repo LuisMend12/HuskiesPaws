@@ -1,0 +1,124 @@
+// Squad tab: the pets you take with you, each with a status and its class's
+// action. Slots grow with your league (3, then 4 at Gold, 5 at Crystal).
+// Reads squad / pet.status / squadSize (docs/HANDOFF-backend.md); until the
+// backend has them, class actions run the existing Pip/Moss/Fern agents.
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { AGENTS } from "../core/agents.js";
+import { petLevel, petPower, rarityOf } from "../core/pets.js";
+import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
+import { scoreOf } from "../game/state.js";
+import { colors, fonts, radius, space, type } from "../theme.js";
+import { petsView } from "./fakeData.js";
+import { PetArt } from "./PetArt.js";
+import { Button, Card, Hint } from "./ui.js";
+
+// Extra slots by league index (0 Bronze ... 4 Crystal).
+const SLOT_UNLOCKS = [{ tier: 2, name: "Gold" }, { tier: 4, name: "Crystal" }];
+const BASE_SLOTS = 3;
+
+const CLASS_AGENT = { Scout: "scout", Storyteller: "storyteller", Pathfinder: "pathfinder" };
+
+const STATUS = {
+  "with-you": { label: "🐾 With you", color: colors.greenDark, bg: colors.greenSoft },
+  exploring: { label: "🧭 Exploring", color: "#1f6fa8", bg: colors.iceSoft },
+  defending: { label: "🛡️ Defending", color: colors.white, bg: colors.navy },
+  resting: { label: "💤 Resting", color: colors.muted, bg: colors.stripe },
+};
+
+function statusOf(pet, state, agentId, firstOfClass) {
+  if (pet.status) return pet.status;
+  return agentId && firstOfClass && state.away.includes(agentId) ? "exploring" : "with-you";
+}
+
+function SquadCard({ pet, state, game, firstOfClass }) {
+  const walked = state.progress.walked;
+  const agent = AGENTS.find((a) => a.id === CLASS_AGENT[pet.petClass]);
+  const status = statusOf(pet, state, agent?.id, firstOfClass);
+  const look = STATUS[status] ?? STATUS["with-you"];
+  const rarity = rarityOf(pet);
+  const guarding = status === "defending" ? state.turf?.find((t) => t.pet?.id === pet.id) : null;
+  const busy = status !== "with-you" || state.walking;
+  const needsDiscovery = pet.petClass === "Pathfinder" && !state.discovery;
+  const run = () => (game.runPet ? game.runPet(pet.id) : game.runAgent(agent));
+
+  return (
+    <Card style={styles.card}>
+      <View style={status === "exploring" && styles.away}>
+        <PetArt pet={pet} size={60} />
+      </View>
+      <View style={styles.info}>
+        <Text style={type.heading} numberOfLines={1}>{`${pet.name} · Lv ${petLevel(pet, walked)}`}</Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          <Text style={{ color: rarity.color }}>{rarity.label}</Text>
+          {` ${pet.petClass} · ⚡${petPower(pet, walked)}`}
+        </Text>
+        <View style={[styles.status, { backgroundColor: look.bg }]}>
+          <Text style={[styles.statusText, { color: look.color }]}>
+            {guarding ? `${look.label} ${guarding.title}` : status === "resting" && pet.restMeters ? `${look.label} · ${Math.ceil(pet.restMeters)} m` : look.label}
+          </Text>
+        </View>
+      </View>
+      {status === "exploring" ? (
+        <ActivityIndicator color={colors.green} />
+      ) : agent ? (
+        <Button title={agent.action} onPress={run} disabled={busy || needsDiscovery} />
+      ) : (
+        <Hint style={styles.guardHint}>Defends landmarks</Hint>
+      )}
+    </Card>
+  );
+}
+
+function EmptySlot({ onPress }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={styles.empty}>
+      <Text style={styles.emptyText}>＋ Empty slot · pick a pet in the Pets tab</Text>
+    </Pressable>
+  );
+}
+
+export function SquadPanel({ state, game }) {
+  const { squad } = petsView(state);
+  const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
+  const size = state.squadSize ?? BASE_SLOTS + SLOT_UNLOCKS.filter((u) => tier >= u.tier).length;
+  const locked = SLOT_UNLOCKS.filter((u) => tier < u.tier);
+  const members = squad.slice(0, size);
+  const seenClasses = new Set();
+
+  return (
+    <View style={styles.list}>
+      <View style={styles.header}>
+        <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
+        <Hint>Guards still use their slot</Hint>
+      </View>
+      {members.map((pet) => {
+        const firstOfClass = !seenClasses.has(pet.petClass);
+        seenClasses.add(pet.petClass);
+        return <SquadCard key={pet.id} pet={pet} state={state} game={game} firstOfClass={firstOfClass} />;
+      })}
+      {Array.from({ length: Math.max(0, size - members.length) }, (_, i) => (
+        <EmptySlot key={`empty-${i}`} onPress={() => game.set({ tab: "pets" })} />
+      ))}
+      {locked.map((u) => (
+        <View key={u.name} style={[styles.empty, styles.locked]}>
+          <Text style={styles.emptyText}>{`🔒 Another slot opens at ${u.name}`}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  list: { gap: space.sm },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  card: { flexDirection: "row", alignItems: "center", gap: space.md },
+  away: { opacity: 0.4 },
+  info: { flex: 1, gap: 2 },
+  meta: { ...type.caption },
+  status: { alignSelf: "flex-start", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, marginTop: 2 },
+  statusText: { fontFamily: fonts.bold, fontSize: 12 },
+  guardHint: { maxWidth: 70, textAlign: "center" },
+  empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center" },
+  locked: { backgroundColor: colors.stripe },
+  emptyText: { ...type.label, color: colors.muted },
+});

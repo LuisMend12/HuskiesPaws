@@ -43,7 +43,7 @@ The presentation side codes against this list from the start, using **fake data*
 | **Leaderboards** (in Ranks) | `leaderboard` (`{ scope, rows: [{ name, score, isYou }] }`), `scope` | `game.set({ scope })` | 3 |
 | **Grok art** (postcards, pet portraits) | `discovery.image`, `pet.art` (image URL or `null`, use SVG art from `core/art.js` when it's `null`) | none | 4 |
 
-Already working, so `presentation` can polish these right away: the map (`TrailMap`), squad (`AgentList`), ranks, savings, album, postcard and capture.
+Already working, so `presentation` can polish these right away: the map (`TrailMap`), squad (`SquadPanel`), ranks, savings, album, postcard and capture.
 
 Use the helpers in `core/pets.js` for display numbers: `eggProgress`, `metersToHatch`, `petLevel`, `petPower`, `rarityOf`, `colorOf`.
 
