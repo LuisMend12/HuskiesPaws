@@ -15,6 +15,11 @@ const TILT = 50; // degrees; makes standing pets and 3D buildings read as 3D
 const ZOOM = 17; // Google Maps (Android)
 const ALTITUDE = 600; // meters; Apple Maps (iOS) uses this instead of zoom
 const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
+// Tapping near a food bag opens its landmark. The bag is drawn above its point
+// (the marker is anchored at the bottom), so aim a little higher than the point.
+const BAG_LIFT_PX = 26;
+const TAP_RADIUS_PX = 46;
+const LANDMARK_ID = "landmark:";
 const cameraAt = (p, meters = 0) => ({
   center: toCoord(p),
   pitch: TILT,
@@ -35,7 +40,34 @@ function Bloom({ bloom }) {
 // onOpenLandmark(id): called when a landmark's food bag is tapped.
 export function TrailMap({ state, onOpenLandmark }) {
   const mapRef = useRef(null);
+  const view = useRef({ height: 400, latitudeDelta: 0.006 }); // for the tap fallback
   const { squad } = petsView(state);
+  const landmarks = landmarksView(state);
+
+  // Custom markers on iOS (new architecture) can lose their tap area, so map taps
+  // also check which bag was drawn under the finger.
+  async function openNearestLandmark({ nativeEvent }) {
+    if (!onOpenLandmark || landmarks.length === 0) return;
+    const { coordinate, position } = nativeEvent;
+    let best = null;
+    if (position && (position.x || position.y) && mapRef.current) {
+      const points = await Promise.all(
+        landmarks.map((l) => mapRef.current.pointForCoordinate(toCoord(l)).catch(() => null)),
+      );
+      points.forEach((p, i) => {
+        if (!p) return;
+        const d = Math.hypot(p.x - position.x, p.y - BAG_LIFT_PX - position.y);
+        if (d <= TAP_RADIUS_PX && (!best || d < best.d)) best = { d, landmark: landmarks[i] };
+      });
+    } else if (coordinate) {
+      const metersPerPx = (view.current.latitudeDelta * 111320) / view.current.height;
+      for (const l of landmarks) {
+        const d = distanceMeters({ lat: coordinate.latitude, lon: coordinate.longitude }, l) / metersPerPx;
+        if (d <= TAP_RADIUS_PX * 1.5 && (!best || d < best.d)) best = { d, landmark: l };
+      }
+    }
+    if (best) onOpenLandmark(best.landmark.landmarkId);
+  }
 
   useEffect(() => {
     if (!state.mapFocus) return;
@@ -66,6 +98,17 @@ export function TrailMap({ state, onOpenLandmark }) {
       showsBuildings
       pitchEnabled
       showsPointsOfInterests={false}
+      onLayout={(e) => {
+        view.current.height = e.nativeEvent.layout.height;
+      }}
+      onRegionChangeComplete={(region) => {
+        view.current.latitudeDelta = region.latitudeDelta;
+      }}
+      onPress={openNearestLandmark}
+      onMarkerPress={(e) => {
+        const id = e.nativeEvent.id ?? "";
+        if (id.startsWith(LANDMARK_ID)) onOpenLandmark?.(id.slice(LANDMARK_ID.length));
+      }}
     >
       {state.trailSegments.map((segment) => (
         <Polyline key={segment.id} coordinates={segment.coords} strokeColor={segment.color} strokeWidth={6} />
@@ -79,7 +122,7 @@ export function TrailMap({ state, onOpenLandmark }) {
       <MapPets
         position={state.position}
         squad={squadStatuses(squad, state)}
-        landmarks={landmarksView(state)}
+        landmarks={landmarks}
         expedition={state.expedition}
         onOpenLandmark={onOpenLandmark}
       />

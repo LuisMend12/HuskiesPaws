@@ -10,9 +10,10 @@ import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
-import { PetArt } from "./PetArt.js";
+import { landmarksView, reachOf, ringOf } from "./landmarks.js";
+import { FoodBagSvg, PetArt } from "./PetArt.js";
 import { SLOT_UNLOCKS, squadSizeFor, squadStatuses } from "./petStatus.js";
-import { Button, Card, Hint } from "./ui.js";
+import { Button, Card, Hint, SectionTitle } from "./ui.js";
 
 const STATUS = {
   "with-you": { label: "🐾 With you", color: colors.greenDark, bg: colors.greenSoft },
@@ -81,6 +82,38 @@ function SquadCard({ pet, status, agentId, state, game }) {
   );
 }
 
+const NEARBY_LANDMARKS = 5;
+
+// The closest landmarks, as a way into the landmark screen besides tapping the map.
+function NearbyLandmarks({ state, game }) {
+  const nearby = landmarksView(state)
+    .map((l) => ({ ...l, meters: reachOf(state, l).meters }))
+    .sort((a, b) => a.meters - b.meters)
+    .slice(0, NEARBY_LANDMARKS);
+  if (nearby.length === 0) return null;
+  return (
+    <>
+      <SectionTitle>Landmarks nearby</SectionTitle>
+      {nearby.map((l) => (
+        <Pressable
+          key={l.landmarkId}
+          onPress={() => game.set({ landmarkOpen: l.landmarkId })}
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${l.title}`}
+          style={({ pressed }) => [styles.landmark, pressed && styles.pressed]}
+        >
+          <FoodBagSvg size={28} ring={ringOf(l)} />
+          <View style={styles.info}>
+            <Text style={type.label} numberOfLines={1}>{l.title}</Text>
+            <Text style={styles.meta}>{`${!l.guard ? "Free to claim" : l.guard.mine ? "Yours" : `Held by ${l.guard.ownerName} · ⚡${l.guard.pet.power}`} · ${l.meters} m`}</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+      ))}
+    </>
+  );
+}
+
 function EmptySlot({ onPress }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={styles.empty}>
@@ -113,6 +146,7 @@ export function SquadPanel({ state, game }) {
           <Text style={styles.emptyText}>{`🔒 Another slot opens at ${u.name}`}</Text>
         </View>
       ))}
+      <NearbyLandmarks state={state} game={game} />
     </View>
   );
 }
@@ -131,4 +165,7 @@ const styles = StyleSheet.create({
   empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center" },
   locked: { backgroundColor: colors.stripe },
   emptyText: { ...type.label, color: colors.muted },
+  landmark: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm, paddingHorizontal: space.sm, borderRadius: radius.card, backgroundColor: colors.stripe },
+  pressed: { opacity: 0.7 },
+  chevron: { fontFamily: fonts.black, fontSize: 22, color: colors.muted },
 });

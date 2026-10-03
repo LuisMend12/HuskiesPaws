@@ -84,7 +84,9 @@ function Landmark({ landmark, onOpen }) {
       coordinate={{ latitude: landmark.lat, longitude: landmark.lon }}
       anchor={{ x: 0.5, y: 1 }}
       tracksViewChanges={tracking}
+      identifier={`landmark:${landmark.landmarkId}`}
       onPress={() => onOpen(landmark.landmarkId)}
+      onSelect={() => onOpen(landmark.landmarkId)}
       accessibilityLabel={`${landmark.title}, ${!guard ? "free" : guard.mine ? "guarded by your pet" : `guarded by ${guard.ownerName}`}`}
     >
       <View style={styles.landmark}>

@@ -7,6 +7,7 @@
 /* eslint-disable react/no-unknown-property -- three.js elements (lights) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
 import { Canvas } from "@react-three/fiber/native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -65,6 +66,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const [battle, setBattle] = useState(null); // { attacker, power, defender, outcome, hp: { you, them } }
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [ar, setAr] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   const walked = state.progress.walked;
   const landmark = landmarksView(state).find((l) => l.landmarkId === landmarkId);
@@ -113,13 +116,19 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
       return { ...b, hp: youWin ? { you: winnerHp, them: loserHp } : { you: loserHp, them: winnerHp } };
     });
 
+  const showCamera = ar && permission?.granted;
+  const toggleAr = async () => {
+    if (!ar && !permission?.granted) await requestPermission();
+    setAr(!ar);
+  };
+
   const action = !guard ? "Claim" : guard.mine ? "Swap in" : "Challenge";
   const icon = !guard ? "🐾" : guard.mine ? "🔁" : "⚔️";
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.screen}>
-        <Field />
+        {showCamera ? <CameraView style={StyleSheet.absoluteFill} facing="back" /> : <Field />}
         <Canvas style={styles.canvas} gl={{ alpha: true }} camera={{ fov: 40 }} onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
           <FitCamera width={battle ? BATTLE_WIDTH : SCENE_WIDTH} />
           <ambientLight intensity={1.1} />
@@ -140,12 +149,13 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
           <Button title="✕ Close" variant="secondary" onPress={onClose} disabled={Boolean(battle)} />
-          <View style={[styles.owner, { backgroundColor: RING_COLORS[ring] }]}>
-            <Text style={styles.ownerText}>{!guard ? "Free" : guard.mine ? "Yours" : guard.ownerName}</Text>
-          </View>
+          <Button title={showCamera ? "🌳 Field" : "📷 AR"} variant={showCamera ? "primary" : "secondary"} onPress={toggleAr} />
         </View>
         <View style={[styles.titleWrap, { top: insets.top + 64 }]}>
           <Text style={styles.title} numberOfLines={2}>{landmark.title}</Text>
+          <View style={[styles.owner, { backgroundColor: RING_COLORS[ring] }]}>
+            <Text style={styles.ownerText}>{!guard ? "Free to claim" : guard.mine ? "Yours" : `Held by ${guard.ownerName}`}</Text>
+          </View>
           {guard && !battle && (
             <View style={styles.guardCard}>
               <Text style={styles.guardText}>{`🛡️ ${guard.mine ? "Your" : `${guard.ownerName}'s`} ${guard.pet.name} · ⚡${guard.pet.power}`}</Text>
