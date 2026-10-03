@@ -17,3 +17,15 @@ export const WALKING_SPEED_MPS = 1.3;
 
 export const XP_PER_LEVEL = 2;
 export const FETCH_TIMEOUT_MS = 10000;
+
+// Ranks. The web app estimates steps from distance; the mobile app reads the real pedometer.
+export const STEP_LENGTH_M = 0.75;
+export const POINTS = Object.freeze({ stepsPerPoint: 10, landmarkFound: 50, landmarkCaptured: 100 });
+
+// Leaderboards are grouped by region; updated from GPS via reverse geocoding.
+export const DEFAULT_REGION = Object.freeze({ local: "Ithaca", state: "New York", national: "United States" });
+export const LEADERBOARD_TOP = 10;
+
+// Capture: you must be this close to a landmark to photograph it.
+export const CAPTURE_RADIUS_M = 50;
+export const ALBUM_MAX_CARDS = 12;
