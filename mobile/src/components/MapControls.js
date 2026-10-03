@@ -14,7 +14,8 @@ const SquadView = lazy(() => import("./SquadView.js"));
 
 export const SHEET_OVERLAP = 24; // how far the sheet's rounded top covers the map
 
-export function MapTopBar({ rank, score, onRankPress }) {
+// boost: the XP multiplier from landmarks you hold (1 = none).
+export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.topBar, { top: insets.top + space.sm }]} pointerEvents="box-none">
@@ -24,9 +25,12 @@ export function MapTopBar({ rank, score, onRankPress }) {
           Huskies<Text style={styles.brandAccent}>Paws</Text>
         </Text>
       </View>
-      <Pressable style={[styles.pill, styles.rankPill]} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP`}>
+      <Pressable style={[styles.pill, styles.rankPill]} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP${boost > 1 ? `, XP boost times ${boost.toFixed(1)}` : ""}`}>
         <RankBadge rank={rank} size={22} />
-        <Text style={styles.pillText}>{`${rank.name} · ${score.toLocaleString()} XP`}</Text>
+        <Text style={styles.pillText}>
+          {`${rank.name} · ${score.toLocaleString()} XP`}
+          {boost > 1 && <Text style={styles.boost}>{` ×${boost.toFixed(1)}`}</Text>}
+        </Text>
       </Pressable>
     </View>
   );
@@ -142,6 +146,7 @@ const styles = StyleSheet.create({
     ...shadow.soft,
   },
   rankPill: { gap: 6, paddingLeft: 8 },
+  boost: { fontFamily: fonts.black, color: "#e8a317" },
   brand: { backgroundColor: colors.navy, paddingLeft: 4, gap: 6 },
   logo: { width: 30, height: 30 },
   brandText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },

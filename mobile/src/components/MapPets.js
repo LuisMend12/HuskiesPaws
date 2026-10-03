@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Marker, Polyline } from "react-native-maps";
 import { colors, fonts, radius } from "../theme.js";
-import { ringOf } from "./landmarks.js";
-import { FoodBagSvg, PetSvg } from "./PetArt.js";
+import { hpNow, ringOf } from "./landmarks.js";
+import { FoodSvg, PetSvg } from "./PetArt.js";
 
 const METERS_PER_DEGREE = 111320;
 // Where squad pets stand, in meters from you (east, north): a little group behind you.
@@ -77,7 +77,7 @@ function Landmark({ landmark, onOpen }) {
   const tracking = useSettled();
   const guard = landmark.guard;
   const ring = ringOf(landmark);
-  const hp = guard?.maxHp ? Math.max(0, Math.min(1, guard.hp / guard.maxHp)) : 1;
+  const hp = guard?.maxHp ? Math.max(0, Math.min(1, hpNow(guard) / guard.maxHp)) : 1;
   const hpColor = hp > 0.5 ? colors.green : hp > 0.25 ? colors.yellow : colors.coral;
   return (
     <Marker
@@ -102,7 +102,7 @@ function Landmark({ landmark, onOpen }) {
         )}
         <View style={styles.landmarkRow}>
           {guard && <PetSvg pet={guard.pet} size={44} />}
-          <FoodBagSvg size={guard ? 34 : 38} ring={ring} />
+          <FoodSvg size={guard ? 34 : 38} ring={ring} kind={landmark.food} />
         </View>
       </View>
     </Marker>
@@ -117,8 +117,8 @@ export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark
   return (
     <>
       {landmarks.map((l) => (
-        // Keyed by who holds it, so the marker redraws after a claim.
-        <Landmark key={`landmark-${l.landmarkId}-${ringOf(l)}-${l.guard?.pet.id ?? ""}`} landmark={l} onOpen={onOpenLandmark} />
+        // Keyed by who holds it and its HP (in tens), so the marker redraws when they change.
+        <Landmark key={`landmark-${l.landmarkId}-${ringOf(l)}-${l.guard?.pet.id ?? ""}-${l.guard ? Math.floor(hpNow(l.guard) / 10) : ""}`} landmark={l} onOpen={onOpenLandmark} />
       ))}
       {explorer && <ExplorerPet key={`explore-${expedition.startedAt}`} pet={explorer} expedition={expedition} home={position} />}
       {following.map((pet, i) => (

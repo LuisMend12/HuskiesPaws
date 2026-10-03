@@ -14,6 +14,7 @@ import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
+import { recallLocally } from "./landmarks.js";
 import { squadSizeFor } from "./petStatus.js";
 import { Button, Card, Hint } from "./ui.js";
 
@@ -154,6 +155,12 @@ export function PetsPanel({ state, game }) {
   const toggle = (id) => {
     if (squadIds.includes(id)) {
       if (squadIds.length === 1) return game.set({ status: "Keep at least one pet in your squad." });
+      // Taking a guard out of the squad calls it back and frees its landmark.
+      if (game.recallGuard) game.recallGuard(id);
+      else {
+        const recall = recallLocally(state, id);
+        if (recall) game.set(recall);
+      }
       return setSquad(squadIds.filter((x) => x !== id));
     }
     if (squadIds.length >= size) {

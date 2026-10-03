@@ -18,6 +18,7 @@ import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapContr
 import { PetsPanel } from "./src/components/PetsPanel.js";
 import { petsView } from "./src/components/fakeData.js";
 import { capturePetOf, finderOf } from "./src/components/petStatus.js";
+import { xpBoostOf } from "./src/components/landmarks.js";
 import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
@@ -86,7 +87,7 @@ function Main() {
 
       <View style={styles.map}>
         <TrailMap state={state} onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })} />
-        <MapTopBar rank={current} score={score} onRankPress={() => game.set({ tab: "ranks" })} />
+        <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} onRankPress={() => game.set({ tab: "ranks" })} />
         <StatusToast message={state.status} />
         <MapControls state={state} game={game} />
       </View>

@@ -8,18 +8,46 @@
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
 import { Canvas } from "@react-three/fiber/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { petPower } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
-import { FIGHT_RANGE_M, claimLocally, landmarksView, reachOf, ringOf } from "./landmarks.js";
+import {
+  FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf,
+} from "./landmarks.js";
 import { PetSvg } from "./PetArt.js";
 import { squadStatuses } from "./petStatus.js";
 import { FitCamera, Field } from "./SquadView.js";
 import { Button, Hint } from "./ui.js";
+
+// Event handlers read the clock through this (not while drawing the screen).
+const clockNow = () => Date.now();
+
+// Re-renders every few seconds so healing HP bars move.
+function useTicker(ms) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), ms);
+    return () => clearInterval(timer);
+  }, [ms]);
+}
+
+// How much the winner gets scratched per hit: more when the loser was close in power.
+function scratchPerHit(winnerPower, loserPower) {
+  return Math.round(Math.min(18, Math.max(4, (loserPower / winnerPower) * 12)));
+}
+
+// HP for both sides after `round` hits (round = BATTLE_ROUNDS at the end).
+function hpAfter(b, round) {
+  const youWin = b.outcome.won;
+  const scratch = youWin ? scratchPerHit(b.power, b.defender.power) : scratchPerHit(b.defender.power, b.power);
+  const loser = (start) => Math.max(0, start - (start / BATTLE_ROUNDS) * round);
+  const winner = (start) => Math.max(8, start - scratch * round);
+  return youWin ? { you: winner(b.start.you), them: loser(b.start.them) } : { you: loser(b.start.you), them: winner(b.start.them) };
+}
 
 const SCENE_WIDTH = 3.8; // world units to fit across the screen at rest
 const BATTLE_WIDTH = 5.2; // and during a battle
@@ -68,6 +96,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const [busy, setBusy] = useState(false);
   const [ar, setAr] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  useTicker(3000);
 
   const walked = state.progress.walked;
   const landmark = landmarksView(state).find((l) => l.landmarkId === landmarkId);
@@ -82,12 +111,43 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const ring = ringOf(landmark);
   const reach = reachOf(state, landmark);
 
-  const finish = (outcome) => {
-    if (outcome.turf) game.set({ turf: outcome.turf }); // local rules only; the backend updates turf itself
-    game.set({ status: outcome.message });
+  // after: { you, them } HP once a battle ends (null when there was no fight).
+  // With local rules, damage stays and heals slowly: the new guard keeps its HP,
+  // a guard that held on keeps its HP, and a pet that lost drops to 0 and rests.
+  const finish = (outcome, attacker, after) => {
+    const now = clockNow();
+    const patch = { status: outcome.message };
+    if (!game.claimTurf) {
+      let turf = outcome.turf;
+      if (turf && outcome.won) {
+        const hp = after ? after.you : petHpOf(state, attacker.id, now);
+        turf = turf.map((t) => (t.mine && String(t.landmarkId) === landmark.landmarkId ? { ...t, hp, hpAt: now } : t));
+      }
+      if (after && !outcome.won) {
+        turf = petsView(state).turf.map((t) =>
+          String(t.landmarkId) === landmark.landmarkId ? { ...t, hp: after.them, maxHp: t.maxHp ?? MAX_HP, hpAt: now } : t,
+        );
+        patch.petHp = { ...state.petHp, [attacker.id]: { hp: 0, hpAt: now } };
+      }
+      if (turf) patch.turf = turf;
+    }
+    game.set(patch);
     setBattle(null);
-    setResult(outcome);
+    setResult({ ...outcome, attacker });
     setBusy(false);
+  };
+
+  // Walk to the landmark; in demo mode the walk is simulated, then this screen reopens.
+  const walkThere = async () => {
+    const place = { id: landmark.landmarkId, title: landmark.title, lat: landmark.lat, lon: landmark.lon, distance: reach.meters };
+    onClose();
+    if (game.walkTo) {
+      await game.walkTo(place);
+    } else {
+      game.set({ discovery: { place, summary: { extract: "", photo: null, url: "" }, memo: "", agentId: "pathfinder" } });
+      await game.guideToDiscovery();
+    }
+    if (state.demoMode) game.set({ landmarkOpen: landmark.landmarkId });
   };
 
   const go = async () => {
@@ -100,21 +160,13 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
       return;
     }
     const fight = guard && !guard.mine && (outcome.result === "captured" || outcome.result === "defended");
-    if (fight) setBattle({ attacker: picked, power, defender: guard.pet, outcome, hp: { you: 100, them: 100 } });
-    else finish(outcome);
+    const start = { you: petHpOf(state, picked.id), them: hpNow(guard) };
+    if (fight) setBattle({ attacker: picked, power, defender: guard.pet, outcome, start, hp: start });
+    else finish(outcome, picked, null);
   };
 
-  // Each hit: the loser loses a quarter of its HP; the winner a little, more if the loser was close in power.
-  const onHit = (round) =>
-    setBattle((b) => {
-      if (!b) return b;
-      const youWin = b.outcome.won;
-      const ratio = youWin ? b.defender.power / b.power : b.power / b.defender.power;
-      const scratch = Math.round(Math.min(18, Math.max(4, ratio * 12)));
-      const loserHp = Math.max(0, 100 - (100 / BATTLE_ROUNDS) * round);
-      const winnerHp = Math.max(8, 100 - scratch * round);
-      return { ...b, hp: youWin ? { you: winnerHp, them: loserHp } : { you: loserHp, them: winnerHp } };
-    });
+  // Each hit: the loser loses a share of its HP; the winner gets scratched.
+  const onHit = (round) => setBattle((b) => (b ? { ...b, hp: hpAfter(b, round) } : b));
 
   const showCamera = ar && permission?.granted;
   const toggleAr = async () => {
@@ -139,11 +191,12 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
               defender={battle.defender}
               attackerWins={battle.outcome.won}
               ring={ring}
+              food={landmark.food}
               onHit={onHit}
-              onDone={() => finish(battle.outcome)}
+              onDone={() => finish(battle.outcome, battle.attacker, hpAfter(battle, BATTLE_ROUNDS))}
             />
           ) : (
-            <LandmarkScene guard={guard?.pet ?? null} ring={ring} />
+            <LandmarkScene guard={guard?.pet ?? null} ring={ring} food={landmark.food} />
           )}
         </Canvas>
 
@@ -159,7 +212,9 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
           {guard && !battle && (
             <View style={styles.guardCard}>
               <Text style={styles.guardText}>{`🛡️ ${guard.mine ? "Your" : `${guard.ownerName}'s`} ${guard.pet.name} · ⚡${guard.pet.power}`}</Text>
-              {guard.maxHp ? <HpBar name="Guard HP" power={guard.pet.power} hp={(100 * guard.hp) / guard.maxHp} color={RING_COLORS[ring]} /> : null}
+              {guard.maxHp ? (
+                <HpBar name={`Guard HP · ${Math.round(hpNow(guard))}/${guard.maxHp}`} power={guard.pet.power} hp={(100 * hpNow(guard)) / guard.maxHp} color={RING_COLORS[ring]} />
+              ) : null}
             </View>
           )}
           {battle && (
@@ -178,6 +233,9 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
                 {result.won ? (result.result === "captured" ? "🏰 Captured!" : "🐾 It's yours!") : result.result === "capped" ? "✋ Limit reached" : "🛡️ They held on"}
               </Text>
               <Text style={type.body}>{result.message}</Text>
+              {!result.won && result.attacker && result.result === "defended" && (
+                <Hint>{`${result.attacker.name} is healing: ready to fight again in about ${healMinutes(0, READY_HP)} min.`}</Hint>
+              )}
               <Button title="Done" onPress={onClose} size="large" />
             </>
           ) : battle ? (
@@ -191,13 +249,15 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
               {guard && !guard.mine && picked && (
                 <Hint>{`⚡${petPower(picked, walked)} vs ⚡${guard.pet.power}: the stronger pet wins and holds the landmark.`}</Hint>
               )}
-              {!reach.inRange && <Hint>{`Walk closer: you're ${reach.meters} m away (fights need ${FIGHT_RANGE_M} m).`}</Hint>}
-              <Button
-                title={picked ? `${icon} ${action} with ${picked.name}` : action}
-                size="large"
-                onPress={go}
-                disabled={!picked || !reach.inRange || busy}
-              />
+              {picked && petHpOf(state, picked.id) < MAX_HP && <Hint>{`${picked.name} has ${Math.round(petHpOf(state, picked.id))} HP (healing).`}</Hint>}
+              {reach.inRange ? (
+                <Button title={picked ? `${icon} ${action} with ${picked.name}` : action} size="large" onPress={go} disabled={!picked || busy} />
+              ) : (
+                <>
+                  <Hint>{`You're ${reach.meters} m away. Walk within ${FIGHT_RANGE_M} m to ${action.toLowerCase()} it.`}</Hint>
+                  <Button title={`🚶 Walk there (${reach.meters} m)`} size="large" onPress={walkThere} />
+                </>
+              )}
             </>
           )}
         </View>

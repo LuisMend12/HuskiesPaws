@@ -2,10 +2,11 @@
 // Uses pet.status from the backend when it exists; until then, a pet is
 // "exploring" while the agent for its class is away (the first pet of that
 // class in the squad stands in for the agent).
+import { READY_HP, petHpOf } from "./landmarks.js";
 
 export const CLASS_AGENT = Object.freeze({ Scout: "scout", Storyteller: "storyteller", Pathfinder: "pathfinder" });
 
-// [{ pet, status, agentId }] in squad order.
+// [{ pet, status, agentId, hp }] in squad order. A pet below READY_HP is "resting" (healing).
 export function squadStatuses(squad, state) {
   const seen = new Set();
   const guarding = new Set((state.turf ?? []).filter((t) => t.mine).map((t) => t.pet?.id));
@@ -14,7 +15,9 @@ export function squadStatuses(squad, state) {
     const firstOfClass = !seen.has(pet.petClass);
     seen.add(pet.petClass);
     const away = Boolean(agentId) && firstOfClass && state.away.includes(agentId);
-    return { pet, agentId, status: pet.status ?? (guarding.has(pet.id) ? "defending" : away ? "exploring" : "with-you") };
+    const hp = petHpOf(state, pet.id);
+    const derived = guarding.has(pet.id) ? "defending" : away ? "exploring" : hp < READY_HP ? "resting" : "with-you";
+    return { pet, agentId, hp, status: pet.status ?? derived };
   });
 }
 

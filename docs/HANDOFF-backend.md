@@ -1,4 +1,4 @@
-# Handoff: presentation → backend (updated Sat Oct 3, ~4 PM)
+# Handoff: presentation → backend (updated Sat Oct 3, ~4:45 PM)
 
 **For:** Luis and his coding agent, working on the `backend` branch. Read [SPLIT.md](../SPLIT.md) and [AGENTS.md](../AGENTS.md) first; this file adds what changed and what the screens now expect.
 
@@ -20,7 +20,7 @@ npx expo start --clear    # once, to drop Metro's old cache
   - a **Pets** tab and **hatch reveal**, on sample data until 4.1 lands
   - a **Squad** tab (replaces `AgentList`): squad pets with statuses and class actions; Pip, Moss and Fern show as starter pets
   - a **tilted map** with pets standing on it: the squad follows you, the exploring pet **walks to its place and back**, guards stand on landmarks with HP bars (three **sample rival guards** near PSB until 4.3 lands)
-  - **landmarks** as dog-food bags on rings (grey free, green yours, coral rival); tap one (or pick it from **Landmarks nearby** at the bottom of the Squad tab) for the 3D landmark screen, with an AR toggle: claim it, or challenge the guard in a head-bashing battle with HP bars
+  - **landmarks** as food (dog-food bag, tuna can or treat jar) on rings (grey free, green yours, coral rival); tap one (or pick it from **Landmarks nearby** at the bottom of the Squad tab) for the 3D landmark screen, with an AR toggle: claim it, or challenge the guard in a head-bashing battle with HP bars
   - **postcards** drawn with the pet who found the place (or the Grok picture), and your squad pet in the **capture** frame instead of the old blob creature
   - a **🐾 3D** button on the map: your squad walks around in 3D over the camera (React Three Fiber). It loads three.js only when opened; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` and `SquadView.js` (three 0.186 crashes on React Native without it)
 - **How sample data switches off:** every screen reads through `petsView(state)` in `mobile/src/components/fakeData.js`. When `state.pets`, `state.egg`, `state.squad` or `state.turf` is defined (even `[]` / `null`), the real value is used instead of the sample.
@@ -117,6 +117,14 @@ xpBoost: 1,         // 1 + 0.1 × turf.filter((t) => t.mine).length
 **The landmark screen is built** (`mobile/src/components/LandmarkView.js`, opened by tapping a food bag on the map or a row in the Squad tab's "Landmarks nearby"; the open one is `state.landmarkOpen`, a UI-only field you don't need to save): it picks a squad pet, plays a head-bashing battle when it's a challenge, and shows the result. It calls **`await game.claimTurf(landmarkId, petId)` and needs it to return `{ result, won, message }`** (`result` is the server's `claimed` / `reinforced` / `captured` / `defended` / `capped`; `won` true when you hold the landmark afterwards). Until `claimTurf` exists it applies the same rules on the phone (`landmarks.js` `claimLocally`) and writes `state.turf` locally (not saved); your real `turf` replaces that. Fights need you within 150 m, except in demo mode.
 
 Action: `game.claimTurf(landmarkId, petId)` (a squad pet chooses to guard, with `petPower(pet, walked)`; it becomes `"defending"`; set `status` to the server's message). Ship a plain component that proves it works; presentation will restyle it.
+
+**Agreed after play-testing (Abdullah):**
+- **Range:** claiming or fighting needs you **within 150 m, also in demo mode**. Out of range, the landmark screen shows **🚶 Walk there**: it calls `game.walkTo(place)` if it exists, else it borrows `guideToDiscovery` (sets `discovery` to the landmark and calls it); in demo mode the walk is simulated and the screen reopens. Please add `game.walkTo({ id, title, lat, lon })` (a guided walk to any place, without a postcard).
+- **HP after fights stays and heals slowly:** 10 HP per minute, for pets and guards. A pet that loses drops to 0 and is **resting** until it's back to 50 HP; a pet that wins starts guarding with the HP it had left. **Decay** still applies to guards, as a falling *maximum*: `maxHp = 100 - 10 × hours since the owner last visited`, so an unvisited guard heals up to a lower ceiling each hour and leaves at 0.
+  - State the screens read: `petHp: { [petId]: { hp, hpAt } }` (pets not at full HP; `hpAt` = ms timestamp), and `hp`, `maxHp`, `hpAt` on each turf entry. The app works out current HP as `min(maxHp, hp + minutes since hpAt × 10)` (`hpNow` in `mobile/src/components/landmarks.js`).
+- **Recall:** taking a guarding pet out of the squad (Pets tab) calls it back and frees its landmark. Please add `game.recallGuard(petId)`; until then the app does it locally (`recallLocally`).
+- **XP boost shown:** the rank pill shows `×1.2 XP` from `state.xpBoost` (or `1 + 0.1 × landmarks you hold`).
+- **Foods:** each landmark shows a dog-food bag, a tuna can or a jar of treats, picked from its id on the phone. Nothing to store.
 
 ### 4.4 Squad, statuses and starter pets (agreed with Abdullah)
 

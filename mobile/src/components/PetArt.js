@@ -155,15 +155,14 @@ const styles = StyleSheet.create({
   portrait: { backgroundColor: colors.stripe },
 });
 
-// The dog-food bag every landmark has on the map, standing on its ring.
+// The food every landmark has on the map (a dog-food bag, a can of tuna or a
+// jar of bone treats; see foodOf in landmarks.js), standing on its ring.
 // ring: "free" (grey), "mine" (green) or "rival" (coral).
 const BAG_RINGS = { free: "#aab4bf", mine: colors.green, rival: colors.coral };
 
-export function FoodBagSvg({ size = 40, ring = "free" }) {
+function BagShape() {
   return (
-    <Svg width={size} height={size * 1.15} viewBox="0 0 60 69" accessibilityLabel="Landmark food bag">
-      <Ellipse cx={30} cy={60} rx={26} ry={8} fill={BAG_RINGS[ring]} />
-      <Ellipse cx={30} cy={60} rx={19} ry={5} fill={INK} opacity={0.25} />
+    <G>
       <Rect x={14} y={14} width={32} height={44} rx={6} fill="#1f3b63" stroke={INK} strokeWidth={2} />
       <Rect x={13} y={10} width={34} height={7} rx={2} fill="#2b4f80" stroke={INK} strokeWidth={2} />
       <Rect x={18} y={26} width={24} height={20} rx={4} fill={colors.green} />
@@ -173,6 +172,57 @@ export function FoodBagSvg({ size = 40, ring = "free" }) {
       <Circle cx={31.5} cy={30} r={1.7} fill="#ffffff" />
       <Circle cx={35} cy={32} r={1.7} fill="#ffffff" />
       <Rect x={17} y={17} width={4} height={36} rx={2} fill="#ffffff" opacity={0.18} />
+    </G>
+  );
+}
+
+function TunaShape() {
+  return (
+    <G>
+      <Path d="M10 34 V54 Q30 62 50 54 V34 Z" fill="#c9d3dd" stroke={INK} strokeWidth={2} />
+      <Path d="M10 38 V50 Q30 58 50 50 V38 Q30 46 10 38 Z" fill="#3f8fd2" />
+      <Ellipse cx={30} cy={34} rx={20} ry={7} fill="#e4ebf2" stroke={INK} strokeWidth={2} />
+      <Ellipse cx={36} cy={34} rx={4} ry={2} fill="none" stroke="#9aa5b1" strokeWidth={1.6} />
+      <Ellipse cx={28} cy={47} rx={7} ry={3.5} fill="#ff9f43" />
+      <Path d="M34 47 L40 43 L40 51 Z" fill="#ff9f43" />
+      <Circle cx={25} cy={46} r={1} fill={INK} />
+    </G>
+  );
+}
+
+function TreatsShape() {
+  const bone = (x, y, r) => (
+    <G transform={`translate(${x} ${y}) rotate(${r})`} fill="#e2b06c" stroke="#8d5a2b" strokeWidth={0.8}>
+      <Circle cx={-6} cy={-1.8} r={2.2} />
+      <Circle cx={-6} cy={1.8} r={2.2} />
+      <Circle cx={6} cy={-1.8} r={2.2} />
+      <Circle cx={6} cy={1.8} r={2.2} />
+      <Rect x={-6} y={-1.6} width={12} height={3.2} stroke="none" />
+    </G>
+  );
+  return (
+    <G>
+      <Rect x={15} y={18} width={30} height={40} rx={7} fill="#cfefff" opacity={0.6} />
+      {bone(30, 50, 15)}
+      {bone(26, 41, -25)}
+      {bone(33, 32, 35)}
+      <Rect x={15} y={18} width={30} height={40} rx={7} fill="none" stroke={INK} strokeWidth={2} />
+      <Rect x={13} y={11} width={34} height={9} rx={3} fill="#e53935" stroke={INK} strokeWidth={2} />
+      <Rect x={18} y={22} width={3} height={30} rx={1.5} fill="#ffffff" opacity={0.5} />
+    </G>
+  );
+}
+
+const FOOD_SHAPES = { bag: BagShape, tuna: TunaShape, treats: TreatsShape };
+const FOOD_NAMES = { bag: "dog food", tuna: "tuna", treats: "treats" };
+
+export function FoodSvg({ size = 40, ring = "free", kind = "bag" }) {
+  const Shape = FOOD_SHAPES[kind] ?? BagShape;
+  return (
+    <Svg width={size} height={size * 1.15} viewBox="0 0 60 69" accessibilityLabel={`Landmark ${FOOD_NAMES[kind] ?? "food"}`}>
+      <Ellipse cx={30} cy={60} rx={26} ry={8} fill={BAG_RINGS[ring]} />
+      <Ellipse cx={30} cy={60} rx={19} ry={5} fill={INK} opacity={0.25} />
+      <Shape />
     </Svg>
   );
 }

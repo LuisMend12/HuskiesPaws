@@ -10,8 +10,8 @@ import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
-import { landmarksView, reachOf, ringOf } from "./landmarks.js";
-import { FoodBagSvg, PetArt } from "./PetArt.js";
+import { MAX_HP, READY_HP, healMinutes, landmarksView, reachOf, ringOf } from "./landmarks.js";
+import { FoodSvg, PetArt } from "./PetArt.js";
 import { SLOT_UNLOCKS, squadSizeFor, squadStatuses } from "./petStatus.js";
 import { Button, Card, Hint, SectionTitle } from "./ui.js";
 
@@ -34,7 +34,7 @@ function useSecondsLeft(expedition) {
   return Math.max(0, Math.ceil((expedition.startedAt + expedition.durationMs - Math.max(now, expedition.startedAt)) / 1000));
 }
 
-function SquadCard({ pet, status, agentId, state, game }) {
+function SquadCard({ pet, status, agentId, hp, state, game }) {
   const walked = state.progress.walked;
   const agent = AGENTS.find((a) => a.id === agentId);
   const look = STATUS[status] ?? STATUS["with-you"];
@@ -65,9 +65,11 @@ function SquadCard({ pet, status, agentId, state, game }) {
               ? `${look.label} ${guarding.title}`
               : secondsLeft !== null
                 ? `${look.label} · back in ${secondsLeft} s`
-                : status === "resting" && pet.restMeters
-                  ? `${look.label} · ${Math.ceil(pet.restMeters)} m`
-                  : look.label}
+                : status === "resting"
+                  ? `💤 Healing · ${Math.floor(hp)} HP · ready in ${healMinutes(hp, READY_HP)} min`
+                  : hp < MAX_HP
+                    ? `${look.label} · ${Math.floor(hp)} HP`
+                    : look.label}
           </Text>
         </View>
       </View>
@@ -102,7 +104,7 @@ function NearbyLandmarks({ state, game }) {
           accessibilityLabel={`Open ${l.title}`}
           style={({ pressed }) => [styles.landmark, pressed && styles.pressed]}
         >
-          <FoodBagSvg size={28} ring={ringOf(l)} />
+          <FoodSvg size={28} ring={ringOf(l)} kind={l.food} />
           <View style={styles.info}>
             <Text style={type.label} numberOfLines={1}>{l.title}</Text>
             <Text style={styles.meta}>{`${!l.guard ? "Free to claim" : l.guard.mine ? "Yours" : `Held by ${l.guard.ownerName} · ⚡${l.guard.pet.power}`} · ${l.meters} m`}</Text>
@@ -122,7 +124,17 @@ function EmptySlot({ onPress }) {
   );
 }
 
+// Re-renders every few seconds so healing HP counts up.
+function useTicker(ms) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), ms);
+    return () => clearInterval(timer);
+  }, [ms]);
+}
+
 export function SquadPanel({ state, game }) {
+  useTicker(5000);
   const { squad } = petsView(state);
   const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
   const size = squadSizeFor(state, tier);
@@ -135,8 +147,8 @@ export function SquadPanel({ state, game }) {
         <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
         <Hint>Guards still use their slot</Hint>
       </View>
-      {members.map(({ pet, status, agentId }) => (
-        <SquadCard key={pet.id} pet={pet} status={status} agentId={agentId} state={state} game={game} />
+      {members.map(({ pet, status, agentId, hp }) => (
+        <SquadCard key={pet.id} pet={pet} status={status} agentId={agentId} hp={hp} state={state} game={game} />
       ))}
       {Array.from({ length: Math.max(0, size - members.length) }, (_, i) => (
         <EmptySlot key={`empty-${i}`} onPress={() => game.set({ tab: "pets" })} />

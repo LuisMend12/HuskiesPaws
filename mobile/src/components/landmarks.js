@@ -1,11 +1,39 @@
-// Landmarks on the map and the claim rules for the landmark screen.
-// Until the backend has game.claimTurf (docs/HANDOFF-backend.md), claims are
-// worked out here with the same rules as server/src/turf.js decideClaim().
-import { distanceMeters } from "../core/geo.js";
+// Landmarks on the map, pet HP, and the claim rules for the landmark screen.
+// Until the backend has game.claimTurf / game.recallGuard (docs/HANDOFF-backend.md),
+// claims are worked out here with the same rules as server/src/turf.js
+// decideClaim(), and HP is kept in state.petHp and on each turf entry.
+import { distanceMeters, hashString } from "../core/geo.js";
 import { petsView } from "./fakeData.js";
 
 export const MAX_TURF = 3; // server/src/turf.js MAX_TURF_PER_PLAYER
 export const FIGHT_RANGE_M = 150; // routes end on the nearest path, a bit off the landmark
+export const XP_BOOST_PER_LANDMARK = 0.1;
+
+// HP: everyone has 100. Damage from a fight stays, then heals slowly
+// (guards eat from their landmark's food; pets rest). Below READY_HP a pet rests.
+export const MAX_HP = 100;
+export const HEAL_PER_MINUTE = 10;
+export const READY_HP = 50;
+
+// HP right now from a stored { hp, hpAt } (hpAt in ms; no hpAt = no healing).
+export function hpNow(entry, now = Date.now()) {
+  if (!entry) return MAX_HP;
+  if (!entry.hpAt) return entry.hp ?? MAX_HP;
+  return Math.min(entry.maxHp ?? MAX_HP, entry.hp + ((now - entry.hpAt) / 60000) * HEAL_PER_MINUTE);
+}
+
+export const petHpOf = (state, petId, now) => hpNow(state.petHp?.[petId], now);
+export const healMinutes = (hp, target = MAX_HP) => Math.max(0, Math.ceil((target - hp) / HEAL_PER_MINUTE));
+
+// 1 + 0.1 for each landmark you hold (max 1.3 with the cap of 3).
+export function xpBoostOf(state) {
+  const held = (state.turf ?? []).filter((t) => t.mine).length;
+  return state.xpBoost ?? 1 + held * XP_BOOST_PER_LANDMARK;
+}
+
+// Which food sits at a landmark: always the same one for the same place.
+export const FOODS = Object.freeze(["bag", "tuna", "treats"]);
+export const foodOf = (landmarkId) => FOODS[hashString(String(landmarkId)) % FOODS.length];
 
 // Every landmark to draw: places you've found plus guarded ones. guard = turf entry or null.
 export function landmarksView(state) {
@@ -15,29 +43,31 @@ export function landmarksView(state) {
     byId.set(String(place.id), { landmarkId: String(place.id), title: place.title, lat: place.lat, lon: place.lon, guard: null });
   }
   for (const t of turf) {
-    const free = t.maxHp && t.hp <= 0; // a guard at 0 HP has left
+    const free = t.maxHp && hpNow(t) <= 0; // a guard at 0 HP has left
     byId.set(String(t.landmarkId), { landmarkId: String(t.landmarkId), title: t.title, lat: t.lat, lon: t.lon, guard: free ? null : t });
   }
-  return [...byId.values()];
+  return [...byId.values()].map((l) => ({ ...l, food: foodOf(l.landmarkId) }));
 }
 
 export const ringOf = (landmark) => (!landmark.guard ? "free" : landmark.guard.mine ? "mine" : "rival");
 
-// Whether you can fight for a landmark from where you stand (demo mode: from anywhere).
+// You must be within FIGHT_RANGE_M to claim or fight (in demo mode, "Walk there" simulates the walk).
 export function reachOf(state, landmark) {
   const meters = Math.round(distanceMeters(state.position, landmark));
-  return { meters, inRange: state.demoMode || meters <= FIGHT_RANGE_M };
+  return { meters, inRange: meters <= FIGHT_RANGE_M };
 }
 
 // Same outcomes as the server: reinforced, capped, claimed, captured, defended.
 // Returns { result, won, message, turf } where turf is the updated list (or null).
-export function claimLocally(state, landmark, pet, power) {
+// guardHp: the HP the new guard starts with (after any fight).
+export function claimLocally(state, landmark, pet, power, guardHp = MAX_HP) {
   const { turf } = petsView(state);
   const defender = landmark.guard;
   const guardPet = { id: pet.id, name: pet.name, species: pet.species, rarity: pet.rarity, petClass: pet.petClass, color: pet.color, spaceBorn: pet.spaceBorn, power, art: pet.art ?? null };
+  const now = Date.now();
   const claim = {
     landmarkId: landmark.landmarkId, title: landmark.title, lat: landmark.lat, lon: landmark.lon,
-    ownerName: "You", mine: true, hp: 100, maxHp: 100, claimedAt: new Date().toISOString(), pet: guardPet,
+    ownerName: "You", mine: true, hp: guardHp, maxHp: MAX_HP, hpAt: now, claimedAt: new Date(now).toISOString(), pet: guardPet,
   };
   const replace = (entry) => [...turf.filter((t) => String(t.landmarkId) !== landmark.landmarkId), entry];
 
@@ -59,5 +89,18 @@ export function claimLocally(state, landmark, pet, power) {
   return {
     result: "defended", won: false, turf: null,
     message: `${defender.ownerName}'s ${defender.pet.name} (power ${defender.pet.power}) held ${landmark.title}. Your ${pet.name} has power ${power}. Walk more to level up!`,
+  };
+}
+
+// Calls a guard back: frees its landmark; the pet comes back with the HP it had.
+// Returns the state patch to apply with game.set().
+export function recallLocally(state, petId) {
+  const turf = state.turf ?? [];
+  const post = turf.find((t) => t.mine && t.pet?.id === petId);
+  if (!post) return null;
+  return {
+    turf: turf.filter((t) => t !== post),
+    petHp: { ...state.petHp, [petId]: { hp: hpNow(post), hpAt: Date.now() } },
+    status: `${post.pet.name} left ${post.title} and came back to your squad.`,
   };
 }
