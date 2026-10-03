@@ -38,6 +38,26 @@ export async function getPlaceSummary(title) {
   };
 }
 
+// Which city/state/country you're in, for leaderboards. Nominatim allows at most
+// one request per second, so call this once per session, not on every GPS update.
+export async function getRegion(position, fallback) {
+  try {
+    const params = new URLSearchParams({
+      format: "jsonv2", lat: String(position.lat), lon: String(position.lon), zoom: "10",
+    });
+    const data = await fetchJson(`https://nominatim.openstreetmap.org/reverse?${params}`);
+    const address = data.address ?? {};
+    return {
+      local: address.city ?? address.town ?? address.village ?? address.county ?? fallback.local,
+      state: address.state ?? fallback.state,
+      national: address.country ?? fallback.national,
+    };
+  } catch (error) {
+    console.warn("Region lookup failed, keeping previous region:", error);
+    return fallback;
+  }
+}
+
 // Walking route; falls back to a straight line if the routing server is unavailable.
 export async function getWalkingRoute(from, to) {
   const coords = `${from.lon},${from.lat};${to.lon},${to.lat}`;

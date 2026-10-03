@@ -41,9 +41,13 @@ No API keys, no `npm install` and no build step.
 
 1. Click **Explore**. Pip goes on an expedition and returns with a postcard and a spoken memo. Turn your volume up.
 2. On the postcard, click **Take me there**. Fern plans a walking route and walks you there, and flowers bloom along your trail.
-3. Click **Tell a story**. Moss reads the history of the nearest landmark.
-4. Click **Demo walk** to take a quick walk somewhere new, then click **Explore** again from there.
-5. Optional: click **Use my location** to make your real walk bloom (see the phone notes below).
+3. When you arrive, click **📸 Capture**. The camera opens with Pip in the frame. Snap the landmark, and it's saved as a postcard in your **Album** tab.
+4. Open the **Ranks** tab, or click the rank badge at the top right. Watch your points go up, and switch between the **Local**, **Statewide** and **National** leaderboards. After your first rank-up, your trail changes from 🌱 sprouts to 🌼 meadow flowers. You can pick any unlocked trail under **Your trail**.
+5. Click **Tell a story**. Moss reads the history of the nearest landmark.
+6. Click **Demo walk** to take a quick walk somewhere new, then click **Explore** again from there.
+7. Optional: click **Use my location** to make your real walk bloom (see the phone notes below).
+
+Your progress (steps, landmarks, album, agent levels) is saved in the browser. To start over before a demo, use **Ranks → Reset my progress**.
 
 The map starts at the Physical Sciences Building at Cornell. To start somewhere else, change `DEFAULT_CENTER` in `js/config.js`.
 
@@ -65,6 +69,9 @@ Phone browsers only share location over **HTTPS** or on **localhost**. Opening `
 | "Pip got lost (network problem)" | Wikipedia didn't respond. Wait a moment and try again. |
 | The route is a straight line | The walking-route server was unavailable, so the app fell back to a straight line. It's still usable. |
 | No sound | Unmute the tab. Some browsers only speak after you've clicked something on the page. |
+| The Capture button is grayed out | You need to be at a landmark Pip found. Use **Take me there** first. |
+| The camera doesn't open | Allow camera access in the browser. The camera only works on localhost or HTTPS. Without it, capture uses the Wikipedia photo. |
+| You want a clean slate for a demo | **Ranks → Reset my progress** |
 
 ## What works
 
@@ -72,10 +79,56 @@ Phone browsers only share location over **HTTPS** or on **localhost**. Opening `
 - **Moss (Storyteller):** reads the history of the nearest landmark aloud.
 - **Fern (Pathfinder):** plans a real walking route to Pip's discovery and walks you there. Your trail blooms with flowers along the way.
 - **Demo walk:** a sped-up walk, for showing the app indoors.
-- **Use my location:** live GPS, so your real walk blooms. It needs HTTPS or localhost.
+- **Use my location:** live GPS, so your real walk blooms. It needs HTTPS or localhost. On the first location fix, the app also looks up your city, state and country for the leaderboards.
 - Agents level up and get a flower hat at level 2.
 
 Agents only say facts returned by their tools (Wikipedia and routing data), and every postcard links to its source.
+
+### Ranks and leaderboards
+
+You earn points like this:
+
+| Action | Points |
+|---|---|
+| Every 10 steps (estimated as distance ÷ 0.75 m) | 1 |
+| A landmark found by Pip | 50 |
+| A landmark captured in your album | 100 |
+
+Ranks go 🌱 Seedling (0) → 🌿 Sprout (100) → 🌷 Bud (300) → 🌸 Blossom (700) → 🌳 Grove (1,500) → 🌲 Ancient Oak (3,000). One full loop (explore, walk there, capture) is enough for your first rank-up.
+
+**Each rank unlocks a new trail,** meaning the flowers that bloom behind you and the color of your path:
+
+| Rank | Trail | Flowers |
+|---|---|---|
+| 🌱 Seedling | Sprout Path | 🌱 🌿 ☘️ |
+| 🌿 Sprout | Meadow | 🌼 🌸 🌷 🌻 |
+| 🌷 Bud | Rose Garden | 🌹 🌷 🥀 |
+| 🌸 Blossom | Cherry Blossom | 🌸 💮 |
+| 🌳 Grove | Forest Floor | 🍄 🍀 🌰 🍂 |
+| 🌲 Ancient Oak | Starlight | ✨ 🌟 💫 |
+
+By default (**Auto**), your trail upgrades the moment you rank up, even in the middle of a walk. Under **Ranks → Your trail**, you can pin any trail you've unlocked. Locked trails show the rank you need. When you switch trails, the path you already walked keeps its old flowers.
+
+The leaderboards show **Local** (your city), **Statewide** and **National**. **The other players are sample data:** they're generated the same way every time for each region, and they become real once there's a backend.
+
+### AR-style capture
+
+You can capture a landmark when you're within 50 m of one Pip found. The web version shows a live camera viewfinder with your agent bobbing in the frame. It then combines the photo, the agent and the place name into a postcard and saves it to your album. Without a camera, such as on a desktop, it uses the landmark's Wikipedia photo instead.
+
+This isn't true AR yet: the agent is drawn on top of the camera feed, not placed in 3D space. Real AR needs a native app (see [docs/mobile-migration.md](../docs/mobile-migration.md)).
+
+## Code layout (ready for mobile)
+
+The game logic is plain JavaScript with no browser-specific code, so it can be copied straight into a React Native / Expo app. Only the screen and device code gets rewritten.
+
+| Moves to mobile as-is (pure logic) | Rewritten for mobile (screens and device) |
+|---|---|
+| `js/agents.js`: agents and memos | `js/app.js`, `js/views.js`, `index.html`, `styles.css`: the screens |
+| `js/rank.js`: points, ranks and trail unlocks | `js/map.js`: Leaflet, replaced by `react-native-maps` |
+| `js/leaderboard.js`: leaderboard building | `js/capture.js`: the camera, replaced by `expo-camera` or AR |
+| `js/geo.js`: distances and math | `js/storage.js`: localStorage, replaced by AsyncStorage |
+| `js/config.js`: settings | `js/voice.js`: browser speech, replaced by the Grok Voice API |
+| `js/services.js`: API calls (`fetch` works in React Native) | |
 
 ## Placeholders to replace with Grok (required for the track)
 
@@ -91,4 +144,5 @@ Call Grok from a small backend that holds the API key. Never put the key in brow
 
 - Places and facts: Wikipedia geosearch and the page summary API
 - Walking routes: routing.openstreetmap.de (OSRM foot profile). If it's unavailable, the app falls back to a straight line.
+- Your region, for leaderboards: OpenStreetMap Nominatim, called once per session
 - Map tiles: OpenStreetMap

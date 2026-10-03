@@ -1,0 +1,38 @@
+// Rank system: steps walked + landmarks found + landmarks captured = points.
+import { POINTS, STEP_LENGTH_M } from "./config.js";
+
+// Each rank unlocks a trail: the flowers that bloom behind you and the path color.
+export const RANKS = Object.freeze([
+  { name: "Seedling", emoji: "🌱", min: 0, trail: { id: "sprouts", name: "Sprout Path", flowers: ["🌱", "🌿", "☘️"], color: "#81c784" } },
+  { name: "Sprout", emoji: "🌿", min: 100, trail: { id: "meadow", name: "Meadow", flowers: ["🌼", "🌸", "🌷", "🌻"], color: "#aed581" } },
+  { name: "Bud", emoji: "🌷", min: 300, trail: { id: "roses", name: "Rose Garden", flowers: ["🌹", "🌷", "🥀"], color: "#f48fb1" } },
+  { name: "Blossom", emoji: "🌸", min: 700, trail: { id: "cherry", name: "Cherry Blossom", flowers: ["🌸", "💮", "🌸"], color: "#f8bbd0" } },
+  { name: "Grove", emoji: "🌳", min: 1500, trail: { id: "forest", name: "Forest Floor", flowers: ["🍄", "🍀", "🌰", "🍂"], color: "#a1887f" } },
+  { name: "Ancient Oak", emoji: "🌲", min: 3000, trail: { id: "starlight", name: "Starlight", flowers: ["✨", "🌟", "💫"], color: "#ffd54f" } },
+]);
+
+export const TRAILS = Object.freeze(RANKS.map((rank) => ({ ...rank.trail, rank })));
+
+// The trail actually drawn: your chosen trail if it's unlocked, otherwise your rank's trail.
+export function activeTrail(score, chosenId) {
+  const chosen = TRAILS.find((t) => t.id === chosenId);
+  return chosen && score >= chosen.rank.min ? chosen : rankFor(score).current.trail;
+}
+
+export const stepsFromMeters = (meters) => Math.round(meters / STEP_LENGTH_M);
+
+export function scoreFor({ steps, landmarksFound, landmarksCaptured }) {
+  return (
+    Math.floor(steps / POINTS.stepsPerPoint) +
+    landmarksFound * POINTS.landmarkFound +
+    landmarksCaptured * POINTS.landmarkCaptured
+  );
+}
+
+export function rankFor(score) {
+  const index = RANKS.findLastIndex((rank) => score >= rank.min);
+  const current = RANKS[Math.max(0, index)];
+  const next = RANKS[index + 1] ?? null;
+  const progress = next ? (score - current.min) / (next.min - current.min) : 1;
+  return { current, next, progress };
+}
