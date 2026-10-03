@@ -60,15 +60,18 @@ function ProgressBar({ progress, id }) {
   const percent = `${Math.round(progress * 100)}%`;
   return (
     <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}>
-      <Svg width={percent} height="100%">
-        <Defs>
-          <LinearGradient id={`egg-${id}`} x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor={colors.green} />
-            <Stop offset="1" stopColor={colors.yellow} />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" rx={5} fill={`url(#egg-${id})`} />
-      </Svg>
+      {/* A plain View sizes the fill: an Svg's own percent width doesn't update after it first draws. */}
+      <View style={{ width: percent, height: "100%" }}>
+        <Svg width="100%" height="100%">
+          <Defs>
+            <LinearGradient id={`egg-${id}`} x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor={colors.green} />
+              <Stop offset="1" stopColor={colors.yellow} />
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" rx={5} fill={`url(#egg-${id})`} />
+        </Svg>
+      </View>
     </View>
   );
 }
