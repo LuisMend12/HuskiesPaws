@@ -23,3 +23,16 @@ export const SLOT_UNLOCKS = Object.freeze([{ tier: 2, name: "Gold" }, { tier: 4,
 export function squadSizeFor(state, leagueTier) {
   return state.squadSize ?? BASE_SLOTS + SLOT_UNLOCKS.filter((u) => leagueTier >= u.tier).length;
 }
+
+// The pet who found a discovery: matched by name, else the squad pet of the
+// class whose agent went (agentId "scout" -> Scout).
+export function finderOf(discovery, pets, squad) {
+  if (!discovery) return null;
+  const byName = pets.find((p) => p.name === discovery.agentName);
+  if (byName) return byName;
+  const petClass = Object.keys(CLASS_AGENT).find((c) => CLASS_AGENT[c] === discovery.agentId);
+  return squad.find((p) => p.petClass === petClass) ?? squad[0] ?? null;
+}
+
+// The pet in the camera frame: your squad's Scout if you have one, else the first squad pet.
+export const capturePetOf = (squad) => squad.find((p) => p.petClass === "Scout") ?? squad[0] ?? null;

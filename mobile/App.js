@@ -16,6 +16,8 @@ import { CaptureModal } from "./src/components/CaptureModal.js";
 import { HatchModal } from "./src/components/HatchModal.js";
 import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapControls.js";
 import { PetsPanel } from "./src/components/PetsPanel.js";
+import { petsView } from "./src/components/fakeData.js";
+import { capturePetOf, finderOf } from "./src/components/petStatus.js";
 import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
@@ -23,7 +25,6 @@ import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
 import { Hint, PillTabs } from "./src/components/ui.js";
-import { AGENTS, levelFor } from "./src/core/agents.js";
 import { rankFor } from "./src/core/rank.js";
 import { createGame } from "./src/game/game.js";
 import { scoreOf } from "./src/game/state.js";
@@ -39,7 +40,6 @@ const TABS = [
   { id: "savings", label: "Savings" },
   { id: "album", label: "Album" },
 ];
-const scout = AGENTS.find((a) => a.id === "scout");
 const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
 export default function App() {
@@ -73,6 +73,7 @@ function Main() {
     game.load();
   }, [game]);
 
+  const { pets, squad } = petsView(state);
   const score = scoreOf(state);
   const { current } = rankFor(score);
 
@@ -118,8 +119,10 @@ function Main() {
       </View>
 
       <PostcardModal
+        key={state.discovery?.place.id}
         visible={state.postcardOpen}
         discovery={state.discovery}
+        pet={finderOf(state.discovery, pets, squad)}
         onClose={() => game.set({ postcardOpen: false })}
         onGo={game.guideToDiscovery}
         onReplay={game.replayMemo}
@@ -132,8 +135,7 @@ function Main() {
       <CaptureModal
         visible={state.captureOpen}
         place={state.capturable}
-        agent={scout}
-        level={levelFor(state.xp.scout)}
+        pet={capturePetOf(squad)}
         onSave={game.saveCapture}
         onClose={() => game.set({ captureOpen: false })}
       />

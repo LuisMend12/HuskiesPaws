@@ -1,4 +1,4 @@
-# Handoff: presentation → backend (updated Sat Oct 3, afternoon)
+# Handoff: presentation → backend (updated Sat Oct 3, ~2:45 PM)
 
 **For:** Luis and his coding agent, working on the `backend` branch. Read [SPLIT.md](../SPLIT.md) and [AGENTS.md](../AGENTS.md) first; this file adds what changed and what the screens now expect.
 
@@ -20,7 +20,8 @@ npx expo start --clear    # once, to drop Metro's old cache
   - a **Pets** tab and **hatch reveal**, on sample data until 4.1 lands
   - a **Squad** tab (replaces `AgentList`): squad pets with statuses and class actions; Pip, Moss and Fern show as starter pets
   - a **tilted map** with pets standing on it: the squad follows you, the exploring pet **walks to its place and back**, guards stand on landmarks with HP bars (three **sample rival guards** near PSB until 4.3 lands)
-  - a **🐾 3D** button on the map: your squad hops in 3D over the camera (React Three Fiber). It loads three.js only when opened; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` and `SquadView.js` (three 0.186 crashes on React Native without it)
+  - **postcards** drawn with the pet who found the place (or the Grok picture), and your squad pet in the **capture** frame instead of the old blob creature
+  - a **🐾 3D** button on the map: your squad walks around in 3D over the camera (React Three Fiber). It loads three.js only when opened; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` and `SquadView.js` (three 0.186 crashes on React Native without it)
 - **How sample data switches off:** every screen reads through `petsView(state)` in `mobile/src/components/fakeData.js`. When `state.pets`, `state.egg`, `state.squad` or `state.turf` is defined (even `[]` / `null`), the real value is used instead of the sample.
 
 ## 2. What presentation changed in backend-owned files
@@ -153,11 +154,15 @@ squadSize: 3,                        // derived from the league
 
 Actions: `game.setSquad(ids)` (the Pets tab is the picker), `game.runPet(petId)` (the class action). Until these exist, the screens use the first 3 pets as the squad and treat every pet as `"with-you"`.
 
-### 4.5 Live leaderboards
+### 4.5 Grok postcards
+
+When Pip (or any Scout) finds a place, ask `/api/imagine` for a postcard and set **`discovery.image`** to the **absolute** URL. `PostcardModal` shows it in place of the drawn scene; until then it draws the place with the finder pet. The finder is matched by `discovery.agentName` (already set in `runExpedition`), so keep setting it to the pet's name in `runPet`.
+
+### 4.6 Live leaderboards
 
 `state.leaderboard = { scope, rows: [{ position, name, score, isYou }] }` from `/api/leaderboard`. When it's `null` (offline), presentation keeps using `core/leaderboard.js` sample rows. Tell presentation when it lands; `RanksPanel.js` switches over then.
 
-### 4.6 `mobile/src/api.js`
+### 4.7 `mobile/src/api.js`
 
 Base URL from `EXPO_PUBLIC_API_URL`, no keys in the app, return `null` on any network failure so screens fall back to sample data.
 
