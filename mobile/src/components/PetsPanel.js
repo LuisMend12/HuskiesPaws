@@ -1,15 +1,19 @@
-// Pets tab: the egg you're carrying, your active pet, and your collection.
-// Reads pets / egg / activePetId / issOverhead from the state (see SPLIT.md);
-// until the backend adds them, it shows sample pets.
+// Pets tab: your collection (tap a pet to add it to or remove it from your
+// squad) and the eggs you're carrying, each with its hatching progress.
+// Reads pets / eggs / squad / issOverhead from the state (docs/HANDOFF-backend.md);
+// until the backend adds them, it shows sample data.
 import { Suspense, lazy, useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
-  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggProgress, hatchEgg, metersToHatch, petLevel, petPower, rarityOf, stepsToNextEgg,
+  EGG_EVERY_STEPS, HATCH_METERS, ISS_RARITY_BOOST, RARITIES, hatchEgg, petLevel, petPower, rarityOf, stepsToNextEgg,
 } from "../core/pets.js";
+import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
+import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
+import { squadSizeFor } from "./petStatus.js";
 import { Button, Card, Hint } from "./ui.js";
 
 // The 3D test loads three.js only when opened: React Three Fiber patches React
@@ -19,21 +23,9 @@ const Pet3DTest = lazy(() => import("./Pet3D.js").then((m) => ({ default: m.Pet3
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
 const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked }, walked);
 
-// Runs an animation loop unless the phone asks for reduced motion.
-function useLoop(makeLoop) {
-  const [value] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    let loop = null;
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (reduced) return;
-      loop = makeLoop(value);
-      loop.start();
-    });
-    return () => loop?.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- start once
-  }, []);
-  return value;
-}
+// Each egg can carry its own distance (egg.hatchMeters); the default is HATCH_METERS.
+const eggNeeds = (egg) => egg.hatchMeters ?? HATCH_METERS;
+const eggDone = (egg, walked) => Math.max(0, walked - egg.startWalked);
 
 const wobble = (v) =>
   Animated.loop(
@@ -46,78 +38,63 @@ const wobble = (v) =>
     ]),
   );
 
-const bob = (v) =>
-  Animated.loop(
-    Animated.sequence([
-      Animated.timing(v, { toValue: 1, duration: 1100, useNativeDriver: true }),
-      Animated.timing(v, { toValue: 0, duration: 1100, useNativeDriver: true }),
-    ]),
-  );
+// Runs an animation loop (after delayMs) unless the phone asks for reduced motion.
+function useLoop(makeLoop, delayMs = 0) {
+  const [value] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    let loop = null;
+    const timer = setTimeout(() => {
+      AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+        if (reduced) return;
+        loop = makeLoop(value);
+        loop.start();
+      });
+    }, delayMs);
+    return () => {
+      clearTimeout(timer);
+      loop?.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- start once
+  }, []);
+  return value;
+}
 
-function ProgressBar({ progress }) {
+function ProgressBar({ progress, id }) {
   const percent = `${Math.round(progress * 100)}%`;
   return (
     <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}>
       <Svg width={percent} height="100%">
         <Defs>
-          <LinearGradient id="egg" x1="0" y1="0" x2="1" y2="0">
+          <LinearGradient id={`egg-${id}`} x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor={colors.green} />
             <Stop offset="1" stopColor={colors.yellow} />
           </LinearGradient>
         </Defs>
-        <Rect width="100%" height="100%" rx={5} fill="url(#egg)" />
+        <Rect width="100%" height="100%" rx={5} fill={`url(#egg-${id})`} />
       </Svg>
     </View>
   );
 }
 
-function EggCard({ egg, walked, steps }) {
-  const tilt = useLoop(wobble);
+function EggRow({ egg, walked, index }) {
+  const tilt = useLoop(wobble, index * 450); // eggs wobble one after another, not in sync
   const rotate = tilt.interpolate({ inputRange: [-1, 1], outputRange: ["-10deg", "10deg"] });
-  if (!egg) {
-    return (
-      <Card style={styles.eggCard}>
-        <Text style={styles.nest}>🪺</Text>
-        <View style={styles.flex}>
-          <Text style={type.heading}>{`Next egg in ${stepsToNextEgg(steps).toLocaleString()} steps`}</Text>
-          <Hint>{`You find an egg every ${EGG_EVERY_STEPS} steps. Only walking earns eggs.`}</Hint>
-        </View>
-      </Card>
-    );
-  }
+  const done = eggDone(egg, walked);
+  const needs = eggNeeds(egg);
+  const progress = Math.min(1, done / needs);
   return (
-    <Card style={styles.eggCard}>
+    <View style={styles.eggRow}>
       <Animated.View style={{ transform: [{ rotate }] }}>
-        <EggArt size={64} />
+        <EggArt size={46} seed={egg.id} />
       </Animated.View>
       <View style={styles.flex}>
-        <Text style={type.heading}>{`Walk ${metersToHatch(egg, walked)} m to hatch`}</Text>
-        <ProgressBar progress={eggProgress(egg, walked)} />
-        <Hint>Keep walking with your egg and it hatches into a pet.</Hint>
-      </View>
-    </Card>
-  );
-}
-
-function ActivePet({ pet, walked }) {
-  const lift = useLoop(bob);
-  const translateY = lift.interpolate({ inputRange: [0, 1], outputRange: [0, -6] });
-  const rarity = rarityOf(pet);
-  return (
-    <Card style={[styles.active, { borderColor: rarity.color }]}>
-      <Animated.View style={{ transform: [{ translateY }] }}>
-        <PetArt pet={pet} size={116} />
-      </Animated.View>
-      <View style={styles.flex}>
-        <Text style={[styles.rarity, { color: rarity.color }]}>{rarity.label}</Text>
-        <Text style={type.title}>{pet.name}</Text>
-        <Text style={styles.meta}>{`${pet.petClass} · Lv ${petLevel(pet, walked)}${pet.spaceBorn ? " · 🛰️ Space-born" : ""}`}</Text>
-        <Text style={styles.power}>{`⚡ ${petPower(pet, walked)} power`}</Text>
-        <View style={styles.activeBadge}>
-          <Text style={styles.activeBadgeText}>★ Active pet</Text>
+        <View style={styles.eggTop}>
+          <Text style={type.label}>{progress >= 1 ? "Ready to hatch!" : `${Math.ceil(needs - done)} m to go`}</Text>
+          <Text style={styles.eggMeters}>{`${Math.floor(Math.min(done, needs))} / ${needs} m`}</Text>
         </View>
+        <ProgressBar progress={progress} id={egg.id} />
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -142,18 +119,23 @@ function RarityDots({ filter, onChange }) {
   );
 }
 
-function PetTile({ pet, walked, active, onPress }) {
+function PetTile({ pet, walked, slot, onPress }) {
   const rarity = rarityOf(pet);
+  const inSquad = slot > 0;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${pet.name}, ${rarity.label} ${pet.petClass}, power ${petPower(pet, walked)}`}
-      accessibilityHint={active ? "Your active pet" : "Makes this your active pet"}
-      accessibilityState={{ selected: active }}
-      style={({ pressed }) => [styles.tile, active && styles.tileActive, pressed && styles.pressed]}
+      accessibilityLabel={`${pet.name}, ${rarity.label} ${pet.petClass}, level ${petLevel(pet, walked)}, power ${petPower(pet, walked)}`}
+      accessibilityHint={inSquad ? "Takes this pet out of your squad" : "Adds this pet to your squad"}
+      accessibilityState={{ selected: inSquad }}
+      style={({ pressed }) => [styles.tile, inSquad && styles.tileSquad, pressed && styles.pressed]}
     >
-      {active && <Text style={styles.star}>★</Text>}
+      {inSquad && (
+        <View style={styles.slot}>
+          <Text style={styles.slotText}>{slot}</Text>
+        </View>
+      )}
       <PetArt pet={pet} size={78} />
       <Text style={styles.tilePower}>{`⚡${petPower(pet, walked)}`}</Text>
       <Text style={styles.tileName} numberOfLines={1}>{pet.name}</Text>
@@ -166,10 +148,22 @@ export function PetsPanel({ state, game }) {
   const [filter, setFilter] = useState(null);
   const [test3d, setTest3d] = useState(null);
   const { walked, steps } = state.progress;
-  const { sample, pets, egg, active } = petsView(state); // sample data until the backend adds pets
+  const { sample, pets, eggs, squadIds } = petsView(state);
+  const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
+  const size = squadSizeFor(state, tier);
   const shown = filter ? pets.filter((p) => p.rarity === filter) : pets;
 
-  const setActive = (id) => (game.setActivePet ? game.setActivePet(id) : game.set({ activePetId: id }));
+  const setSquad = (ids) => (game.setSquad ? game.setSquad(ids) : game.set({ squad: ids }));
+  const toggle = (id) => {
+    if (squadIds.includes(id)) {
+      if (squadIds.length === 1) return game.set({ status: "Keep at least one pet in your squad." });
+      return setSquad(squadIds.filter((x) => x !== id));
+    }
+    if (squadIds.length >= size) {
+      return game.set({ status: `Your squad is full (${size}/${size}). Tap a pet with a number to take it out first.` });
+    }
+    return setSquad([...squadIds, id]);
+  };
   const previewHatch = () => game.set({ hatching: previewPet(walked) });
 
   return (
@@ -179,26 +173,37 @@ export function PetsPanel({ state, game }) {
           <Text style={styles.issText}>{`🛰️ The ISS is overhead right now! Eggs that hatch now are ${ISS_RARITY_BOOST}x as likely to be rare.`}</Text>
         </Card>
       )}
-      <EggCard egg={egg} walked={walked} steps={steps} />
-      {active && <ActivePet pet={active} walked={walked} />}
 
       <View style={styles.header}>
         <Text style={type.heading}>{`Your pets · ${pets.length}`}</Text>
         <RarityDots filter={filter} onChange={setFilter} />
       </View>
+      <Hint>{`Tap a pet to add it to your squad or take it out · ${squadIds.length}/${size} in your squad`}</Hint>
       {pets.length === 0 ? (
-        <Hint>No pets yet. Walk to fill your egg and hatch your first one!</Hint>
+        <Hint>No pets yet. Walk to hatch your first one!</Hint>
       ) : (
         <View style={styles.grid}>
           {shown.map((pet) => (
-            <PetTile key={pet.id} pet={pet} walked={walked} active={pet.id === active?.id} onPress={() => setActive(pet.id)} />
+            <PetTile key={pet.id} pet={pet} walked={walked} slot={squadIds.indexOf(pet.id) + 1} onPress={() => toggle(pet.id)} />
           ))}
         </View>
       )}
 
-      {sample && <Hint>Sample pets for now. Your real pets appear here once hatching is connected.</Hint>}
+      <View style={styles.header}>
+        <Text style={type.heading}>{`Your eggs · ${eggs.length}`}</Text>
+        <Hint>{`Next egg in ${stepsToNextEgg(steps).toLocaleString()} steps`}</Hint>
+      </View>
+      <Card style={styles.eggs}>
+        {eggs.length === 0 ? (
+          <Hint>{`No eggs yet. You find one every ${EGG_EVERY_STEPS} steps; only walking earns eggs.`}</Hint>
+        ) : (
+          eggs.map((egg, i) => <EggRow key={egg.id} egg={egg} walked={walked} index={i} />)
+        )}
+      </Card>
+
+      {sample && <Hint>Sample pets and eggs for now. Yours appear here once hatching is connected.</Hint>}
       {__DEV__ && <Button title="🥚 Preview hatch (dev only)" variant="secondary" onPress={previewHatch} />}
-      {__DEV__ && active && <Button title="🧊 3D test (dev only)" variant="secondary" onPress={() => setTest3d(active)} />}
+      {__DEV__ && pets[0] && <Button title="🧊 3D test (dev only)" variant="secondary" onPress={() => setTest3d(pets[0])} />}
       {test3d && (
         <Suspense fallback={null}>
           <Pet3DTest pet={test3d} onClose={() => setTest3d(null)} />
@@ -209,29 +214,26 @@ export function PetsPanel({ state, game }) {
 }
 
 const styles = StyleSheet.create({
-  panel: { gap: space.md },
-  flex: { flex: 1, gap: space.xs },
+  panel: { gap: space.sm },
+  flex: { flex: 1, gap: 4 },
   iss: { backgroundColor: colors.navy },
   issText: { ...type.label, color: colors.white },
-  eggCard: { flexDirection: "row", alignItems: "center", gap: space.md },
-  nest: { fontSize: 44 },
-  track: { height: 10, borderRadius: 5, backgroundColor: colors.stripe, overflow: "hidden", marginVertical: 2 },
-  active: { flexDirection: "row", alignItems: "center", gap: space.md, borderWidth: 2 },
-  rarity: { fontFamily: fonts.black, fontSize: 12, letterSpacing: 1.2, textTransform: "uppercase" },
-  meta: { ...type.caption },
-  power: { ...type.bodyBold },
-  activeBadge: { alignSelf: "flex-start", backgroundColor: colors.greenSoft, borderRadius: radius.pill, paddingVertical: 3, paddingHorizontal: 10, marginTop: 2 },
-  activeBadgeText: { fontFamily: fonts.bold, fontSize: 12, color: colors.greenDark },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: space.xs },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: space.sm },
   dots: { flexDirection: "row", gap: 10 },
   dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.white, ...shadow.soft },
   dotSelected: { borderColor: colors.navy, transform: [{ scale: 1.15 }] },
-  grid: { flexDirection: "row", flexWrap: "wrap", rowGap: space.md, marginHorizontal: "-1%" },
+  grid: { flexDirection: "row", flexWrap: "wrap", rowGap: space.md, marginHorizontal: "-1%", marginTop: space.xs },
   tile: { width: "31.33%", marginHorizontal: "1%", alignItems: "center", paddingVertical: space.sm, borderRadius: radius.card, borderWidth: 2, borderColor: "transparent" },
-  tileActive: { borderColor: colors.green, backgroundColor: colors.greenSoft },
+  tileSquad: { borderColor: colors.green, backgroundColor: colors.greenSoft },
   pressed: { opacity: 0.7 },
-  star: { position: "absolute", top: 4, right: 8, fontSize: 16, color: colors.green },
+  slot: { position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.green, alignItems: "center", justifyContent: "center", zIndex: 1 },
+  slotText: { fontFamily: fonts.black, fontSize: 12, color: colors.white },
   tilePower: { fontFamily: fonts.black, fontSize: 15, color: colors.ink, marginTop: 2 },
   tileName: { ...type.label },
   tileRarity: { fontFamily: fonts.extrabold, fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase" },
+  eggs: { gap: space.md },
+  eggRow: { flexDirection: "row", alignItems: "center", gap: space.md },
+  eggTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  eggMeters: { ...type.caption },
+  track: { height: 10, borderRadius: 5, backgroundColor: colors.stripe, overflow: "hidden" },
 });

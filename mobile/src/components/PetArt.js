@@ -1,10 +1,13 @@
-// Pets drawn like Roblox simulator pets: a chunky rounded-cube husky pup with
-// big glossy eyes. Fur color comes from the pet's color, an accessory from its
-// class, and an effect from its rarity. A Grok Imagine portrait (pet.art) wins.
+// Pets drawn like Roblox simulator pets: a chunky rounded-cube body with big
+// glossy eyes. Ears, markings and tail come from the species (species.js), fur
+// color from the pet's color, an accessory from its class, and an effect from
+// its rarity. A Grok Imagine portrait (pet.art) wins.
 import { Image, StyleSheet } from "react-native";
 import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
+import { hashString } from "../core/geo.js";
 import { colorOf, rarityOf } from "../core/pets.js";
 import { colors } from "../theme.js";
+import { speciesOf } from "./species.js";
 
 const INK = colors.navy;
 
@@ -63,18 +66,18 @@ export function PetSvg({ pet, size = 96 }) {
   const fur = colorOf(pet).hex;
   const rarity = rarityOf(pet);
   const Accessory = ACCESSORIES[pet.petClass];
+  const kind = speciesOf(pet);
   const glowing = rarity.id === "epic" || rarity.id === "legendary";
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel={`${pet.name}, a ${rarity.label} ${pet.petClass}`}>
+    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel={`${pet.name}, a ${rarity.label} ${kind.label} ${pet.petClass}`}>
       <Ellipse cx={50} cy={93} rx={30} ry={5} fill={INK} opacity={0.12} />
       {glowing && <Circle cx={50} cy={56} r={44} fill={rarity.color} opacity={0.18} />}
       {rarity.id === "legendary" && <Ellipse cx={50} cy={12} rx={18} ry={5} fill="none" stroke={rarity.color} strokeWidth={3.5} />}
 
-      {/* Ears, behind the head */}
-      <Path d="M22 40 L28 10 L46 32 Z" fill={fur} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
-      <Path d="M78 40 L72 10 L54 32 Z" fill={fur} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
-      <Path d="M28 34 L31 18 L40 31 Z" fill={colors.pink} />
-      <Path d="M72 34 L69 18 L60 31 Z" fill={colors.pink} />
+      {/* Tail and ears, behind the body */}
+      {kind.Tail && <kind.Tail fur={fur} />}
+      {kind.TailFill && <kind.TailFill fur={fur} />}
+      <kind.Ears fur={fur} />
 
       {/* Feet */}
       <Rect x={28} y={80} width={16} height={11} rx={5} fill={fur} stroke={INK} strokeWidth={2} />
@@ -86,14 +89,15 @@ export function PetSvg({ pet, size = 96 }) {
       <Rect x={18} y={70} width={64} height={14} rx={12} fill={INK} opacity={0.08} />
       {rarity.id !== "common" && <Path d="M24 40 L32 36 L28 62 L22 64 Z" fill="#ffffff" opacity={0.35} />}
 
-      {/* Husky mask and face */}
-      <Path d="M50 40 Q38 44 30 56 Q32 74 50 76 Q68 74 70 56 Q62 44 50 40 Z" fill="#ffffff" opacity={0.92} />
+      {/* Species markings and face */}
+      <kind.Mask />
       <Eye cx={39} />
       <Eye cx={61} />
       <Ellipse cx={30} cy={64} rx={4} ry={2.5} fill={colors.pink} opacity={0.7} />
       <Ellipse cx={70} cy={64} rx={4} ry={2.5} fill={colors.pink} opacity={0.7} />
       <Path d="M46 62 Q50 60 54 62 Q52 66 50 66 Q48 66 46 62 Z" fill={INK} />
       <Path d="M45 68 Q47.5 71 50 68 Q52.5 71 55 68" stroke={INK} strokeWidth={1.8} fill="none" strokeLinecap="round" />
+      {kind.Extra && <kind.Extra />}
 
       {Accessory && <Accessory />}
       {rarity.id !== "common" && <Sparkles color={rarity.id === "rare" ? "#ffffff" : rarity.color} />}
@@ -121,17 +125,21 @@ export function PetArt({ pet, size = 96 }) {
   return <PetSvg pet={pet} size={size} />;
 }
 
-// A speckled egg to carry until it hatches.
-export function EggArt({ size = 64 }) {
+const EGG_SPOTS = ["#7cc96b", colors.ice, colors.pink, colors.yellow, "#b39ddb", colors.coral];
+
+// A speckled egg to carry until it hatches; `seed` (the egg id) varies its spots.
+export function EggArt({ size = 64, seed = "" }) {
+  const start = hashString(seed) % EGG_SPOTS.length;
+  const spot = (i) => EGG_SPOTS[(start + i) % EGG_SPOTS.length];
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel="Your egg">
       <Ellipse cx={50} cy={92} rx={24} ry={4} fill={INK} opacity={0.12} />
       <Path d="M50 8 Q78 10 80 56 Q80 90 50 90 Q20 90 20 56 Q22 10 50 8 Z" fill="#fff6e0" stroke={INK} strokeWidth={2.5} />
       <Path d="M30 30 Q42 20 50 22" stroke="#ffffff" strokeWidth={5} strokeLinecap="round" fill="none" />
-      <Circle cx={38} cy={50} r={6} fill="#7cc96b" />
-      <Circle cx={62} cy={40} r={4.5} fill={colors.ice} />
-      <Circle cx={58} cy={68} r={7} fill={colors.pink} />
-      <Circle cx={34} cy={74} r={4} fill={colors.yellow} />
+      <Circle cx={38} cy={50} r={6} fill={spot(0)} />
+      <Circle cx={62} cy={40} r={4.5} fill={spot(1)} />
+      <Circle cx={58} cy={68} r={7} fill={spot(2)} />
+      <Circle cx={34} cy={74} r={4} fill={spot(3)} />
     </Svg>
   );
 }

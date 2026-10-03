@@ -10,12 +10,8 @@ import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { PetArt } from "./PetArt.js";
-import { squadStatuses } from "./petStatus.js";
+import { SLOT_UNLOCKS, squadSizeFor, squadStatuses } from "./petStatus.js";
 import { Button, Card, Hint } from "./ui.js";
-
-// Extra slots by league index (0 Bronze ... 4 Crystal).
-const SLOT_UNLOCKS = [{ tier: 2, name: "Gold" }, { tier: 4, name: "Crystal" }];
-const BASE_SLOTS = 3;
 
 const STATUS = {
   "with-you": { label: "🐾 With you", color: colors.greenDark, bg: colors.greenSoft },
@@ -74,7 +70,7 @@ function EmptySlot({ onPress }) {
 export function SquadPanel({ state, game }) {
   const { squad } = petsView(state);
   const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
-  const size = state.squadSize ?? BASE_SLOTS + SLOT_UNLOCKS.filter((u) => tier >= u.tier).length;
+  const size = squadSizeFor(state, tier);
   const locked = SLOT_UNLOCKS.filter((u) => tier < u.tier);
   const members = squadStatuses(squad.slice(0, size), state);
 

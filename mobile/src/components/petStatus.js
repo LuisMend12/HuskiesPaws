@@ -16,3 +16,10 @@ export function squadStatuses(squad, state) {
     return { pet, agentId, status: pet.status ?? (away ? "exploring" : "with-you") };
   });
 }
+
+// Squad slots: 3, plus one at Gold and one at Crystal (backend's squadSize wins).
+export const BASE_SLOTS = 3;
+export const SLOT_UNLOCKS = Object.freeze([{ tier: 2, name: "Gold" }, { tier: 4, name: "Crystal" }]);
+export function squadSizeFor(state, leagueTier) {
+  return state.squadSize ?? BASE_SLOTS + SLOT_UNLOCKS.filter((u) => leagueTier >= u.tier).length;
+}
