@@ -2,9 +2,11 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { createApp } from "./app.js";
+import { createElevenLabs, voicesFromEnv } from "./elevenlabs.js";
 import { createGrok } from "./grok.js";
 import { createFileStore } from "./store/fileStore.js";
 import { createSupabaseStore } from "./store/supabaseStore.js";
+import { createSquadTts } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const env = process.env;
@@ -22,9 +24,17 @@ const config = {
 const store = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY
   ? createSupabaseStore({ url: env.SUPABASE_URL, serviceKey: env.SUPABASE_SERVICE_KEY })
   : createFileStore(config.dataDir);
-const grok = createGrok({ apiKey: env.XAI_API_KEY, baseUrl: env.XAI_BASE_URL });
+// GROK_API_KEY is accepted too, since the repo-root .env uses that name.
+const grok = createGrok({ apiKey: env.XAI_API_KEY || env.GROK_API_KEY, baseUrl: env.XAI_BASE_URL });
+const elevenlabs = createElevenLabs({
+  apiKey: env.ELEVENLABS_API_KEY,
+  baseUrl: env.ELEVENLABS_BASE_URL || undefined,
+  voices: voicesFromEnv(env),
+});
+const tts = createSquadTts({ grok, elevenlabs });
+const voiceLabel = tts.summary === "mixed" ? "ElevenLabs (Moss) + Grok Voice (Pip, Fern)" : tts.summary === "elevenlabs" ? "ElevenLabs" : tts.summary === "grok" ? "Grok Voice" : "off (set ELEVENLABS_API_KEY or XAI_API_KEY)";
 
-createApp({ config, store, grok }).listen(config.port, () => {
+createApp({ config, store, grok, elevenlabs, tts }).listen(config.port, () => {
   console.log(`HuskiesPaws running at http://localhost:${config.port}`);
-  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · storage: ${store.kind}`);
+  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · voice: ${voiceLabel} · storage: ${store.kind}`);
 });

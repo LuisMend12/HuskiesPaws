@@ -7,7 +7,7 @@ The HuskiesPaws squad as an iMessage agent, built on [Photon Spectrum](https://p
 | `hi` | 🐾 The squad introduces itself and lists the commands |
 | `I'm at Klarman Hall` | 📍 Sets where you are (looked up on OpenStreetMap) |
 | `explore` | 🍊 Pip heads out, then texts back with a real nearby place, a fact and a photo |
-| `story` | 🍇 Moss tells the history of the closest landmark |
+| `story` | 🍇 Moss tells the history of the closest landmark, then sends a voice note reading it aloud (ElevenLabs) |
 | `take me there` | 🫐 Fern sends walking directions (an Apple Maps link) and the Uber fare you'll skip |
 | `arrived` | 🌸 Logs the walk; the skipped fare grows your savings tree |
 | `savings` | 🌳 Shows your tree and total saved |
@@ -42,6 +42,7 @@ Type messages like `hi`, `explore` and `take me there` and press Enter.
    SPECTRUM_PROJECT_ID=your-project-id
    SPECTRUM_PROJECT_SECRET=your-project-secret
    DEMO_PHONE_NUMBER=+16075551234
+   ELEVENLABS_API_KEY=your-elevenlabs-key   # optional: Moss's story voice notes (or put this in the repo-root .env)
    ```
 
    `.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, rotate it in the dashboard.
@@ -59,20 +60,28 @@ You should see `HuskiesPaws agent listening on iMessage…`.
 
 The cloud iMessage provider runs on any computer. **It does not need a Mac.**
 
+## Story voice notes (ElevenLabs)
+
+With `ELEVENLABS_API_KEY` in `.env` (create a key at [elevenlabs.io](https://elevenlabs.io/app/settings/api-keys)), every `story` reply is followed by a voice note of Moss reading it in his ElevenLabs voice. The TTS client is shared with the server (`../server/src/elevenlabs.js`); `ELEVENLABS_VOICE_STORYTELLER` overrides Moss's voice ID.
+
+- **On iMessage** it is sent as a native audio message when possible. iMessage needs m4a, so spectrum-ts converts the MP3 with **ffmpeg** (on your `PATH`, or `npm install ffmpeg-static`). Without ffmpeg, the agent sends `moss-story.mp3` as a regular audio file instead.
+- **In terminal mode** you'll see `[voice note: N KB]` instead of audio.
+- **No key, or ElevenLabs fails?** Moss still sends the story text; the failure is only logged.
+
 ## Tests
 
 ```bash
 npm test
 ```
 
-This runs a full conversation (locate → explore → take me there → arrived → savings) against live Wikipedia, OpenStreetMap and routing data. No Photon keys needed.
+This runs a full conversation (locate → explore → take me there → arrived → savings) against live Wikipedia, OpenStreetMap and routing data. No Photon keys needed. `test/voice.test.js` checks the story voice notes offline with stubbed Wikipedia and a fake ElevenLabs client (no ElevenLabs key needed).
 
 ## Notes and limits
 
 - **Sessions live in memory,** so restarting the agent forgets everyone's location and savings. Fine for a demo; a real version would store them in the shared backend.
 - **Pip prefers places at least 300 m away,** far enough that you'd otherwise take a ride, so walking there saves money.
 - Wikipedia and OpenStreetMap require an identifying User-Agent. `src/index.js` sets one; without it, they return 403.
-- **Verified:** terminal mode and the conversation tests. **Not verified:** the live iMessage connection, which needs your Photon keys.
+- **Verified:** terminal mode and the conversation tests. **Not verified:** the live iMessage connection (needs your Photon keys and a phone line), including how the voice note arrives on a real iPhone.
 - **Grok** isn't used here yet. Pip's replies come from templates filled with real data. Grok chat could give each agent more personality.
 
 ## Files
@@ -81,5 +90,6 @@ This runs a full conversation (locate → explore → take me there → arrived 
 src/index.js       connects to Photon (or the terminal), one session per chat
 src/bot.js         the squad's replies; platform-independent and tested
 test/bot.test.js   full conversation tests
-.env.example       the Photon credentials template
+test/voice.test.js story voice notes with a fake ElevenLabs
+.env.example       the Photon and ElevenLabs settings template
 ```

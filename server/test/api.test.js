@@ -1,5 +1,5 @@
-// End-to-end API tests: real server + file store, with a fake xAI server that
-// records requests and returns canned audio and images.
+// End-to-end API tests: real server + file store, with fake xAI and ElevenLabs
+// servers that record requests and return canned audio and images.
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { createServer, request } from "node:http";
@@ -7,8 +7,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { createApp } from "../src/app.js";
+import { ELEVEN_VOICES, createElevenLabs } from "../src/elevenlabs.js";
 import { createGrok } from "../src/grok.js";
 import { createFileStore } from "../src/store/fileStore.js";
+import { createSquadTts } from "../src/tts.js";
 
 const PNG = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex"); // PNG signature + header start
 const MP3 = Buffer.from("ID3fake-mp3-bytes");
@@ -34,12 +36,38 @@ function startFakeXai() {
   return new Promise((resolve) => server.listen(0, () => resolve({ server, calls, url: `http://localhost:${server.address().port}` })));
 }
 
-async function startApp({ apiKey, xaiUrl, dataDir, limits }) {
+const ELEVEN_MP3 = Buffer.from("ID3eleven-mp3-bytes");
+
+function startFakeElevenLabs() {
+  const calls = [];
+  const server = createServer(async (req, res) => {
+    let raw = "";
+    for await (const chunk of req) raw += chunk;
+    calls.push({ path: req.url, key: req.headers["xi-api-key"], body: JSON.parse(raw || "{}") });
+    if (req.method === "POST" && req.url.startsWith("/v1/text-to-speech/")) {
+      res.writeHead(200, { "Content-Type": "audio/mpeg" });
+      res.end(ELEVEN_MP3);
+      return;
+    }
+    res.writeHead(404).end();
+  });
+  return new Promise((resolve) => server.listen(0, () => resolve({ server, calls, url: `http://localhost:${server.address().port}` })));
+}
+
+async function startApp({ apiKey, xaiUrl, elevenKey = "", elevenUrl, dataDir, limits }) {
   const config = {
     dataDir,
     limits: limits ?? { voice: { perMinute: 100, perDay: 1000 }, image: { perMinute: 100, perDay: 1000 } },
   };
-  const server = createApp({ config, store: createFileStore(dataDir), grok: createGrok({ apiKey, baseUrl: xaiUrl }) });
+  const grok = createGrok({ apiKey, baseUrl: xaiUrl });
+  const elevenlabs = createElevenLabs({ apiKey: elevenKey, baseUrl: elevenUrl });
+  const server = createApp({
+    config,
+    store: createFileStore(dataDir),
+    grok,
+    elevenlabs,
+    tts: createSquadTts({ grok, elevenlabs }),
+  });
   await new Promise((resolve) => server.listen(0, resolve));
   return { server, base: `http://localhost:${server.address().port}` };
 }
@@ -85,7 +113,7 @@ describe("HuskiesPaws API", () => {
 
   test("health reports features without leaking secrets", async () => {
     const health = await json(await fetch(`${app.base}/api/health`));
-    assert.deepEqual(health.data, { grok: true, storage: "file" });
+    assert.deepEqual(health.data, { grok: true, tts: "grok", ttsByAgent: { scout: "grok", storyteller: "grok", pathfinder: "grok" }, storage: "file" });
     assert.doesNotMatch(JSON.stringify(health), /test-key/);
   });
 
@@ -211,14 +239,83 @@ describe("HuskiesPaws API", () => {
   });
 });
 
+describe("ElevenLabs voice", () => {
+  let xai;
+  let eleven;
+  let app;
+  let dataDir;
+
+  before(async () => {
+    xai = await startFakeXai();
+    eleven = await startFakeElevenLabs();
+    dataDir = await mkdtemp(join(tmpdir(), "huskiespaws-"));
+    app = await startApp({ apiKey: "xai-key", xaiUrl: xai.url, elevenKey: "eleven-key", elevenUrl: eleven.url, dataDir });
+  });
+
+  after(async () => {
+    app.server.close();
+    xai.server.close();
+    eleven.server.close();
+    await rm(dataDir, { recursive: true, force: true });
+  });
+
+  test("health reports mixed TTS without leaking keys", async () => {
+    const health = await json(await fetch(`${app.base}/api/health`));
+    assert.deepEqual(health.data, {
+      grok: true,
+      tts: "mixed",
+      ttsByAgent: { scout: "grok", storyteller: "elevenlabs", pathfinder: "grok" },
+      storage: "file",
+    });
+    assert.doesNotMatch(JSON.stringify(health), /eleven-key|xai-key/);
+  });
+
+  test("Moss's stories use ElevenLabs; Pip uses Grok Voice", async () => {
+    const grokBefore = xai.calls.length;
+    const moss = await post(app.base, "/api/voice", { text: "Once upon a trail...", agent: "storyteller" });
+    assert.equal(moss.status, 200);
+    assert.deepEqual(Buffer.from(await moss.arrayBuffer()), ELEVEN_MP3);
+    const elevenCall = eleven.calls.at(-1);
+    assert.equal(elevenCall.path, `/v1/text-to-speech/${ELEVEN_VOICES.storyteller}?output_format=mp3_44100_128`);
+    assert.equal(elevenCall.body.text, "Once upon a trail...");
+    assert.equal(xai.calls.length, grokBefore, "Moss does not call Grok");
+
+    const pip = await post(app.base, "/api/voice", { text: "I found a place!", agent: "scout" });
+    assert.equal(pip.status, 200);
+    assert.deepEqual(Buffer.from(await pip.arrayBuffer()), MP3);
+    const grokCall = xai.calls.findLast((c) => c.path === "/v1/tts");
+    assert.deepEqual(grokCall.body, { text: "I found a place!", voice_id: "ara", language: "en" });
+  });
+
+  test("without an agent, Grok Voice is used when it is on", async () => {
+    const elevenBefore = eleven.calls.length;
+    assert.equal((await post(app.base, "/api/voice", { text: "Hello", voice: "rex" })).status, 200);
+    const grokCall = xai.calls.findLast((c) => c.path === "/v1/tts");
+    assert.deepEqual(grokCall.body, { text: "Hello", voice_id: "rex", language: "en" });
+    assert.equal(eleven.calls.length, elevenBefore);
+  });
+
+  test("bad agent gets 400 without calling out", async () => {
+    const before = eleven.calls.length + xai.calls.length;
+    const bad = await json(await post(app.base, "/api/voice", { text: "hi", agent: "wizard" }));
+    assert.equal(bad.status, 400);
+    assert.match(bad.error, /agent/);
+    assert.equal((await post(app.base, "/api/voice", { text: "hi", agent: 7 })).status, 400);
+    assert.equal(eleven.calls.length + xai.calls.length, before);
+  });
+});
+
 describe("without a Grok key", () => {
   test("Grok endpoints say they're not configured", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "huskiespaws-"));
     const app = await startApp({ apiKey: "", xaiUrl: "http://localhost:1", dataDir });
     try {
-      assert.deepEqual((await json(await fetch(`${app.base}/api/health`))).data.grok, false);
+      const health = (await json(await fetch(`${app.base}/api/health`))).data;
+      assert.equal(health.grok, false);
+      assert.equal(health.tts, null);
       const voice = await json(await post(app.base, "/api/voice", { text: "hi" }));
       assert.equal(voice.status, 503);
+      assert.match(voice.error, /ELEVENLABS_API_KEY/);
       assert.match(voice.error, /XAI_API_KEY/);
     } finally {
       app.server.close();

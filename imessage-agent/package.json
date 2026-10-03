@@ -4,8 +4,8 @@
   "description": "HuskiesPaws agent squad on iMessage via Photon Spectrum",
   "main": "src/index.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env src/index.js",
-    "terminal": "node --env-file-if-exists=.env src/index.js --terminal",
+    "start": "node --env-file-if-exists=../.env --env-file-if-exists=.env src/index.js",
+    "terminal": "node --env-file-if-exists=../.env --env-file-if-exists=.env src/index.js --terminal",
     "test": "node --test test/*.test.js"
   },
   "type": "module",

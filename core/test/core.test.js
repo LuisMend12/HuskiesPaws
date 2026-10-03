@@ -1,7 +1,7 @@
 // Unit tests for the shared game logic (no network, no DOM).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { choosePlace, firstSentences } from "../agents.js";
+import { STORY_MAX_CHARS, choosePlace, firstSentences, storyMemo } from "../agents.js";
 import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../leaderboard.js";
 import {
   EGG_EVERY_STEPS, HATCH_METERS, LEVEL_EVERY_M, MAX_LEVEL, RARITIES,
@@ -130,6 +130,45 @@ test("choosePlace honors minDistance and visited places", () => {
   assert.equal(choosePlace(places, here, new Set(), { random: () => 0, minDistance: 300 }).id, 3);
   assert.equal(choosePlace(places, here, new Set([2, 3])), null);
   assert.equal(firstSentences("A b. C d! E f?", 2), "A b. C d!");
+});
+
+test("storyMemo tells up to three extract sentences in Moss's voice", () => {
+  const place = { title: "Sage Chapel" };
+  const memo = storyMemo(place, { extract: "One. Two! Three? Four." });
+  assert.equal(
+    memo,
+    "Gather round, sprouts! Let me tell you about Sage Chapel. One. Two! Three? Shall we wander over and see it for ourselves?",
+  );
+  assert.ok(!memo.includes("Four"), "stops after three sentences");
+});
+
+test("storyMemo lets Pip and Fern tell the same facts in their own voice", () => {
+  const place = { title: "Sage Chapel" };
+  const summary = { extract: "One. Two!" };
+  const pip = storyMemo(place, summary, "scout");
+  assert.match(pip, /^Ooh, a trail tale!/);
+  assert.match(pip, /Sage Chapel/);
+  assert.match(pip, /One\. Two!/);
+  assert.match(pip, /look around\?$/);
+  const fern = storyMemo(place, summary, "pathfinder");
+  assert.match(fern, /^While we walk/);
+  assert.match(fern, /lead you there\.$/);
+});
+
+test("storyMemo handles a missing extract and stays under the voice limit", () => {
+  const place = { title: "Sage Chapel" };
+  for (const summary of [{ extract: "" }, { extract: "   " }, {}, null]) {
+    const memo = storyMemo(place, summary);
+    assert.match(memo, /Sage Chapel/);
+    assert.match(memo, /see it for ourselves\?$/);
+  }
+  const long = `${"word ".repeat(80).trim()}. ${"more ".repeat(80).trim()}.`;
+  const trimmed = storyMemo(place, { extract: long });
+  assert.ok(trimmed.length <= STORY_MAX_CHARS, "drops sentences to fit");
+  assert.ok(!trimmed.includes("more"), "keeps whole sentences when it can");
+  const huge = storyMemo(place, { extract: `${"giant ".repeat(200).trim()}.` });
+  assert.ok(huge.length <= STORY_MAX_CHARS, "clips one giant sentence");
+  assert.match(huge, /\.\.\. Shall we/);
 });
 
 test("leaderboard sample data is stable and includes you", () => {
