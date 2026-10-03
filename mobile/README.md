@@ -6,20 +6,54 @@ The mobile version of [Wanderlings](../README.md): walk, and your trail blooms. 
 
 ## Run it on your phone (Expo Go)
 
-You need Node.js 18 or newer, and the **Expo Go** app on your phone (from the App Store or Google Play).
+You need:
 
-```bash
-cd big-red-hacks2026/mobile
-npm install
-npx expo start
-```
+- **Node.js 18 or newer** on your laptop
+- The **Expo Go** app on your phone, from the App Store or Google Play. The app uses **Expo SDK 57**. If Expo Go says the project is incompatible, update Expo Go.
 
-Scan the QR code. On iPhone, use the Camera app. On Android, scan from inside Expo Go. Your phone and laptop must be on the same Wi-Fi.
+### Steps
 
-- **Venue Wi-Fi blocks the connection?** Use `npx expo start --tunnel`.
+1. **Open a terminal in the `mobile` folder.** If your terminal is already at the repo root (the `big-red-hacks2026` folder), just run `cd mobile`. The prompt should end in `\big-red-hacks2026\mobile>` before you go on. If you run `npx expo start` anywhere else, it fails with `The expected package.json path ... does not exist`.
+
+2. **Install dependencies.** You only need this the first time, and again after someone changes `package.json`.
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the app with a tunnel.** On venue or public Wi-Fi, such as `Cornell-Visitor`, always use `--tunnel`:
+
+   ```bash
+   npx expo start --tunnel
+   ```
+
+   - **The first time,** Expo asks to install `@expo/ngrok`. Say **yes**. It then stops with `CommandError: Install @expo/ngrok@^4.1.0 and try again`, even though the install worked. **Run the same command again** and it works.
+   - Wait for **Tunnel ready**. The QR code's address should look like `exp://….exp.direct`.
+   - If it keeps asking for `@expo/ngrok`, install it inside the project, then try again. `--no-save` keeps `package.json` unchanged:
+
+     ```bash
+     npm install --no-save @expo/ngrok@^4.1.0
+     ```
+
+4. **Scan the QR code.** On iPhone, use the Camera app. On Android, scan from inside Expo Go. Allow **location, camera and motion** access when the app asks.
+
+No API keys are needed.
+
+### Why the tunnel?
+
+Without `--tunnel`, the phone connects straight to your laptop's local address, such as `exp://10.x.x.x:8081`. On public Wi-Fi that usually fails with **"request timed out"**, for two reasons:
+
+- **Guest networks** usually stop devices on the network from talking to each other.
+- **Windows Firewall** blocks Node on "Public" networks if you didn't allow it the first time it ran.
+
+The tunnel goes through the internet instead, so neither one matters. Reloads are a little slower.
+
+Plain `npx expo start`, without the tunnel, is fine on a **home network** where the phone and laptop are on the same Wi-Fi. Avoid opening the firewall for Node on Public networks: it lets anyone on that network reach your dev server.
+
+### Other ways to run it
+
 - **No phone?** `npx expo start --android` opens an Android emulator, if you have Android Studio installed. Running on iOS needs a Mac.
-
-No API keys are needed. Allow location, camera and motion access when the app asks.
+- **While it's running:** shake the phone to open Expo's developer menu, where **Reload** restarts the app. Errors show on the phone and in the terminal. Saved code changes reload on the phone automatically.
 
 ## Try it
 
@@ -64,7 +98,9 @@ npx expo lint       # ESLint
 npx expo export --platform android --platform ios   # bundles the app; catches import and syntax errors
 ```
 
-All three passed when this was set up. **The app hasn't been run on a physical phone yet,** so test the full loop on a real device first.
+Run all three before pushing changes to the phone app. The export writes to `dist/`, which git ignores.
+
+The app now runs on a real phone through Expo Go with `--tunnel`. Still test the full loop (explore, walk there, capture) on both iPhone and Android before the demo.
 
 ## Known limits and next steps
 

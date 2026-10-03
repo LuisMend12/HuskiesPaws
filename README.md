@@ -135,12 +135,42 @@ _TODO (team): describe how you used Cursor (Agent mode, Tab, rules files), with 
 |---|---|---|
 | 🌐 **Web app + server** (Grok, leaderboards, turf) | `cd server` then `npm start`, and open http://localhost:8765 | [server/README.md](server/README.md) |
 | 🌐 Web app only (no server features) | `cd prototype` then `python serve.py` | [prototype/README.md](prototype/README.md) |
-| 📱 **Phone app** | `cd mobile`, `npm install`, `npx expo start`, then scan with Expo Go | [mobile/README.md](mobile/README.md) |
+| 📱 **Phone app** | `cd mobile`, `npm install`, `npx expo start --tunnel`, then scan with Expo Go. On venue Wi-Fi, use `--tunnel` or it times out. | [mobile/README.md](mobile/README.md#run-it-on-your-phone-expo-go) |
 | 💬 **iMessage agent** | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys) or `npm start` | [imessage-agent/README.md](imessage-agent/README.md) |
 
 Keys go in a root `.env` file, which git ignores. See [server/.env.example](server/.env.example) and [imessage-agent/.env.example](imessage-agent/.env.example). The app runs without keys, using fallbacks.
 
 **Tests:** `npm test` in `prototype/` (game logic), `server/` (API, using a fake Grok service) and `imessage-agent/` (full conversation).
+
+**Commands run from the folder they belong to.** If your terminal is at the repo root, `cd` into `server`, `prototype`, `mobile` or `imessage-agent` first. Paths in this repo contain spaces (`New folder`), so put quotes around full paths, for example `cd "C:\...\big-red-hacks2026\mobile"`.
+
+### Pushing changes
+
+Everyone works on `main`, so pull before you start and again before you push.
+
+```bash
+git pull --rebase                 # get teammates' work first
+# ...make your changes...
+git status                        # check what changed; .env must NOT be listed
+git add <the files you changed>   # add files by name, not "git add ." blindly
+git commit -m "Short summary of the change"
+git pull --rebase                 # pick up anything pushed while you worked
+git push
+```
+
+- **Push rejected** ("fetch first" or "non-fast-forward")? Someone pushed before you. Run `git pull --rebase`, then `git push` again.
+- **Conflict during the rebase?** Open the files git lists, keep the right parts, delete the `<<<<<<<`, `=======` and `>>>>>>>` lines, then `git add <file>` and `git rebase --continue`. To back out instead, run `git rebase --abort`.
+- **Never commit keys.** `.env` files are ignored by git. If `git status` ever shows one, stop and don't commit it.
+- **Before you push, run the checks** for the part you changed:
+
+| You changed | Run |
+|---|---|
+| `prototype/js/` (shared game logic) | `npm test` in `prototype/`, then `npm run sync-core` in `mobile/` and commit the updated `mobile/src/core/` too |
+| `server/` | `npm test` in `server/` |
+| `mobile/` | `npx expo lint` and `npx expo export --platform android --platform ios` in `mobile/` |
+| `imessage-agent/` | `npm test` in `imessage-agent/` |
+
+- **Commit small and often** with clear messages. Judges look at the git history to see steady progress.
 
 ## Submission checklist (due Sunday 8:30 AM on Devpost)
 
