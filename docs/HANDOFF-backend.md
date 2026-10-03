@@ -94,11 +94,50 @@ xpBoost: 1,         // 1 + 0.1 × turf.filter((t) => t.mine).length
 
 Action: `game.claimTurf(landmarkId)` (use the active pet with `petPower(pet, walked)`; set `status` to the server's message). Ship a plain component that proves it works; presentation will restyle it.
 
-### 4.4 Live leaderboards
+### 4.4 Squad, statuses and starter pets (agreed with Abdullah)
+
+**Pip, Moss and Fern become your 3 starter pets:** common pets every new player starts with (and gets back after a progress reset), instead of a separate agent system. Suggested: add `STARTER_PETS` to `core/pets.js`:
+
+| Name | Class | Color | Rarity | basePower |
+|---|---|---|---|---|
+| Pip | Scout | cinnamon | common | 12 |
+| Moss | Storyteller | midnight | common | 12 |
+| Fern | Pathfinder | mint | common | 12 |
+
+Each pet's class decides its action: Scout = Explore (today's `runExpedition`), Storyteller = Tell a story, Pathfinder = Guide me, Guardian = no action (defends better). Keep `AGENTS` for their voices (`voice`, `grokVoice`) and memo text, looked up by class.
+
+**Squad size:** 3 slots, 4 at Gold, 5 at Crystal (`rank.league`). Eggs add pets to your collection; you choose who's in the squad.
+
+**Statuses** (one per pet):
+
+| `status` | Meaning | Rules |
+|---|---|---|
+| `"with-you"` | Follows you | Only squad pets that are with you gain levels from walking |
+| `"exploring"` | On an expedition | Busy until it returns |
+| `"defending"` | Guarding a landmark | **Still uses its squad slot** (the balance lever: more landmarks = bigger XP boost but fewer pets with you) |
+| `"resting"` | Lost its landmark or hit 0 HP | Must walk 200 m with you before it can defend again |
+
+**Class perks:** Scout expeditions 30% shorter; Storyteller +50% story XP; Pathfinder +0.05× walking XP while with you; Guardian 1.5× max HP.
+
+**HP:** `maxHp` 100 (Guardian 150), −10 HP per hour, refilled by visiting. An unvisited landmark falls after ~10 h (Guardian ~15 h).
+
+**State the screens read:**
+
+```js
+squad: ["pet-…", "pet-…", "pet-…"], // saved. pet ids in the squad, in order
+// each pet in `pets` also gets:
+status: "with-you",                  // "with-you" | "exploring" | "defending" | "resting"
+restMeters: 0,                       // while resting: meters still to walk
+squadSize: 3,                        // derived from the league
+```
+
+Actions: `game.setSquad(ids)` (presentation builds the picker), `game.runPet(petId)` (the class action). Until these exist, the screens use the first 3 pets as the squad and treat every pet as `"with-you"`.
+
+### 4.5 Live leaderboards
 
 `state.leaderboard = { scope, rows: [{ position, name, score, isYou }] }` from `/api/leaderboard`. When it's `null` (offline), presentation keeps using `core/leaderboard.js` sample rows. Tell presentation when it lands; `RanksPanel.js` switches over then.
 
-### 4.5 `mobile/src/api.js`
+### 4.6 `mobile/src/api.js`
 
 Base URL from `EXPO_PUBLIC_API_URL`, no keys in the app, return `null` on any network failure so screens fall back to sample data.
 
