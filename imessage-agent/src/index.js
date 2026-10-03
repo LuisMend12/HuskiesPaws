@@ -1,4 +1,4 @@
-// Starts the Wanderlings iMessage agent on Photon Spectrum.
+// Starts the HuskiesPaws iMessage agent on Photon Spectrum.
 //   npm start          -> iMessage via Photon Cloud (needs SPECTRUM_PROJECT_ID / SPECTRUM_PROJECT_SECRET)
 //   npm run terminal   -> chat in this terminal, no credentials needed
 import { Spectrum, attachment, text } from "spectrum-ts";
@@ -8,7 +8,7 @@ import { setRequestHeaders } from "../../prototype/js/services.js";
 import { HELP, handleMessage, newSession } from "./bot.js";
 
 // Wikipedia and OpenStreetMap require an identifying User-Agent.
-setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (BigRed//Hacks 2026 iMessage agent)" });
+setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (BigRed//Hacks 2026 iMessage agent)" });
 
 const useTerminal = process.argv.includes("--terminal");
 
@@ -51,7 +51,7 @@ async function greetDemoPhone() {
   try {
     const im = imessage(app);
     const space = await im.space.create(await im.user(phone));
-    await space.send(text(`🍊 Pip here! Your Wanderlings squad is awake.\n\n${HELP}`));
+    await space.send(text(`🍊 Pip here! Your HuskiesPaws squad is awake. 🐾\n\n${HELP}`));
     console.log(`Sent a welcome text to ${phone}`);
   } catch (error) {
     console.error("Couldn't send the welcome text:", error);
@@ -59,7 +59,7 @@ async function greetDemoPhone() {
 }
 
 await greetDemoPhone();
-console.log(useTerminal ? "Wanderlings agent running in the terminal. Say hi!" : "Wanderlings agent listening on iMessage…");
+console.log(useTerminal ? "HuskiesPaws agent running in the terminal. Say hi!" : "HuskiesPaws agent listening on iMessage…");
 
 for await (const [space, message] of app.messages) {
   if (message.content.type !== "text") continue;

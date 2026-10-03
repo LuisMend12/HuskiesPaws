@@ -5,6 +5,9 @@
   --muted: #6b7a66;
   --leaf: #4caf50;
   --leaf-dark: #2e7d32;
+  /* HuskiesPaws logo colors (docs/logo/README.md) */
+  --brand-navy: #0b1f3a;
+  --brand-green: #6fd38a; /* the logo's green for dark backgrounds */
   --accent: #ff8a65;
   --border: #e3dfcf;
   --shadow: 0 4px 16px rgba(44, 58, 42, 0.12);
@@ -27,10 +30,13 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
-  background: var(--leaf-dark);
+  background: var(--brand-navy);
   color: #fff;
 }
 .topbar h1 { font-size: 1.2rem; margin: 0; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.brand-logo { width: 32px; height: 32px; display: block; }
+.brand-accent { color: var(--brand-green); }
 .rank-badge {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;

@@ -1,4 +1,6 @@
-# Wanderlings: notes for AI coding agents (Cursor, Claude Code, Codex)
+# HuskiesPaws: notes for AI coding agents (Cursor, Claude Code, Codex)
+
+The app was called **Wanderlings** while brainstorming; internal identifiers like the `wanderlings:` storage prefix and `window.WANDERLINGS_ENV` keep that name on purpose (renaming them would wipe saved progress).
 
 BigRed//Hacks 2026 project. Theme: **Navigation**. **Deadline: Sunday Oct 4, 8:30 AM** (Devpost).
 Read [PLAN.md](PLAN.md) for scope and priorities, and [README.md](README.md) for the idea.
@@ -19,7 +21,7 @@ The SpaceX track requires the project to be **built with Cursor**, and judges re
 
 ## Rules that bite
 - **Secrets:** keys go in `.env` (git-ignored at the root and per folder). Never hardcode them or put them in browser or app bundles. Grok and real bank keys belong on a backend. `serve.py` only exposes `MAPBOXKEY`.
-- **User-Agent:** Wikipedia and OpenStreetMap return 403 to generic clients. Node and React Native must call `setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (...)" })` from `services.js`. Browsers must not, because it breaks CORS.
+- **User-Agent:** Wikipedia and OpenStreetMap return 403 to generic clients. Node and React Native must call `setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (...)" })` from `services.js`. Browsers must not, because it breaks CORS.
 - **Facts come from tools:** agent memos only use data returned by Wikipedia or routing. Don't let an LLM invent place facts.
 - **Immutable state updates** (spread, map, filter). Keep files under about 400 lines.
 - After changing shared logic, check the web prototype, run `npm run sync-core` and `npx expo lint` in `mobile/`, and run `npm test` in `imessage-agent/`.

@@ -366,7 +366,7 @@ async function connectBank(event) {
   }
   setStatus("Connecting to Capital One Nessie…");
   try {
-    const bank = await setupBank(key, "Wanderlings");
+    const bank = await setupBank(key, "HuskiesPaws");
     $("nessie-key").value = "";
     setState({ bank, nessieKey: key });
     persist();

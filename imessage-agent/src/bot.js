@@ -1,4 +1,4 @@
-// Wanderlings squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
+// HuskiesPaws squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
 // Platform-independent: handleMessage() gets the text and a send() callback, so it
 // runs the same under Photon iMessage, the terminal provider, and tests.
 import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../prototype/js/agents.js";
@@ -11,7 +11,7 @@ const [pip, moss, fern] = ["scout", "storyteller", "pathfinder"].map((id) => AGE
 const DEFAULT_PLACE_NAME = "the Physical Sciences Building at Cornell";
 
 export const HELP = [
-  "🌱 Wanderlings squad here! Text:",
+  "🐾 HuskiesPaws squad here! Text:",
   "• \"I'm at <place>\" to tell us where you are",
   "• \"explore\": Pip scouts somewhere new",
   "• \"story\": Moss tells you about what's nearby",

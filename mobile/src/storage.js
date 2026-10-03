@@ -2,6 +2,7 @@
 // but async: load everything once at startup, then save in batches.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Kept from the app's earlier name so existing saved progress isn't lost.
 const PREFIX = "wanderlings:";
 
 export async function loadAll(defaults) {

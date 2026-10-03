@@ -1,4 +1,4 @@
-# Wanderlings: ideas and plan
+# HuskiesPaws (formerly Wanderlings): ideas and plan
 
 This file groups every idea from the brainstorms and the repo docs, adds the new **Eggs, Pets and Turf** idea, and sets a scope for the deadline (**Sunday 8:30 AM**).
 

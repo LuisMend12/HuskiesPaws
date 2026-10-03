@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { setRequestHeaders } from "../../prototype/js/services.js";
 import { handleMessage, newSession } from "../src/bot.js";
 
-setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (BigRed//Hacks 2026 agent tests)" });
+setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (BigRed//Hacks 2026 agent tests)" });
 
 async function chat(session, message) {
   const replies = [];

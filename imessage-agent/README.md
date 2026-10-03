@@ -1,10 +1,10 @@
-# Wanderlings on iMessage (Photon track)
+# HuskiesPaws on iMessage (Photon track)
 
-The Wanderlings squad as an iMessage agent, built on [Photon Spectrum](https://photon.codes/docs/spectrum-ts/introduction). Text it:
+The HuskiesPaws squad as an iMessage agent, built on [Photon Spectrum](https://photon.codes/docs/spectrum-ts/introduction). Text it:
 
 | You text | What happens |
 |---|---|
-| `hi` | 🌱 The squad introduces itself and lists the commands |
+| `hi` | 🐾 The squad introduces itself and lists the commands |
 | `I'm at Klarman Hall` | 📍 Sets where you are (looked up on OpenStreetMap) |
 | `explore` | 🍊 Pip heads out, then texts back with a real nearby place, a fact and a photo |
 | `story` | 🍇 Moss tells the history of the closest landmark |
@@ -53,7 +53,7 @@ Type messages like `hi`, `explore` and `take me there` and press Enter.
 npm start
 ```
 
-You should see `Wanderlings agent listening on iMessage…`.
+You should see `HuskiesPaws agent listening on iMessage…`.
 
 **How you start a chat:** on Photon's free plan, messages go through a shared pool of phone numbers, so the number can differ per person. The easiest way to start: set **`DEMO_PHONE_NUMBER`** to your own number. Pip texts you first when the agent starts, and you just reply. If that doesn't arrive, check the dashboard (or `photon spectrum users ls`) for how users are added to your project.
 

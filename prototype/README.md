@@ -1,6 +1,6 @@
-# Wanderlings prototype
+# HuskiesPaws web app
 
-A quick concept demo of [Wanderlings](../docs/ideas/12-wanderlings.tex): a walking game where AI agent companions scout real places for you.
+The web version of [HuskiesPaws](../README.md) (first sketched as [Wanderlings](../docs/ideas/12-wanderlings.tex)): a walking game where AI agent companions scout real places for you.
 
 > **This is a throwaway prototype, not the submission.** The Cursor track requires the project to be built with Cursor. Use this to test the idea, then build the real version in Cursor.
 
@@ -36,7 +36,7 @@ There's no `npm install` and no build step.
    python serve.py
    ```
 
-   You should see `Serving Wanderlings at http://localhost:8765`. Leave this terminal open.
+   You should see `Serving HuskiesPaws at http://localhost:8765`. Leave this terminal open.
 
    `serve.py` works like `python -m http.server`, but also passes the Mapbox token from `.env` to the page. It only passes `MAPBOXKEY`, so other keys in `.env` never reach the browser.
 

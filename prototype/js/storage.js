@@ -1,5 +1,6 @@
 // Saved progress. Uses localStorage in the browser; in the mobile app, swap this
 // file for AsyncStorage (React Native) with the same load/save interface.
+// Kept from the app's earlier name so existing saved progress isn't lost.
 const PREFIX = "wanderlings:";
 
 export function load(key, fallback) {

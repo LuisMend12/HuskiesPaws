@@ -105,7 +105,11 @@ async function renderCard(source, place, agent, level, date) {
   ctx.font = "16px system-ui, sans-serif";
   const caption = `Captured with ${agent.name} · ${date.toLocaleDateString()}`;
   ctx.fillText(caption, border, border + photo + 76);
-  ctx.fillText("🌸 Wanderlings", width - border - 130, border + photo + 76);
+  ctx.fillStyle = "#0b1f3a"; // logo navy
+  ctx.font = "bold 16px system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("🐾 HuskiesPaws", width - border, border + photo + 76);
+  ctx.textAlign = "left";
 
   return canvas.toDataURL("image/jpeg", 0.8);
 }

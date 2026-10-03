@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Wanderlings",
-    "slug": "wanderlings",
+    "name": "HuskiesPaws",
+    "slug": "huskiespaws",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,10 +11,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B1F3A",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundImage": "./assets/android-icon-background.png"
       }
     },
     "web": {
@@ -24,19 +23,19 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Wanderlings uses your location to grow flowers along your walk and find places nearby."
+          "locationWhenInUsePermission": "HuskiesPaws uses your location to grow flowers along your walk and find places nearby."
         }
       ],
       [
         "expo-sensors",
         {
-          "motionPermission": "Wanderlings counts your steps to grow your rank."
+          "motionPermission": "HuskiesPaws counts your steps to grow your rank."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Wanderlings uses the camera to capture landmarks as postcards."
+          "cameraPermission": "HuskiesPaws uses the camera to capture landmarks as postcards."
         }
       ]
     ]

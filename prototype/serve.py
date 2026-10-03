@@ -51,7 +51,7 @@ if __name__ == "__main__":
     if not read_env(ENV_FILE).get("MAPBOXKEY"):
         print(f"Note: no MAPBOXKEY in {ENV_FILE}. The map will ask for a token instead.")
     server = http.server.ThreadingHTTPServer(("", port), partial(Handler, directory=str(HERE)))
-    print(f"Serving Wanderlings at http://localhost:{port} (Ctrl+C to stop)")
+    print(f"Serving HuskiesPaws at http://localhost:{port} (Ctrl+C to stop)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

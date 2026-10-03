@@ -15,7 +15,7 @@ import { createWalking } from "./walking.js";
 
 const agentById = (id) => AGENTS.find((a) => a.id === id);
 // Without this, Wikipedia and OpenStreetMap answer 403 to the app's default User-Agent.
-setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (BigRed//Hacks 2026 demo app)" });
+setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (BigRed//Hacks 2026 demo app)" });
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createGame() {
@@ -192,7 +192,7 @@ export function createGame() {
     }
     say("Connecting to Capital One Nessie…");
     try {
-      const bank = await setupBank(trimmed, "Wanderlings");
+      const bank = await setupBank(trimmed, "HuskiesPaws");
       set({ bank, nessieKey: trimmed, status: "Connected! New walks will move their savings into your Nessie savings account." });
       persist();
       return true;
