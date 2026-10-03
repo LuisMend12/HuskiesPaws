@@ -1,0 +1,76 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{GuideVoice}{A conversational walking guide for blind and low-vision users.}
+
+\section{The Idea}
+GPS apps tell you \emph{``turn left in 200 feet''} but not that there's a
+construction barrier, which door is the entrance, or where the crosswalk button
+is. GuideVoice combines turn-by-turn directions with the phone camera: point it
+ahead and ask \emph{``What's in front of me?''} or \emph{``Where's the door?''}, and
+Grok Voice answers in a calm, conversational way. This directly answers an opening
+ceremony prompt: \emph{``What types of audio or haptic navigation would blind or
+low-vision users benefit from?''}
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Whole app built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} is the entire interface.}
+\req{Space data}{Not used. Allowed by the rules, but the track is pitched around space, so judges may weigh this.}
+\req{Navigation theme}{Direct fit, and an accessibility prompt from the slides.}
+\req{Also eligible}{Big Red, Software, Design, People's Choice.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Voice-only start: \emph{``Take me to Klarman Hall.''}
+  \item Walking directions spoken at each turn.
+  \item ``What's ahead?'' button: snap a photo, get a short spoken description focused on obstacles, doors, and signs.
+  \item Large-text, high-contrast, screen-reader-friendly UI.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Haptic patterns for left/right/arrived (phone vibration).
+  \item Continuous mode that describes changes every few seconds.
+  \item Read signs and room numbers aloud.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Frontend: mobile web app (PWA) with camera and geolocation.
+  \item Routing: Google Maps Directions API (workshop Saturday 1:00 PM) or OpenStreetMap routing.
+  \item Vision: an image-understanding model (Grok's vision-capable chat model, to verify).
+  \item Voice: Grok Voice API.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Safety}{Wrong or late descriptions could lead a blind user into danger. It must never replace a cane, guide dog, or orientation training.}{Position it as an assistant, include a clear disclaimer, and never say ``it's safe to cross.''}
+\limitation{Latency}{Photo upload, AI description, and speech take seconds; a walking person moves several meters meanwhile.}{Keep descriptions short; use the on-demand button instead of continuous mode for the MVP.}
+\limitation{GPS accuracy}{Phone GPS is off by 5--20 meters near buildings, which matters a lot to someone who cannot see.}{Use the camera to confirm landmarks (``the entrance is on your right'').}
+\limitation{No real users to test with}{Without blind or low-vision testers, design choices are guesses.}{Follow established accessibility guidelines; the Saturday 3:00 PM Assistive Tech workshop may help.}
+\limitation{Existing products}{Be My AI, Seeing AI, and Google Lookout already describe scenes.}{Differentiate by combining scene description \emph{with} route guidance in one conversation.}
+\limitation{Grok API unknowns}{Image-input support and Voice API details are not verified.}{Confirm at the Friday Grok/Cursor workshop.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{5}{Works live, indoors, at the judging table.}
+\rating{Buildable in 24h}{4}{Mostly API integration.}
+\rating{Navigation theme}{5}{Direct accessibility prompt.}
+\rating{Wow factor}{4}{Judges can close their eyes and try it.}
+\rating{Technical risk (5 = riskiest)}{2}{Low to moderate.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Top non-space pick.} Meaningful, demos live indoors, and matches a prompt
+from the opening slides. Be careful with safety claims.
+
+\end{document}

@@ -92,6 +92,18 @@ Ask *"What's launching this week, and where will it go?"* The app shows past and
 
 ---
 
+## Cursor track ideas without space
+
+The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space data is how SpaceX frames the track, so a non-space project is allowed but may score a little lower with their judges. Each idea has a full sheet in [docs/ideas/](docs/ideas/).
+
+| Idea | Pitch | Best for |
+|---|---|---|
+| **GuideVoice** | A voice and camera walking guide for blind and low-vision users | Top non-space pick; demos live indoors |
+| **Campus Wayfinder** | Voice-guided indoor directions inside PSB and Klarman | Live demo, People's Choice |
+| **HillSmart** | Routes that avoid Ithaca's hills and stairs, with voice guidance | A practical, relatable pick |
+| **VoiceRover** | A Raspberry Pi robot car you drive by voice | Hardware track too, if motors are available |
+| **PictureRoute** | Directions as illustrated landmark cards, made with Grok Imagine | Design track |
+
 ## Other ideas that fit the Navigation theme
 
 These target other tracks, in case we change plans.
@@ -113,6 +125,11 @@ Score each idea from 1 to 5 on each column.
 | 4 | Voyage Planner | | | | | | |
 | 5 | StarFix | | | | | | |
 | 6 | Launch Lens | | | | | | |
+| 7 | GuideVoice | | | | | | |
+| 8 | Campus Wayfinder | | | | | | |
+| 9 | HillSmart | | | | | | |
+| 10 | VoiceRover | | | | | | |
+| 11 | PictureRoute | | | | | | |
 
 ## Team
 

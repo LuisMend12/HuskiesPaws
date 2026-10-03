@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{HillSmart}{Routes that understand hills, stairs, and effort, with hands-free voice guidance.}
+
+\section{The Idea}
+Ithaca is famous for its hills. Normal maps pick the shortest route, even if it
+climbs Libe Slope or uses stairs. HillSmart lets you choose what matters:
+\emph{least climbing}, \emph{no stairs} (wheelchair, stroller, scooter, bike), or
+\emph{fastest}. It shows the elevation profile of each option and guides you
+hands-free by voice, which is useful on a bike or with a wheelchair.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Routing, elevation analysis, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} turn-by-turn and questions (\emph{``Is there a flatter way?''}).}
+\req{Space data}{Not needed. (Optional twist: elevation data comes from satellite measurements.)}
+\req{Navigation theme}{Direct fit; accessibility angle.}
+\req{Also eligible}{Big Red, Software, Design.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Enter start and destination (by voice or text).
+  \item Get 2--3 candidate routes; compute total climb and steepest section for each.
+  \item Elevation profile chart and a map with the route color-coded by steepness.
+  \item Voice summary: \emph{``Route B adds 3 minutes but saves 40 meters of climbing.''}
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Custom routing that truly avoids steep segments (not just picking between options).
+  \item Crowd-reported obstacles (broken elevator, icy path).
+  \item Live voice turn-by-turn while moving.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Routes: Google Maps Directions API (alternatives) or OpenStreetMap with OSRM/GraphHopper.
+  \item Elevation: Google Elevation API or open elevation data.
+  \item Frontend: React with Leaflet/Google Maps; a chart library for profiles.
+  \item AI: Grok Voice API.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Picking vs.\ planning}{Choosing among Google's alternative routes is easy but limited; real slope-aware routing needs your own routing engine.}{Ship ``compare alternatives'' first; custom routing is a stretch goal.}
+\limitation{Stairs data is incomplete}{OpenStreetMap marks many but not all stairs and ramps on campus.}{Hand-check the demo routes and add crowd reports.}
+\limitation{Elevation resolution}{Public elevation data can miss short steep sections and stairs.}{Treat numbers as estimates; combine with stairs tags.}
+\limitation{Existing features}{Google Maps shows wheelchair-accessible transit and bike elevation in some places.}{Focus on walking/wheelchair hill avoidance on campus, which Google doesn't do well.}
+\limitation{API cost and keys}{Google Maps APIs need billing set up.}{Use free credits or OpenStreetMap; never commit the key.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Clear map demo; anyone at Cornell relates.}
+\rating{Buildable in 24h}{4}{MVP is mostly APIs.}
+\rating{Navigation theme}{5}{Direct fit.}
+\rating{Wow factor}{3}{Useful, not flashy.}
+\rating{Technical risk (5 = riskiest)}{2}{Low (MVP), moderate (custom routing).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Good practical pick.} Very relatable to Cornell judges. The voice part
+must feel essential, not added on.
+
+\end{document}

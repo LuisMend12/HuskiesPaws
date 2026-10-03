@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{VoiceRover}{Tell a small robot car where to go, and it navigates there.}
+
+\section{The Idea}
+The opening slides asked: \emph{``What if you could drive a car with your phone?''}
+VoiceRover is a small robot car (Raspberry Pi + webcam, borrowed from MLH) that you
+control by speaking: \emph{``Go to the red chair''}, \emph{``Turn around and come
+back.''} Grok turns the request into driving steps, the webcam helps it find the
+target, and it talks back about what it's doing. A tabletop prototype of the
+next era of vehicle interfaces.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Robot control code and web controller built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} commands and spoken status updates.}
+\req{Space data}{Not used. (Optional twist: frame it as a mini Mars rover.)}
+\req{Navigation theme}{Direct fit; matches a slide prompt.}
+\req{Also eligible}{Big Red, \textbf{Hardware}, Software.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Raspberry Pi drives two motors (forward, back, turn) from a web page on a phone.
+  \item Voice command to a short list of actions to move the car.
+  \item Live webcam view on the phone.
+  \item Spoken confirmations: \emph{``Moving forward one meter.''}
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item ``Go to the red chair'': simple color or object detection to steer toward a target.
+  \item Stop automatically for obstacles (ultrasonic distance sensor).
+  \item Remember a route and replay it.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Hardware: Raspberry Pi kit, Logitech webcam, motor driver, chassis, battery.
+  \item Robot: Python (Flask/FastAPI) on the Pi; GPIO motor control.
+  \item Vision: OpenCV color tracking (MVP), object detection (stretch).
+  \item AI: Grok Voice to understand commands and reply.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Parts availability}{MLH lists Raspberry Pis, Arduinos, webcams, and Grove parts, but \emph{not} motors, a chassis, or batteries.}{Check the MLH table first thing. Without wheels and motors, this idea isn't possible.}
+\limitation{Hardware eats time}{Wiring, power problems, and flaky motors routinely cost hours.}{Get the car driving from a keyboard by Saturday noon before adding voice.}
+\limitation{Wi-Fi at the venue}{Phone-to-Pi control over crowded hackathon Wi-Fi can lag or drop.}{Use the Pi as its own hotspot, or tether to a phone hotspot.}
+\limitation{Voice to safe motion}{An AI misunderstanding could drive the car off a table.}{Allow only a fixed set of safe actions with limits on distance and speed; add a stop button.}
+\limitation{``Go to X'' is hard}{Real object-seeking navigation is a research problem.}{Use brightly colored targets for reliable detection.}
+\limitation{Must return hardware}{Borrowed hardware must be returned after judging.}{Plan for it; document the build with photos.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{5}{A moving robot at the table draws a crowd.}
+\rating{Buildable in 24h}{3}{Depends on parts and hardware luck.}
+\rating{Navigation theme}{5}{Driving with your phone and voice.}
+\rating{Wow factor}{5}{Physical and interactive.}
+\rating{Technical risk (5 = riskiest)}{4}{Hardware and parts.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Best for a team with hardware experience.} Can win both the Cursor and
+Hardware tracks, but confirm motors and a chassis exist before committing.
+
+\end{document}

@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{PictureRoute}{Directions as a picture story: ``Turn left at the big clock tower.''}
+
+\section{The Idea}
+Many people don't navigate with maps; they navigate with landmarks. Kids, older
+adults, people with cognitive disabilities, tourists who don't read the local
+language, and anyone who finds maps confusing. PictureRoute turns a route into an
+illustrated, step-by-step story: each step is a picture card of the landmark where
+you turn, with a short spoken instruction from Grok Voice. Grok Imagine creates
+the illustrations in a consistent, friendly style.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Route processing, card generation, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Imagine} is the core (illustrated cards); \textbf{Voice} reads each step. Uses both.}
+\req{Space data}{Not used.}
+\req{Navigation theme}{Direct fit; a new way to give directions.}
+\req{Also eligible}{Big Red, Design, People's Choice.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Enter start and destination; get walking directions.
+  \item Find a nearby landmark at each turn (from map place data).
+  \item Generate an illustrated card per step with Grok Imagine.
+  \item Swipeable card deck with spoken instructions.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Printable directions sheet (for people without smartphones).
+  \item Multiple languages.
+  \item A caregiver mode that sends a route to a family member's phone.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Routing and landmarks: Google Maps Directions + Places APIs, or OpenStreetMap.
+  \item Frontend: React card deck; mobile-first design.
+  \item AI: Grok Imagine for cards; Grok Voice for narration.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Generated pictures are not the real place}{An illustration of ``the clock tower'' may look nothing like the real one, which could confuse exactly the people it's meant to help.}{Use real Street View or place photos as the main image; use Imagine for style or icons. Say so in the pitch.}
+\limitation{Generation is slow and costs money}{Generating many images per route takes time and API credits.}{Generate cards in parallel, cache by landmark, and pre-generate the demo route.}
+\limitation{Landmark choice is hard}{The nearest place in the map data is often not the most visible one (an office instead of a big statue).}{Prefer certain categories (parks, monuments, big stores); let users swap a landmark.}
+\limitation{Untested with target users}{Real benefit for older adults or people with cognitive disabilities isn't proven.}{Frame the demo around a clear persona and keep the claims modest.}
+\limitation{Grok API unknowns}{Image style consistency and generation speed are not verified.}{Test Imagine Friday night on 5 sample landmarks.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Beautiful card deck on screen.}
+\rating{Buildable in 24h}{4}{API integration plus design work.}
+\rating{Navigation theme}{4}{New take on directions.}
+\rating{Wow factor}{4}{Strong visuals; best Imagine use.}
+\rating{Technical risk (5 = riskiest)}{2}{Low to moderate.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Best pick for a design-strong team.} The most natural use of Grok
+Imagine, and a contender for the Design track. Be honest about image accuracy.
+
+\end{document}

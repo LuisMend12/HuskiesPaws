@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{Campus Wayfinder}{Ask out loud, ``How do I get to PSB 120?'', and get indoor directions.}
+
+\section{The Idea}
+Google Maps gets you to the building, then you're lost inside. Campus Wayfinder
+handles the indoor part: rooms, stairs, elevators, and entrances. You ask by voice,
+it plans a route through a map of the building, and Grok Voice walks you through
+it using landmarks (\emph{``Past the atrium, take the stairs on your left''}).
+Grok Imagine can generate a simple illustrated step card for each turn. The demo
+can happen in the hackathon building itself.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Map editor, routing, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} directions and questions; optional \textbf{Imagine} step cards.}
+\req{Space data}{Not used.}
+\req{Navigation theme}{Direct fit: indoor navigation.}
+\req{Also eligible}{Big Red, Software, Design, People's Choice (every hacker has been lost in PSB).}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Hand-built map of PSB (and Klarman) as a graph: rooms, hallways, stairs, elevators.
+  \item Voice query to route: \emph{``Take me to the career fair.''}
+  \item Shortest path on the graph, spoken step by step with landmarks.
+  \item ``Step-free'' option that uses elevators only.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Event-aware: \emph{``Where's the next workshop?''} using the schedule.
+  \item QR codes at hallway corners to confirm where you are.
+  \item Illustrated step cards from Grok Imagine.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Map: a JSON graph drawn over the PSB floor plan (hand-made).
+  \item Routing: Dijkstra/A* on the graph (small, runs in the browser).
+  \item Frontend: React; SVG floor plan with the route highlighted.
+  \item AI: Grok Voice; Grok Imagine (optional).
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{No indoor map data}{There's no public, routable indoor map of PSB. Someone must walk the building and draw it.}{Map only the floors judges will see. Split the work: one person maps while others code.}
+\limitation{No indoor positioning}{GPS doesn't work well inside buildings, so the app can't know where you are automatically.}{Ask the user (``I'm at the atrium'') or use QR codes at key spots.}
+\limitation{Does not scale}{Every new building needs a hand-drawn map.}{Pitch it as a platform: show the simple map editor and how fast a new building can be added.}
+\limitation{Generated images can mislead}{Grok Imagine pictures won't look like the real hallway.}{Keep them as stylized icons, or use real photos instead.}
+\limitation{Less technical depth}{Graph routing is simple; Software judges may want more.}{Add depth with step-free routing, schedule awareness, and natural-language queries.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{5}{The demo is in the building you mapped.}
+\rating{Buildable in 24h}{4}{Map drawing is tedious but simple.}
+\rating{Navigation theme}{5}{Indoor navigation.}
+\rating{Wow factor}{3}{Practical more than flashy.}
+\rating{Technical risk (5 = riskiest)}{2}{Low.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Safe, crowd-pleasing pick.} Strong for People's Choice and the live demo;
+needs a creative twist to win on technical depth.
+
+\end{document}
