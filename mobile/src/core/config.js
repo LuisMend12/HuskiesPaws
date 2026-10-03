@@ -21,7 +21,7 @@ export const FETCH_TIMEOUT_MS = 10000;
 
 // Ranks. The web app estimates steps from distance; the mobile app reads the real pedometer.
 export const STEP_LENGTH_M = 0.75;
-export const POINTS = Object.freeze({ stepsPerPoint: 10, landmarkFound: 50, landmarkCaptured: 100 });
+export const POINTS = Object.freeze({ stepsPerPoint: 10, landmarkFound: 0, landmarkCaptured: 100 });
 
 // Leaderboards are grouped by region; updated from GPS via reverse geocoding.
 export const DEFAULT_REGION = Object.freeze({ local: "Ithaca", state: "New York", national: "United States" });

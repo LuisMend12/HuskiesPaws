@@ -13,7 +13,8 @@ export const maxHpOf = (pet) => Math.max(1, Math.floor(pet?.power ?? 1));
 
 export function currentHp(turf, now = Date.now()) {
   const maxHp = turf.maxHp ?? maxHpOf(turf.pet);
-  return Math.max(0, Math.floor(maxHp - hoursHeld(turf, now) * HP_DECAY_PER_HOUR));
+  const lost = Math.floor(hoursHeld(turf, now) * HP_DECAY_PER_HOUR);
+  return Math.max(0, maxHp - lost);
 }
 
 export const isAlive = (turf, now) => currentHp(turf, now) > 0;
