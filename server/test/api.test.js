@@ -63,7 +63,7 @@ const json = async (response) => ({ status: response.status, ...(await response.
 const region = { local: "Ithaca", state: "New York", national: "United States" };
 const pet = (power, id = "pet-000001") => ({ id, name: `Pup${power}`, rarity: "rare", petClass: "Guardian", power, emoji: "🐾" });
 const claim = (playerId, landmarkId, power) => ({
-  playerId, playerName: playerId.slice(0, 8), landmarkId, title: `Landmark ${landmarkId}`, lat: 42.45, lon: -76.48, pet: pet(power),
+  playerId, playerName: playerId.endsWith("owner1") ? "Olivia" : "Riley", landmarkId, title: `Landmark ${landmarkId}`, lat: 42.45, lon: -76.48, pet: pet(power),
 });
 
 describe("HuskiesPaws API", () => {

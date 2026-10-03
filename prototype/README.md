@@ -6,6 +6,8 @@ A quick concept demo of [Wanderlings](../docs/ideas/12-wanderlings.tex): a walki
 
 ## How to run it
 
+> **For the full app, run it through the HuskiesPaws server:** `cd server` then `npm start`, and open http://localhost:8765. The server adds **Grok Voice and Imagine**, **live leaderboards**, and **pets guarding landmarks (turf)**. See [server/README.md](../server/README.md). The steps below (`python serve.py`) still work, but without those features.
+
 ### What you need
 
 - **Python 3**, just to run a small local web server. Check with `python --version`.

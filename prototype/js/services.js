@@ -80,6 +80,13 @@ export async function searchPlace(query, near) {
   return { lat: Number(match.lat), lon: Number(match.lon), name: match.name || match.display_name };
 }
 
+// Live ISS position (wheretheiss.at, from NORAD orbital data). footprintKm is the
+// diameter of the area on Earth that can see it.
+export async function getIssPosition() {
+  const data = await fetchJson("https://api.wheretheiss.at/v1/satellites/25544");
+  return { lat: data.latitude, lon: data.longitude, footprintKm: data.footprint, visibility: data.visibility };
+}
+
 // Walking route; falls back to a straight line if the routing server is unavailable.
 export async function getWalkingRoute(from, to) {
   const coords = `${from.lon},${from.lat};${to.lon},${to.lat}`;

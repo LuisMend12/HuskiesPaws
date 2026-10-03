@@ -22,11 +22,13 @@ export function activeTrail(score, chosenId) {
 
 export const stepsFromMeters = (meters) => Math.round(meters / STEP_LENGTH_M);
 
-export function scoreFor({ steps, landmarksFound, landmarksCaptured }) {
+// bonusPoints: extra XP earned elsewhere, such as holding turf with a pet.
+export function scoreFor({ steps, landmarksFound, landmarksCaptured, bonusPoints = 0 }) {
   return (
     Math.floor(steps / POINTS.stepsPerPoint) +
     landmarksFound * POINTS.landmarkFound +
-    landmarksCaptured * POINTS.landmarkCaptured
+    landmarksCaptured * POINTS.landmarkCaptured +
+    bonusPoints
   );
 }
 

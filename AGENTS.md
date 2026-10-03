@@ -9,8 +9,9 @@ The SpaceX track requires the project to be **built with Cursor**, and judges re
 ## Layout
 | Folder | What | Run |
 |---|---|---|
-| `prototype/` | Web app (HTML + ES modules, Mapbox) | `python serve.py`, then open http://localhost:8765 |
-| `prototype/js/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `nessie`, `services`, `geo`, `art`, `config` | Plain JS, no DOM. Keep it that way. |
+| `server/` | Node server (no deps): serves the web app + `/api` for Grok, leaderboards, turf. Holds all secrets. | `npm start`, `npm test` |
+| `prototype/` | Web app (HTML + ES modules, Mapbox) | Through `server/`, or `python serve.py` (no API) |
+| `prototype/js/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `nessie`, `pets`, `services`, `geo`, `art`, `config` | Plain JS, no DOM. Keep it that way. `npm test` in `prototype/`. |
 | `mobile/` | Expo SDK 57 app (Expo Go) | `npx expo start` |
 | `mobile/src/core/` | **Generated** copy of the shared logic | Never edit; change `prototype/js/` and run `npm run sync-core` in `mobile/` |
 | `imessage-agent/` | Photon Spectrum iMessage agent | `npm run terminal` (no keys), `npm start` (Photon keys), `npm test` |
@@ -24,8 +25,8 @@ The SpaceX track requires the project to be **built with Cursor**, and judges re
 - After changing shared logic, check the web prototype, run `npm run sync-core` and `npx expo lint` in `mobile/`, and run `npm test` in `imessage-agent/`.
 
 ## Known gaps (from PLAN.md)
-1. **Grok Voice and Imagine are not wired up.** This is required for the SpaceX track. Placeholders: `voice.js` (speech) and `art.js` (SVG postcards). Call Grok through a small backend that holds the key.
-2. **Leaderboards use sample players.** Needs a backend (Supabase).
+1. **Grok is wired up but untested live:** `server/` calls xAI TTS and Imagine, tested only against a fake. Needs `XAI_API_KEY`. The app falls back to browser speech and SVG art without it.
+2. **Not deployed yet:** `render.yaml` is ready. Supabase storage is written but untested; file storage is the default.
 3. **Nessie calls are untested.** The API was resetting connections. It uses plain HTTP, which store builds block.
-4. The mobile app hasn't been run on a physical phone yet.
+4. The mobile app hasn't been run on a physical phone yet, and it doesn't have pets, turf or Grok yet.
 5. iMessage sessions are kept in memory only.

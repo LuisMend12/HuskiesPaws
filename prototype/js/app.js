@@ -16,11 +16,17 @@ import {
   agentCard, renderAlbum, renderLeaderboard, renderRankBadge, renderRankCard, renderSavings, renderTrailPicker,
 } from "./views.js";
 import { speakMemo } from "./voice.js";
+import { illustratePostcard } from "./grok-art.js";
+import { createOnline } from "./online.js";
+import { createPetsUi } from "./pets-ui.js";
 
 const $ = (id) => document.getElementById(id);
 const agentById = (id) => AGENTS.find((a) => a.id === id);
-// The Nessie connection ("bank", "nessieKey") is kept separately so a reset doesn't disconnect it.
-const SAVED_KEYS = ["progress", "found", "album", "xp", "trail", "trips"];
+// The Nessie connection ("bank", "nessieKey") and your player id are kept
+// separately so a reset doesn't disconnect them.
+const SAVED_KEYS = ["progress", "found", "album", "xp", "trail", "trips", "pets", "egg", "eggsReceived", "activePetId"];
+const online = createOnline({ onChange: () => render() });
+let petsUi = null; // created once the page is wired up (bottom of this file)
 const EMPTY_PROGRESS = Object.freeze({ walked: 0, landmarksFound: 0, landmarksCaptured: 0 });
 const RANK_START = rankFor(0).current.name;
 
@@ -45,6 +51,10 @@ let state = {
   // Nessie is a mock-data sandbox, so its key lives in the browser for this demo only.
   // A real app keeps bank keys on a server.
   nessieKey: load("nessieKey", ""),
+  pets: load("pets", []),
+  egg: load("egg", null), // { id, startWalked } while you carry an egg
+  eggsReceived: load("eggsReceived", 0),
+  activePetId: load("activePetId", null),
 };
 state = { ...state, rankName: rankFor(scoreFor(stats())).current.name };
 
@@ -58,7 +68,8 @@ state.found.forEach((place) => map.addPlace(place, "your squad"));
 // ---------- State ----------
 
 function stats() {
-  return { ...state.progress, steps: stepsFromMeters(state.progress.walked) };
+  // Turf XP comes from the server: hours your pets have guarded landmarks.
+  return { ...state.progress, steps: stepsFromMeters(state.progress.walked), bonusPoints: online.turf().myHeldXp };
 }
 
 function persist() {
@@ -70,6 +81,10 @@ function persist() {
   save("trips", state.trips);
   save("bank", state.bank);
   save("nessieKey", state.nessieKey);
+  save("pets", state.pets);
+  save("egg", state.egg);
+  save("eggsReceived", state.eggsReceived);
+  save("activePetId", state.activePetId);
 }
 
 function setState(patch) {
@@ -86,6 +101,7 @@ function award(progressPatch, agent) {
 }
 
 function checkRankUp(agent) {
+  petsUi?.tick(); // walking may have earned or hatched an egg
   const rank = rankFor(scoreFor(stats())).current;
   if (rank.name === state.rankName) return;
   state = { ...state, rankName: rank.name };
@@ -139,8 +155,15 @@ function renderRanks() {
   const scope = SCOPES.find((s) => s.id === state.scope);
   const regionName = state.region[scope.regionKey];
   $("leaderboard-title").textContent = `${scope.label} · ${regionName}`;
-  const board = buildLeaderboard(demoPlayers(scope, regionName), { id: "you", name: "You", score });
-  renderLeaderboard($("leaderboard"), topWithYou(board, LEADERBOARD_TOP));
+  online.ensureBoard(scope.id, regionName);
+  const liveRows = online.rows(scope.id, regionName, score);
+  const sampleRows = () => topWithYou(buildLeaderboard(demoPlayers(scope, regionName), { id: "you", name: "You", score }), LEADERBOARD_TOP);
+  renderLeaderboard($("leaderboard"), liveRows ?? sampleRows());
+  $("leaderboard-hint").textContent = liveRows
+    ? `Live leaderboard. You appear as "${online.player().name}".`
+    : "Other players are sample data. Run the HuskiesPaws server for live leaderboards.";
+  if (document.activeElement !== $("player-name")) $("player-name").value = online.player().name;
+  online.submitScore(score, state.region, scope.id);
   renderTrailPicker($("trails"), TRAILS, {
     score,
     chosenId: state.trailChoice,
@@ -180,6 +203,7 @@ function render() {
   renderRanks();
   renderSavingsTab();
   renderAlbum($("album"), $("album-empty"), state.album);
+  petsUi?.render();
 }
 
 function setStatus(text) {
@@ -210,6 +234,7 @@ function showPostcard(discovery) {
     photo.alt = `Photo of ${discovery.place.title}`;
   }
   $("postcard").showModal();
+  illustratePostcard($("postcard-art"), discovery, () => $("postcard").open && state.discovery?.place.id === discovery.place.id);
 }
 
 // ---------- Agent actions ----------
@@ -296,7 +321,7 @@ async function guideToDiscovery(agent) {
   const arrived = state.found.find((p) => p.id === target.id) ?? null;
   setState({ visited: new Set([...state.visited, target.id]), discovery: null, capturable: arrived });
   const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
-  setStatus(`You made it to ${target.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
+  setStatus([`You made it to ${target.title}! 🌸`, savings, "Tap 📸 Capture to add it to your album."].filter(Boolean).join(" "));
   speakMemo(`We made it to ${target.title}! Quick, take a picture!`, agent);
 }
 
@@ -470,7 +495,9 @@ async function demoWalk() {
     const rankBefore = state.rankName;
     await walkAlong(route.points);
     const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
-    if (state.rankName === rankBefore) setStatus(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);
+    if (state.rankName === rankBefore) {
+      setStatus([`Walked to ${target.title}.`, savings, "Send Pip to explore from here!"].filter(Boolean).join(" "));
+    }
   } catch (error) {
     console.error("Demo walk failed:", error);
     setStatus("Couldn't plan a walk (network problem).");
@@ -498,6 +525,7 @@ function useMyLocation() {
       }
       if (!state.walking) stepTo(position);
       persist();
+      checkRankUp(null); // also hands out and hatches eggs as you walk
     },
     (error) => setStatus(`Location unavailable: ${error.message}`),
     { enableHighAccuracy: true },
@@ -514,6 +542,10 @@ function resetProgress() {
     xp: Object.fromEntries(AGENTS.map((a) => [a.id, 0])),
     trailChoice: "auto",
     trips: [],
+    pets: [],
+    egg: null,
+    eggsReceived: 0,
+    activePetId: null,
     rankName: RANK_START,
     capturable: null,
     discovery: null,
@@ -538,10 +570,31 @@ $("btn-replay-memo").addEventListener("click", () => {
   if (state.discovery) speakMemo(state.discovery.memo, agentById(state.discovery.agentId));
 });
 document.querySelectorAll("[data-tab]").forEach((button) => {
-  button.addEventListener("click", () => showTab(button.dataset.tab));
+  button.addEventListener("click", () => {
+    showTab(button.dataset.tab);
+    if (button.dataset.tab === "pets") online.refreshTurf();
+  });
 });
 document.querySelectorAll("[data-scope]").forEach((chip) => {
   chip.addEventListener("click", () => setState({ scope: chip.dataset.scope }));
 });
+$("name-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (online.rename($("player-name").value)) {
+    setStatus(`You'll appear on leaderboards as "${online.player().name}".`);
+    render();
+  }
+});
 
+petsUi = createPetsUi({
+  getState: () => state,
+  update: (patch) => {
+    setState(patch);
+    persist();
+  },
+  setStatus,
+  speak: (text) => speakMemo(text, agentById("scout")),
+  online,
+});
+online.refreshTurf();
 render();

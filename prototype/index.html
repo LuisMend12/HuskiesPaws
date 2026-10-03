@@ -31,6 +31,7 @@
 
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="squad" aria-selected="true">Squad</button>
+        <button role="tab" data-tab="pets" aria-selected="false">Pets</button>
         <button role="tab" data-tab="ranks" aria-selected="false">Ranks</button>
         <button role="tab" data-tab="savings" aria-selected="false">Savings</button>
         <button role="tab" data-tab="album" aria-selected="false">Album</button>
@@ -38,6 +39,20 @@
 
       <div id="tab-squad" class="tab-panel">
         <ul id="agents" class="agents"></ul>
+      </div>
+
+      <div id="tab-pets" class="tab-panel" hidden>
+        <p id="iss-banner" class="iss-banner" hidden></p>
+        <div id="egg-card" class="egg-card"></div>
+        <h3 class="leaderboard-title">Your pets</h3>
+        <p id="pets-empty" class="hint">No pets yet. Walk to earn an egg, then keep walking to hatch it.</p>
+        <div id="pets" class="pets"></div>
+        <h3 class="leaderboard-title">Guardians (turf)</h3>
+        <p class="hint">Walk to a landmark and leave your active pet to guard it. Every hour it holds earns you XP. A stronger pet can take it over.</p>
+        <button id="btn-claim" disabled>🐾 Claim a landmark</button>
+        <p id="claim-hint" class="hint"></p>
+        <p id="turf-xp" class="turf-xp"></p>
+        <ul id="turf-list" class="trips turf-list"></ul>
       </div>
 
       <div id="tab-ranks" class="tab-panel" hidden>
@@ -52,7 +67,12 @@
         </div>
         <h3 id="leaderboard-title" class="leaderboard-title"></h3>
         <ol id="leaderboard" class="leaderboard"></ol>
-        <p class="hint">Other players are sample data until the app has a backend.</p>
+        <p id="leaderboard-hint" class="hint">Other players are sample data until the app has a backend.</p>
+        <form id="name-form" class="bank-form">
+          <label for="player-name">Your leaderboard name</label>
+          <input id="player-name" maxlength="24" autocomplete="nickname">
+          <button type="submit" class="secondary">Save name</button>
+        </form>
         <button id="btn-reset" class="secondary">Reset my progress</button>
       </div>
 
@@ -100,6 +120,15 @@
       <button id="btn-go">Take me there</button>
       <button id="btn-close" class="secondary">Later</button>
     </div>
+  </dialog>
+
+  <dialog id="hatch" class="hatch">
+    <p class="hatch-title">🐣 Your egg hatched!</p>
+    <div id="hatch-art" class="hatch-art"></div>
+    <p id="hatch-rarity" class="hatch-rarity"></p>
+    <h3 id="hatch-name"></h3>
+    <p id="hatch-detail" class="hint"></p>
+    <button id="btn-hatch-close">Welcome to the pack!</button>
   </dialog>
 
   <dialog id="capture" class="capture">

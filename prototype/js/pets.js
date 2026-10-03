@@ -1,0 +1,92 @@
+// Eggs and pets (PLAN.md "Eggs → pets"). Eggs are earned ONLY by walking, never
+// with Nessie money, so this never looks like a paid loot box.
+// Pure logic, shared by the web app, the phone app, and tests.
+
+export const EGG_EVERY_STEPS = 400; // a new egg every 400 steps (about one demo walk)
+export const HATCH_METERS = 300; // walk this far with an egg to hatch it
+export const LEVEL_EVERY_M = 250; // pets level up as you keep walking
+export const MAX_LEVEL = 10;
+const POWER_PER_LEVEL = 4;
+
+export const RARITIES = Object.freeze([
+  { id: "common", label: "Common", weight: 60, power: [10, 20], color: "#8d9a87" },
+  { id: "rare", label: "Rare", weight: 25, power: [20, 35], color: "#3f8fd2" },
+  { id: "epic", label: "Epic", weight: 12, power: [35, 55], color: "#9b59d0" },
+  { id: "legendary", label: "Legendary", weight: 3, power: [55, 80], color: "#e8a317" },
+]);
+
+export const PET_CLASSES = Object.freeze(["Scout", "Storyteller", "Pathfinder", "Guardian"]);
+
+export const PET_COLORS = Object.freeze([
+  { name: "golden", hex: "#f6c453" },
+  { name: "snowy", hex: "#dfe7ef" },
+  { name: "cinnamon", hex: "#c97b4a" },
+  { name: "midnight", hex: "#5b6ee1" },
+  { name: "rose", hex: "#f48fb1" },
+  { name: "mint", hex: "#81c784" },
+]);
+
+const PET_NAMES = Object.freeze([
+  "Biscuit", "Maple", "Pepper", "Juniper", "Mochi", "Clover", "Nova", "Willow",
+  "Acorn", "Sprocket", "Tofu", "Hazel", "Pebble", "Bramble", "Comet", "Sorrel",
+]);
+
+const pick = (list, random) => list[Math.floor(random() * list.length)];
+const randomId = (prefix, random) => `${prefix}-${Math.floor(random() * 2 ** 48).toString(36).padStart(10, "0")}`;
+
+export const eggsEarned = (steps) => Math.floor(steps / EGG_EVERY_STEPS);
+export const stepsToNextEgg = (steps) => EGG_EVERY_STEPS - (steps % EGG_EVERY_STEPS);
+
+// Gives a new egg when you've earned one and aren't already carrying one.
+// eggsReceived counts every egg handed out so far (hatched or not).
+export function maybeNewEgg({ egg, eggsReceived, steps, walked }, random = Math.random) {
+  if (egg || eggsReceived >= eggsEarned(steps)) return null;
+  return { id: randomId("egg", random), startWalked: walked };
+}
+
+export const eggProgress = (egg, walked) => Math.min(1, Math.max(0, (walked - egg.startWalked) / HATCH_METERS));
+export const metersToHatch = (egg, walked) => Math.max(0, Math.ceil(HATCH_METERS - (walked - egg.startWalked)));
+
+// While the ISS is overhead (real orbital data), rarer pets are 3x as likely.
+export const ISS_RARITY_BOOST = 3;
+const weightOf = (rarity, issOverhead) => (issOverhead && rarity.id !== "common" ? rarity.weight * ISS_RARITY_BOOST : rarity.weight);
+
+export function rollRarity(random = Math.random, { issOverhead = false } = {}) {
+  const total = RARITIES.reduce((sum, r) => sum + weightOf(r, issOverhead), 0);
+  let roll = random() * total;
+  for (const rarity of RARITIES) {
+    roll -= weightOf(rarity, issOverhead);
+    if (roll < 0) return rarity;
+  }
+  return RARITIES[0];
+}
+
+// The ISS is above your horizon when you're inside its visibility footprint.
+export function issIsOverhead(iss, position, distanceMeters) {
+  return Boolean(iss) && distanceMeters(position, iss) <= (iss.footprintKm * 1000) / 2;
+}
+
+export function hatchEgg(egg, walked, random = Math.random, { issOverhead = false } = {}) {
+  const rarity = rollRarity(random, { issOverhead });
+  const [low, high] = rarity.power;
+  return {
+    id: randomId("pet", random),
+    name: pick(PET_NAMES, random),
+    rarity: rarity.id,
+    petClass: pick(PET_CLASSES, random),
+    color: pick(PET_COLORS, random).name,
+    basePower: low + Math.floor(random() * (high - low + 1)),
+    hatchedAtWalked: walked,
+    spaceBorn: issOverhead, // hatched while the ISS passed overhead
+    art: null, // Grok Imagine portrait path, filled in after hatching
+  };
+}
+
+export const rarityOf = (pet) => RARITIES.find((r) => r.id === pet.rarity) ?? RARITIES[0];
+export const colorOf = (pet) => PET_COLORS.find((c) => c.name === pet.color) ?? PET_COLORS[0];
+
+export function petLevel(pet, walked) {
+  return Math.min(MAX_LEVEL, 1 + Math.floor(Math.max(0, walked - pet.hatchedAtWalked) / LEVEL_EVERY_M));
+}
+
+export const petPower = (pet, walked) => pet.basePower + (petLevel(pet, walked) - 1) * POWER_PER_LEVEL;

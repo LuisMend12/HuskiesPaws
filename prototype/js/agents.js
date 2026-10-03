@@ -20,6 +20,7 @@ export const AGENTS = Object.freeze([
     color: "#ffb74d",
     leaf: "#43a047",
     voice: { pitch: 1.5, rate: 1.1 },
+    grokVoice: "ara",
   },
   {
     id: "storyteller",
@@ -29,6 +30,7 @@ export const AGENTS = Object.freeze([
     color: "#9575cd",
     leaf: "#2e7d32",
     voice: { pitch: 0.9, rate: 0.95 },
+    grokVoice: "rex",
   },
   {
     id: "pathfinder",
@@ -38,6 +40,7 @@ export const AGENTS = Object.freeze([
     color: "#4fc3f7",
     leaf: "#66bb6a",
     voice: { pitch: 1.2, rate: 1.0 },
+    grokVoice: "eve",
   },
 ]);
 

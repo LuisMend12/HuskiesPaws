@@ -50,13 +50,13 @@ This file groups every idea from the brainstorms and the repo docs, adds the new
 | | Postcards, walking routes, demo walk | Built |
 | **Progression** | Ranks and points | Built |
 | | Trails unlocked by rank | Built |
-| | Eggs → pets, with rarity | **New** |
+| | Eggs → pets, with rarity | Built: Pets tab, hatch reveal, Grok Imagine portraits |
 | | Agents change based on the places you visit | Idea |
 | | Daily quests and daily routes, rare seeds | Idea |
 | | Fog of war over places you haven't been | Idea |
 | **Territory and social** | Camera capture into an album | Built (camera view with a frame, not true AR) |
-| | Capture and hold a landmark, with an XP boost | **New** |
-| | Local, statewide and national leaderboards | Built, but with sample data |
+| | Capture and hold a landmark, with an XP boost | Built: simple turf (claim, power check, cap of 3, XP per hour held) |
+| | Local, statewide and national leaderboards | Built and live through `server/` (sample data only without the server) |
 | | Shared campus garden showing everyone's flowers | Idea |
 | | Friends' agents meet when you walk near each other | Idea |
 | **Impact** | Tag stairs, ramps and broken elevators | Idea |
@@ -64,7 +64,7 @@ This file groups every idea from the brainstorms and the repo docs, adds the new
 | **Sponsor tracks** | Savings tree with Nessie (Capital One) | Built (Nessie calls untested) |
 | | Agents text you in iMessage (Photon) | Built in [`imessage-agent/`](imessage-agent/) and tested in the terminal. Needs Photon keys. |
 | | Desk garden on a SenseCAP or Raspberry Pi (Hardware) | Idea |
-| **Grok (required)** | Voice memos, Imagine postcards and pet art, Grok chat for agents | **Not done.** Still placeholders. |
+| **Grok (required)** | Voice memos, Imagine postcards and pet art, Grok chat for agents | Voice and Imagine built in `server/`. **Needs an `XAI_API_KEY`;** tested only against a fake xAI service. Grok chat not done. |
 
 More detail: [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex), [docs/opening-ceremony-notes.md](docs/opening-ceremony-notes.md) and [docs/mobile-migration.md](docs/mobile-migration.md).
 
@@ -85,15 +85,15 @@ Full write-ups are in the [README](README.md), [docs/ideas/](docs/ideas/) and [d
 
 | Priority | What | Why |
 |---|---|---|
-| **Must** | **Hook up Grok Voice and Grok Imagine** through a backend | Without these, we can't enter the SpaceX track. This is the biggest gap right now. |
-| **Must** | Backend (Supabase) and an HTTPS deploy | Needed for real leaderboards and turf, and for GPS and the camera to work on phones |
-| **Must** | A tested demo path and a backup video | Judging happens indoors in 4-minute slots |
-| **Should** | Eggs → pets: hatch by distance, with Imagine pet art | The new hook, and a strong use of Grok |
-| **Should** | Simple turf: claim with a pet, power comparison, XP for hours held | Leave out real-time updates, live battles and decay |
+| **Must** | ✅ **Hook up Grok Voice and Grok Imagine** through a backend | Built in [`server/`](server/). Add `XAI_API_KEY` to `.env` to turn it on. |
+| **Must** | ⏳ Backend (Supabase) and an HTTPS deploy | Backend built (file storage, or Supabase via [schema.sql](server/supabase/schema.sql), untested). Deploy is ready: [render.yaml](render.yaml), steps in [server/README.md](server/README.md). **Someone needs to create the Render service.** |
+| **Must** | ⏳ A tested demo path and a backup video | Script and checklist in [docs/DEMO.md](docs/DEMO.md). The loop is tested in a browser. **Record the backup video Saturday night.** |
+| **Should** | ✅ Eggs → pets: hatch by distance, with Imagine pet art | Built in the web app (not yet in the phone app) |
+| **Should** | ✅ Simple turf: claim with a pet, power comparison, XP for hours held | Built (web app + server) |
 | **Could** | Defender decay, a campus turf map, fog of war | Polish if there's time |
 | **Could** | Enter the Photon track: add Photon keys to `imessage-agent/` and run it | Already built, so it's cheap. See [imessage-agent/README.md](imessage-agent/README.md). |
 | **Won't (this weekend)** | Real AR, background tracking, hardware | Too risky for the time left |
 
-**Optional idea for the SpaceX judges:** Wanderlings uses no space data at the moment. **Rare eggs could appear only while the ISS or a Starlink train is passing overhead,** using free CelesTrak orbit data. It's a small feature that gives us a real-space-data story.
+**✅ Optional idea for the SpaceX judges (built):** while the **ISS is overhead** (live position and visibility footprint from wheretheiss.at), eggs that hatch are 3x as likely to be rare, and the pet is marked 🛰️ space-born.
 
 > **Cursor reminder:** the prototype was built outside Cursor. Build the real project in Cursor from here on, with a `.cursor/rules/` file and a `CURSOR_LOG.md`, so it qualifies for the track.

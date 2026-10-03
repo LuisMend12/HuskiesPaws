@@ -11,16 +11,18 @@
 | 🌸 **Blooming trails** | Your walk leaves a trail of flowers on the map. Each rank unlocks a new trail (Meadow, Rose Garden, Cherry Blossom, Starlight…). |
 | 🤖 **Agent squad** | **Pip (Scout)** finds places you've never been, **Moss (Storyteller)** tells their history, and **Fern (Pathfinder)** walks you there. They only report facts from real data (Wikipedia and OpenStreetMap). |
 | 🏆 **Ranks and leaderboards** | Points come from steps, landmarks found and landmarks captured. The ranks go 🌱 Seedling → 🌲 Ancient Oak, with **Local**, **Statewide** and **National** leaderboards. |
+| 🥚 **Eggs and pets** | Walking earns eggs, and walking more hatches them into pets with a rarity (common to legendary), each drawn by **Grok Imagine**. While the **ISS is overhead** (live orbital data), rare pets are 3x as likely. |
+| 🏰 **Turf** | Leave your pet to guard a landmark and earn XP for every hour it holds. Someone with a stronger pet can take it over. |
 | 📸 **Landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
 | 💰 **Walk-instead-of-ride savings** | Each walk over 300 m counts as an Uber you skipped. The fare moves into savings through **Capital One's Nessie API** and grows your 🌰 → 🍎 savings tree. |
 | 💬 **iMessage agents** | Text the squad: "explore", "story", "take me there". Built with **Photon Spectrum**. |
-| 🎙️ **Grok** *(in progress)* | **Grok Voice** for agent voice memos and **Grok Imagine** for postcards and pet art. These are required for the Cursor track. |
+| 🎙️ **Grok** | **Grok Voice** speaks the agents' memos, and **Grok Imagine** draws postcards and pet portraits, through our server so the key stays secret. Needs an `XAI_API_KEY`. |
 
 ### Three ways to use it
 
 | Version | Folder | Run it |
 |---|---|---|
-| 🌐 **Web app** | [`prototype/`](prototype/) | `cd prototype` then `python serve.py`, and open http://localhost:8765 ([guide](prototype/README.md)) |
+| 🌐 **Web app + server** | [`server/`](server/) and [`prototype/`](prototype/) | `cd server` then `npm start`, and open http://localhost:8765. This turns on Grok, live leaderboards and turf ([guide](server/README.md)). `python serve.py` in `prototype/` still works without them. |
 | 📱 **Phone app** (Expo) | [`mobile/`](mobile/) | `cd mobile`, `npm install`, `npx expo start`, then scan the QR code with Expo Go ([guide](mobile/README.md)) |
 | 💬 **iMessage agent** | [`imessage-agent/`](imessage-agent/) | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys), or `npm start` with Photon keys ([guide](imessage-agent/README.md)) |
 
@@ -32,7 +34,7 @@ All three share the same game logic in [`prototype/js/`](prototype/js/). Notes f
 
 ### Still to do
 
-Hook up Grok Voice and Grok Imagine (required for the Cursor track), a backend for real leaderboards, an HTTPS deploy, and a tested demo. The full list is in [PLAN.md](PLAN.md).
+Add the real `XAI_API_KEY` and test Grok live, deploy to Render for HTTPS ([steps](server/README.md#deploy-with-https-render-free)), record the backup video ([demo plan](docs/DEMO.md)), and bring pets and turf to the phone app. The full list is in [PLAN.md](PLAN.md).
 
 ---
 
