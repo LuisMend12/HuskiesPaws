@@ -2,7 +2,7 @@
 // squad) and the eggs you're carrying, each with its hatching progress.
 // Reads pets / eggs / squad / issOverhead from the state (docs/HANDOFF-backend.md);
 // until the backend adds them, it shows sample data.
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
@@ -16,10 +16,6 @@ import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { squadSizeFor } from "./petStatus.js";
 import { Button, Card, Hint } from "./ui.js";
-
-// The 3D test loads three.js only when opened: React Three Fiber patches React
-// Native internals as soon as it's imported, which must not happen at app start.
-const Pet3DTest = lazy(() => import("./Pet3D.js").then((m) => ({ default: m.Pet3DTest })));
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
 const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked, tier: rollEggTier().id }, walked);
@@ -148,7 +144,6 @@ function PetTile({ pet, walked, slot, onPress }) {
 
 export function PetsPanel({ state, game }) {
   const [filter, setFilter] = useState(null);
-  const [test3d, setTest3d] = useState(null);
   const { walked, steps } = state.progress;
   const { sample, pets, eggs, squadIds } = petsView(state);
   const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
@@ -205,12 +200,6 @@ export function PetsPanel({ state, game }) {
 
       {sample && <Hint>Sample pets and eggs for now. Yours appear here once hatching is connected.</Hint>}
       {__DEV__ && <Button title="🥚 Preview hatch (dev only)" variant="secondary" onPress={previewHatch} />}
-      {__DEV__ && pets[0] && <Button title="🧊 3D test (dev only)" variant="secondary" onPress={() => setTest3d(pets[0])} />}
-      {test3d && (
-        <Suspense fallback={null}>
-          <Pet3DTest pet={test3d} onClose={() => setTest3d(null)} />
-        </Suspense>
-      )}
     </View>
   );
 }

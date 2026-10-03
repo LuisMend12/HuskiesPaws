@@ -1,12 +1,16 @@
 // Buttons that float over the map: brand and rank on top; live location, demo
 // walk, recenter, and the Capture button (only at a landmark) along the bottom.
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
+import { petsView } from "./fakeData.js";
 import { RankBadge } from "./RankBadge.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { Button } from "./ui.js";
+
+// The 3D squad view pulls in three.js, so it loads only when opened.
+const SquadView = lazy(() => import("./SquadView.js"));
 
 export const SHEET_OVERLAP = 24; // how far the sheet's rounded top covers the map
 
@@ -81,6 +85,7 @@ export function MapControls({ state, game }) {
   const canCapture = Boolean(state.capturable) && !state.walking;
   const pulse = usePulse(canCapture);
   const recenter = () => game.set({ mapFocus: { ...state.position, key: Date.now() } });
+  const [squadOpen, setSquadOpen] = useState(false);
 
   return (
     <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.md }]} pointerEvents="box-none">
@@ -99,7 +104,18 @@ export function MapControls({ state, game }) {
           disabled={state.walking}
         />
       </View>
-      <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
+      <View style={styles.column}>
+        <Pressable onPress={() => setSquadOpen(true)} accessibilityRole="button" accessibilityLabel="See your squad in 3D" style={({ pressed }) => [styles.paw, pressed && styles.pressed]}>
+          <Text style={styles.pawIcon}>🐾</Text>
+          <Text style={styles.pawLabel}>3D</Text>
+        </Pressable>
+        <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
+      </View>
+      {squadOpen && (
+        <Suspense fallback={null}>
+          <SquadView visible squad={petsView(state).squad} onClose={() => setSquadOpen(false)} />
+        </Suspense>
+      )}
       {canCapture && (
         <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
           <Button
@@ -133,6 +149,10 @@ const styles = StyleSheet.create({
   pillText: { fontFamily: fonts.bold, fontSize: 14, color: colors.ink },
   bottomBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   row: { flexDirection: "row", gap: space.sm },
+  column: { alignItems: "center", gap: space.sm },
+  paw: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.green, borderWidth: 3, borderColor: colors.white, alignItems: "center", justifyContent: "center", ...shadow.raised },
+  pawIcon: { fontSize: 18, lineHeight: 20 },
+  pawLabel: { fontFamily: fonts.black, fontSize: 10, color: colors.white, marginTop: -2 },
   action: { minHeight: 40 },
   round: { width: 44, height: 44, paddingHorizontal: 0, paddingVertical: 0, justifyContent: "center" },
   actionActive: { backgroundColor: colors.greenSoft },
