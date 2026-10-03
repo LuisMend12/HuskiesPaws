@@ -1,0 +1,67 @@
+// Rank system: steps walked + landmarks found + landmarks captured = points.
+import { POINTS, STEP_LENGTH_M } from "./config.js";
+
+// Leagues, like Clash of Clans: Bronze -> Silver -> Gold -> Diamond -> Crystal,
+// each split into divisions III, II, I. Each league unlocks a flower trail;
+// `metal` and `gem` color the league's wood-and-grass badge in the app.
+export const LEAGUES = Object.freeze([
+  { id: "bronze", name: "Bronze", emoji: "🥉", metal: "#cd7f32", gem: "#f6c79a", mins: [0, 100, 200],
+    trail: { id: "sprouts", name: "Sprout Path", flowers: ["🌱", "🌿", "☘️"], color: "#81c784" } },
+  { id: "silver", name: "Silver", emoji: "🥈", metal: "#aab4bf", gem: "#dfe7ef", mins: [300, 450, 600],
+    trail: { id: "meadow", name: "Meadow", flowers: ["🌼", "🌸", "🌷", "🌻"], color: "#aed581" } },
+  { id: "gold", name: "Gold", emoji: "🥇", metal: "#e8a317", gem: "#ffd54f", mins: [800, 1100, 1400],
+    trail: { id: "roses", name: "Rose Garden", flowers: ["🌹", "🌷", "🥀"], color: "#f48fb1" } },
+  { id: "diamond", name: "Diamond", emoji: "💎", metal: "#3f8fd2", gem: "#6ec6ff", mins: [1800, 2300, 2800],
+    trail: { id: "cherry", name: "Cherry Blossom", flowers: ["🌸", "💮", "🌸"], color: "#f8bbd0" } },
+  { id: "crystal", name: "Crystal", emoji: "🔮", metal: "#8e5bd0", gem: "#d6b4ff", mins: [3500, 4200, 5000],
+    trail: { id: "starlight", name: "Starlight", flowers: ["✨", "🌟", "💫"], color: "#ffd54f" } },
+]);
+
+const DIVISIONS = ["III", "II", "I"];
+
+export const RANKS = Object.freeze(
+  LEAGUES.flatMap((league) =>
+    league.mins.map((min, i) => ({
+      id: `${league.id}-${3 - i}`,
+      name: `${league.name} ${DIVISIONS[i]}`,
+      emoji: league.emoji,
+      league: league.id,
+      division: 3 - i,
+      min,
+      trail: league.trail,
+    })),
+  ),
+);
+
+// One trail per league, unlocked at the league's first division.
+export const TRAILS = Object.freeze(
+  LEAGUES.map((league) => ({ ...league.trail, rank: RANKS.find((rank) => rank.league === league.id) })),
+);
+
+export const leagueOf = (rank) => LEAGUES.find((league) => league.id === rank.league);
+
+// The trail actually drawn: your chosen trail if it's unlocked, otherwise your rank's trail.
+export function activeTrail(score, chosenId) {
+  const chosen = TRAILS.find((t) => t.id === chosenId);
+  return chosen && score >= chosen.rank.min ? chosen : rankFor(score).current.trail;
+}
+
+export const stepsFromMeters = (meters) => Math.round(meters / STEP_LENGTH_M);
+
+// bonusPoints: extra XP earned elsewhere, such as holding turf with a pet.
+export function scoreFor({ steps, landmarksFound, landmarksCaptured, bonusPoints = 0 }) {
+  return (
+    Math.floor(steps / POINTS.stepsPerPoint) +
+    landmarksFound * POINTS.landmarkFound +
+    landmarksCaptured * POINTS.landmarkCaptured +
+    bonusPoints
+  );
+}
+
+export function rankFor(score) {
+  const index = RANKS.findLastIndex((rank) => score >= rank.min);
+  const current = RANKS[Math.max(0, index)];
+  const next = RANKS[index + 1] ?? null;
+  const progress = next ? (score - current.min) / (next.min - current.min) : 1;
+  return { current, next, progress };
+}

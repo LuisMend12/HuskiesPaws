@@ -1,136 +1,171 @@
+import {
+  Nunito_400Regular,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+  Nunito_900Black,
+  useFonts,
+} from "@expo-google-fonts/nunito";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import { SvgXml } from "react-native-svg";
-import { BRAND_LOGO_XML } from "./src/brandLogo.js";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Suspense, lazy, useEffect, useMemo } from "react";
+import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
-import { AgentList } from "./src/components/AgentList.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
+import { HatchModal } from "./src/components/HatchModal.js";
+import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapControls.js";
+import { PetsPanel } from "./src/components/PetsPanel.js";
+import { petsView } from "./src/components/fakeData.js";
+import { capturePetOf, finderOf } from "./src/components/petStatus.js";
 import { PostcardModal } from "./src/components/PostcardModal.js";
 import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SavingsPanel } from "./src/components/SavingsPanel.js";
+import { SquadPanel } from "./src/components/SquadPanel.js";
+import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
-import { Button, Hint } from "./src/components/ui.js";
-import { AGENTS, levelFor } from "./src/core/agents.js";
+import { Hint, PillTabs } from "./src/components/ui.js";
 import { rankFor } from "./src/core/rank.js";
 import { createGame } from "./src/game/game.js";
 import { scoreOf } from "./src/game/state.js";
 import { useStore } from "./src/game/store.js";
-import { colors } from "./src/theme.js";
+import { colors, radius, shadow, space, type } from "./src/theme.js";
+
+SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts load
+
+// The landmark screen pulls in three.js, so it loads only when opened.
+const LandmarkView = lazy(() => import("./src/components/LandmarkView.js"));
 
 const TABS = [
   { id: "squad", label: "Squad" },
+  { id: "pets", label: "Pets" },
   { id: "ranks", label: "Ranks" },
   { id: "savings", label: "Savings" },
   { id: "album", label: "Album" },
 ];
-const scout = AGENTS.find((a) => a.id === "scout");
+const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts({
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
+    Nunito_900Black,
+  });
+  const ready = fontsLoaded || Boolean(fontError); // on a font error, carry on with the system font
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
+  return (
+    <SafeAreaProvider>
+      <Main />
+    </SafeAreaProvider>
+  );
+}
+
+function Main() {
   const game = useMemo(() => createGame(), []);
   const state = useStore(game.store);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     game.load();
   }, [game]);
 
+  const { pets, squad } = petsView(state);
   const score = scoreOf(state);
   const { current } = rankFor(score);
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.screen} edges={["top"]}>
-        <StatusBar style="light" />
-        <View style={styles.topbar}>
-          <View style={styles.brandRow} accessibilityRole="header" accessible accessibilityLabel="HuskiesPaws">
-            <SvgXml xml={BRAND_LOGO_XML} width={196} height={52} />
-          </View>
-          <Pressable style={styles.badge} onPress={() => game.set({ tab: "ranks" })} accessibilityRole="button" accessibilityLabel="Your rank">
-            <Text style={styles.badgeText}>{`${current.emoji} ${current.name} · ${score} pts`}</Text>
-          </Pressable>
-        </View>
+    <View style={styles.screen}>
+      <StatusBar style="dark" />
 
-        <View style={styles.map}>
-          <TrailMap state={state} />
-        </View>
+      <View style={styles.map}>
+        <TrailMap state={state} onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })} />
+        <MapTopBar rank={current} score={score} onRankPress={() => game.set({ tab: "ranks" })} />
+        <StatusToast message={state.status} />
+        <MapControls state={state} game={game} />
+      </View>
 
-        <ScrollView style={styles.sheet} contentContainerStyle={styles.sheetContent}>
-          <View style={styles.controls}>
-            <Button title="📍 Live location" variant="secondary" onPress={game.startLiveLocation} disabled={state.liveLocation} />
-            <Button title="🚶 Demo walk" variant="secondary" onPress={game.demoWalk} disabled={state.walking} />
-            <Button
-              title={state.capturable ? `📸 Capture ${state.capturable.title}` : "📸 Capture"}
-              onPress={() => game.set({ captureOpen: true })}
-              disabled={!state.capturable || state.walking}
+      <View style={styles.sheet}>
+        <View style={styles.handle} />
+        <View style={styles.sheetHeader}>
+          <Text style={styles.stats}>
+            {[
+              plural(state.progress.steps, "step"),
+              plural(state.blooms.length, "bloom"),
+              plural(state.progress.landmarksFound, "landmark"),
+            ].join(" · ")}
+          </Text>
+          <View style={styles.demoRow}>
+            <Hint style={styles.flex}>{state.demoMode ? "Demo mode: walks are simulated" : "Real walks: go to the place"}</Hint>
+            <Switch
+              value={state.demoMode}
+              onValueChange={(demoMode) => game.set({ demoMode })}
+              trackColor={{ true: colors.green, false: colors.border }}
+              accessibilityLabel="Demo mode"
             />
           </View>
-          <View style={styles.demoRow}>
-            <Hint style={styles.flex}>
-              {state.demoMode ? "Demo mode: guided walks are simulated (for indoor judging)." : "Real walks: walk to the place and Fern will notice when you arrive."}
-            </Hint>
-            <Switch value={state.demoMode} onValueChange={(demoMode) => game.set({ demoMode })} accessibilityLabel="Demo mode" />
-          </View>
-          <Hint>{`${state.progress.steps.toLocaleString()} steps · ${state.blooms.length} blooms · ${state.progress.landmarksFound} landmarks`}</Hint>
-
-          <View style={styles.tabs} accessibilityRole="tablist">
-            {TABS.map((tab) => (
-              <Pressable
-                key={tab.id}
-                onPress={() => game.set({ tab: tab.id })}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: state.tab === tab.id }}
-                style={[styles.tab, state.tab === tab.id && styles.tabActive]}
-              >
-                <Text style={[styles.tabText, state.tab === tab.id && styles.tabTextActive]}>{tab.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {state.tab === "squad" && <AgentList state={state} onAction={game.runAgent} />}
+        </View>
+        <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
+        <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
+          {state.tab === "squad" && <SquadPanel state={state} game={game} />}
+          {state.tab === "pets" && <PetsPanel state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
           {state.tab === "savings" && <SavingsPanel state={state} game={game} />}
           {state.tab === "album" && <AlbumPanel album={state.album} />}
-
-          <Text style={styles.status} accessibilityLiveRegion="polite">{state.status}</Text>
         </ScrollView>
+      </View>
 
-        <PostcardModal
-          visible={state.postcardOpen}
-          discovery={state.discovery}
-          onClose={() => game.set({ postcardOpen: false })}
-          onGo={game.guideToDiscovery}
-          onReplay={game.replayMemo}
-        />
-        <CaptureModal
-          visible={state.captureOpen}
-          place={state.capturable}
-          agent={scout}
-          level={levelFor(state.xp.scout)}
-          onSave={game.saveCapture}
-          onClose={() => game.set({ captureOpen: false })}
-        />
-      </SafeAreaView>
-    </SafeAreaProvider>
+      <PostcardModal
+        key={state.discovery?.place.id}
+        visible={state.postcardOpen}
+        discovery={state.discovery}
+        pet={finderOf(state.discovery, pets, squad)}
+        onClose={() => game.set({ postcardOpen: false })}
+        onGo={game.guideToDiscovery}
+        onReplay={game.replayMemo}
+      />
+      {state.landmarkOpen && (
+        <Suspense fallback={null}>
+          <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={() => game.set({ landmarkOpen: null })} />
+        </Suspense>
+      )}
+      <HatchModal
+        pet={state.hatching}
+        walked={state.progress.walked}
+        onClose={() => (game.closeHatch ? game.closeHatch() : game.set({ hatching: null }))}
+      />
+      <CaptureModal
+        visible={state.captureOpen}
+        place={state.capturable}
+        pet={capturePetOf(squad)}
+        onSave={game.saveCapture}
+        onClose={() => game.set({ captureOpen: false })}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.brandNavy },
-  topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10 },
-  brandRow: { flexShrink: 1 },
-  badge: { backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12 },
-  badgeText: { color: "#fff", fontSize: 13 },
-  map: { flex: 1, minHeight: 260 },
-  sheet: { flex: 1, backgroundColor: colors.card },
-  sheetContent: { padding: 16, paddingBottom: 40, gap: 8 },
-  controls: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  demoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  map: { flex: 45 },
+  sheet: {
+    flex: 55,
+    marginTop: -SHEET_OVERLAP,
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    ...shadow.raised,
+  },
+  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginTop: space.sm },
+  sheetHeader: { paddingHorizontal: space.lg, paddingTop: space.sm },
+  stats: { ...type.label, color: colors.muted },
+  demoRow: { flexDirection: "row", alignItems: "center", gap: space.sm },
   flex: { flex: 1 },
-  tabs: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 4 },
-  tab: { paddingVertical: 8, paddingHorizontal: 12, borderBottomWidth: 3, borderBottomColor: "transparent" },
-  tabActive: { borderBottomColor: colors.leaf },
-  tabText: { color: colors.muted, fontSize: 15 },
-  tabTextActive: { color: colors.leafDark, fontWeight: "700" },
-  status: { color: colors.muted, fontSize: 14, marginTop: 8 },
+  content: { paddingHorizontal: space.lg, paddingTop: space.xs, gap: space.sm },
 });

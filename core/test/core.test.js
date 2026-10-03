@@ -1,14 +1,15 @@
 // Unit tests for the shared game logic (no network, no DOM).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { choosePlace, firstSentences } from "../js/agents.js";
-import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../js/leaderboard.js";
+import { choosePlace, firstSentences } from "../agents.js";
+import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../leaderboard.js";
 import {
   EGG_EVERY_STEPS, HATCH_METERS, LEVEL_EVERY_M, MAX_LEVEL, RARITIES,
-  eggProgress, eggsEarned, hatchEgg, maybeNewEgg, metersToHatch, petLevel, petPower, rollRarity, stepsToNextEgg,
-} from "../js/pets.js";
-import { TRAILS, activeTrail, rankFor, scoreFor } from "../js/rank.js";
-import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../js/savings.js";
+  EGG_TIERS, PET_SPECIES, eggProgress, eggsEarned, hatchEgg, hatchMetersOf, maybeNewEgg, metersToHatch, petLevel, petPower, rollEggTier,
+  rollRarity, stepsToNextEgg,
+} from "../pets.js";
+import { TRAILS, activeTrail, rankFor, scoreFor } from "../rank.js";
+import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
 
 // Deterministic "random" that walks through a list of values.
 const sequence = (...values) => {
@@ -23,6 +24,7 @@ test("eggs are earned every EGG_EVERY_STEPS steps, one at a time", () => {
   assert.equal(maybeNewEgg({ egg: null, eggsReceived: 0, steps: 10, walked: 0 }), null, "not earned yet");
   const egg = maybeNewEgg({ egg: null, eggsReceived: 0, steps: EGG_EVERY_STEPS, walked: 123 });
   assert.equal(egg.startWalked, 123);
+  assert.ok(EGG_TIERS.some((t) => t.id === egg.tier), "new eggs have a tier");
   assert.equal(maybeNewEgg({ egg, eggsReceived: 1, steps: EGG_EVERY_STEPS * 5, walked: 200 }), null, "already carrying one");
   assert.equal(maybeNewEgg({ egg: null, eggsReceived: 1, steps: EGG_EVERY_STEPS, walked: 200 }), null, "already received it");
 });
@@ -33,6 +35,21 @@ test("eggs hatch after walking HATCH_METERS", () => {
   assert.equal(eggProgress(egg, 100 + HATCH_METERS / 2), 0.5);
   assert.equal(eggProgress(egg, 100 + HATCH_METERS * 3), 1);
   assert.equal(metersToHatch(egg, 100 + HATCH_METERS - 10), 10);
+});
+
+test("egg tiers: longer eggs take longer and hatch rarer pets", () => {
+  assert.equal(rollEggTier(() => 0).id, "short");
+  assert.equal(rollEggTier(() => 0.7).id, "medium");
+  assert.equal(rollEggTier(() => 0.95).id, "long");
+  assert.equal(hatchMetersOf({ tier: "long" }), 1000);
+  assert.equal(hatchMetersOf({}), HATCH_METERS, "older eggs without a tier");
+  assert.equal(eggProgress({ startWalked: 0, tier: "medium" }, 300), 0.5);
+  const [short, , long] = EGG_TIERS;
+  assert.equal(rollRarity(() => 0.85, { tier: short }).id, "rare");
+  assert.equal(rollRarity(() => 0.85, { tier: long }).id, "epic");
+  assert.equal(rollRarity(() => 0.95, { tier: long }).id, "legendary");
+  for (const tier of EGG_TIERS) assert.equal(Object.values(tier.odds).reduce((a, b) => a + b, 0), 100, tier.id);
+  assert.ok(PET_SPECIES.includes(hatchEgg({ id: "egg-2", startWalked: 0, tier: "long" }, 1000).species));
 });
 
 test("rarity roll follows the weights", () => {
@@ -57,9 +74,14 @@ test("hatched pets get power in their rarity's range and level up by walking", (
 test("score counts steps, landmarks, captures and turf bonus", () => {
   assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 160);
   assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 200);
-  assert.equal(rankFor(100).current.name, "Sprout");
-  assert.equal(activeTrail(150, "starlight").id, "meadow", "locked trail falls back");
-  assert.equal(TRAILS.length, 6);
+  assert.equal(rankFor(0).current.name, "Bronze III");
+  assert.equal(rankFor(100).current.name, "Bronze II");
+  assert.equal(rankFor(300).current.name, "Silver III");
+  assert.equal(rankFor(5000).current.name, "Crystal I");
+  assert.equal(rankFor(5000).next, null);
+  assert.equal(activeTrail(150, "starlight").id, "sprouts", "locked trail falls back");
+  assert.equal(activeTrail(900, "meadow").id, "meadow", "an unlocked trail can be chosen");
+  assert.equal(TRAILS.length, 5);
 });
 
 test("savings: fares, totals and tree stages", () => {
@@ -91,8 +113,8 @@ test("leaderboard sample data is stable and includes you", () => {
 });
 
 test("ISS overhead triples the odds of non-common pets", async () => {
-  const { ISS_RARITY_BOOST, issIsOverhead } = await import("../js/pets.js");
-  const { distanceMeters } = await import("../js/geo.js");
+  const { ISS_RARITY_BOOST, issIsOverhead } = await import("../pets.js");
+  const { distanceMeters } = await import("../geo.js");
   // Normal weights: common 60 / 100. Boosted: 60 / (60 + 40 * 3) = 1/3 common.
   assert.equal(rollRarity(() => 0.5).id, "common");
   assert.equal(rollRarity(() => 0.5, { issOverhead: true }).id, "rare", "0.5 lands past common when boosted");

@@ -41,7 +41,10 @@ export function createGame() {
   function checkRankUp(agent) {
     const rank = rankFor(scoreOf(get())).current;
     if (rank.name === get().rankName) return;
-    const message = `Rank up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`;
+    const newLeague = rank.division === 3; // the first division of a league unlocks its trail
+    const message = newLeague
+      ? `League up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`
+      : `Rank up! You're now ${rank.emoji} ${rank.name}.`;
     set({ rankName: rank.name, status: message });
     speakMemo(message, agent ?? agentById("scout"));
   }
@@ -65,12 +68,17 @@ export function createGame() {
         say(`${agent.name} couldn't find anywhere new nearby. Try walking somewhere else!`);
         return;
       }
-      say(`${agent.name} is heading toward ${place.title}…`);
-      const [summary] = await Promise.all([getPlaceSummary(place.title), wait(expeditionDuration(place.distance))]);
+      const durationMs = expeditionDuration(place.distance);
+      // The map walks the pet out to the place and back during this time.
+      set({
+        status: `${agent.name} is heading toward ${place.title}… back in about ${Math.round(durationMs / 1000)} s.`,
+        expedition: { agentId: agent.id, from: state.position, to: { lat: place.lat, lon: place.lon }, startedAt: Date.now(), durationMs },
+      });
+      const [summary] = await Promise.all([getPlaceSummary(place.title), wait(durationMs)]);
       const memo = scoutMemo(place, summary);
       const foundPlace = { id: place.id, title: place.title, lat: place.lat, lon: place.lon, photo: summary.photo };
       set({
-        discovery: { place, summary, memo, agentId: agent.id },
+        discovery: { place, summary, memo, agentId: agent.id, agentName: agent.name },
         postcardOpen: true,
         found: [...get().found, foundPlace],
         status: `${agent.name} found ${place.title}!`,
@@ -82,7 +90,7 @@ export function createGame() {
       console.error("Expedition failed:", error);
       say(`${agent.name} got lost (network problem). Try again in a moment.`);
     } finally {
-      set({ away: get().away.filter((id) => id !== agent.id) });
+      set({ away: get().away.filter((id) => id !== agent.id), expedition: null });
     }
   }
 

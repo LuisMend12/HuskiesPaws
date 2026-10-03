@@ -1,9 +1,0 @@
-{
-  "name": "huskiespaws-web",
-  "private": true,
-  "description": "Marks js/ as ES modules so Node (the iMessage agent and tests) can import the shared game logic without warnings.",
-  "type": "module",
-  "scripts": {
-    "test": "node --test test/*.test.js"
-  }
-}

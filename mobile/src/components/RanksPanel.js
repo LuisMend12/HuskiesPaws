@@ -4,7 +4,8 @@ import { LEADERBOARD_TOP } from "../core/config.js";
 import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../core/leaderboard.js";
 import { TRAILS, activeTrail, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
-import { colors, radius } from "../theme.js";
+import { RankBadge } from "./RankBadge.js";
+import { colors, fonts, radius } from "../theme.js";
 import { Button, Chip, Hint, SectionTitle } from "./ui.js";
 
 export function RanksPanel({ state, game }) {
@@ -27,12 +28,15 @@ export function RanksPanel({ state, game }) {
   return (
     <View>
       <View style={styles.rankCard}>
-        <Text style={styles.rankTitle}>{`${current.emoji} ${current.name}`}</Text>
+        <View style={styles.rankHead}>
+          <RankBadge rank={current} size={56} />
+          <Text style={styles.rankTitle}>{current.name}</Text>
+        </View>
         <View style={styles.meter}>
           <View style={[styles.meterFill, { width: `${Math.round(progress * 100)}%` }]} />
         </View>
         <Text style={styles.rankNext}>
-          {next ? `${score} pts · ${next.min - score} pts to ${next.emoji} ${next.name}` : `${score} pts · Top rank reached!`}
+          {next ? `${score} XP · ${next.min - score} XP to ${next.name}` : `${score} XP · Top rank reached!`}
         </Text>
         <Hint>
           {`${state.progress.steps.toLocaleString()} steps${state.pedometer ? " (step counter)" : ""} · ${state.progress.landmarksFound} found · ${state.progress.landmarksCaptured} captured`}
@@ -67,8 +71,9 @@ export function RanksPanel({ state, game }) {
       {rows.map((row, i) => (
         <View key={row.id} style={[styles.row, i % 2 === 0 && styles.rowStripe, row.isYou && styles.rowYou]}>
           <Text style={styles.pos}>{`#${row.position}`}</Text>
+          <RankBadge rank={rankFor(row.score).current} size={26} />
           <Text style={[styles.player, row.isYou && styles.bold]}>{row.isYou ? "You" : row.name}</Text>
-          <Text style={row.isYou && styles.bold}>{row.score.toLocaleString()}</Text>
+          <Text style={[styles.score, row.isYou && styles.bold]}>{row.score.toLocaleString()}</Text>
         </View>
       ))}
       <Hint style={styles.spaced}>Other players are sample data until the app has a backend.</Hint>
@@ -79,17 +84,19 @@ export function RanksPanel({ state, game }) {
 
 const styles = StyleSheet.create({
   rankCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.card, padding: 12 },
-  rankTitle: { fontSize: 20, fontWeight: "800", color: colors.ink },
+  rankHead: { flexDirection: "row", alignItems: "center", gap: 12 },
+  rankTitle: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink },
   meter: { height: 10, backgroundColor: colors.soft, borderRadius: 5, marginVertical: 8, overflow: "hidden" },
   meterFill: { height: "100%", backgroundColor: colors.leaf },
-  rankNext: { fontSize: 14, color: colors.ink, marginBottom: 2 },
+  rankNext: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink, marginBottom: 2 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  boardTitle: { fontWeight: "700", marginTop: 10, marginBottom: 4, color: colors.ink },
-  row: { flexDirection: "row", paddingVertical: 6, paddingHorizontal: 8, borderRadius: radius.small },
+  boardTitle: { fontFamily: fonts.bold, marginTop: 10, marginBottom: 4, color: colors.ink },
+  row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, paddingHorizontal: 8, borderRadius: radius.small },
   rowStripe: { backgroundColor: colors.stripe },
   rowYou: { backgroundColor: colors.you, borderWidth: 1, borderColor: colors.accent },
-  pos: { width: 44, color: colors.muted },
-  player: { flex: 1, color: colors.ink },
-  bold: { fontWeight: "800" },
+  pos: { fontFamily: fonts.bold, width: 44, color: colors.muted },
+  player: { fontFamily: fonts.semibold, flex: 1, color: colors.ink },
+  score: { fontFamily: fonts.semibold, color: colors.ink },
+  bold: { fontFamily: fonts.extrabold },
   spaced: { marginTop: 10 },
 });

@@ -28,6 +28,7 @@ export const INITIAL_STATE = Object.freeze({
   mapFocus: null, // { lat, lon, key } to recenter the map
   walking: false,
   away: [], // agent ids on an expedition
+  expedition: null, // { agentId, from, to: { lat, lon }, startedAt, durationMs } while a pet walks to a place
   visited: [], // place ids you've walked to
   discovery: null, // { place, summary, memo, agentId }
   postcardOpen: false,

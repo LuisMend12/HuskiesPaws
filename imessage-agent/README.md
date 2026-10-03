@@ -12,7 +12,7 @@ The HuskiesPaws squad as an iMessage agent, built on [Photon Spectrum](https://p
 | `arrived` | 🌸 Logs the walk; the skipped fare grows your savings tree |
 | `savings` | 🌳 Shows your tree and total saved |
 
-It uses the same game logic as the web and mobile apps (`../prototype/js/`), so places, facts, routes and savings work identically everywhere.
+It uses the same game logic as the phone app (`../core/`), so places, facts, routes and savings work identically everywhere.
 
 ## 1. Try it without Photon (terminal mode)
 
