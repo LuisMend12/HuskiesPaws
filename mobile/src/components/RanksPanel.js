@@ -14,7 +14,8 @@ export function RanksPanel({ state, game }) {
   const active = activeTrail(score, state.trailChoice);
   const scope = SCOPES.find((s) => s.id === state.scope);
   const regionName = state.region[scope.regionKey];
-  const rows = topWithYou(
+  const live = state.leaderboard?.scope === state.scope && state.leaderboard?.region === regionName;
+  const rows = live ? state.leaderboard.rows : topWithYou(
     buildLeaderboard(demoPlayers(scope, regionName), { id: "you", name: "You", score }),
     LEADERBOARD_TOP,
   );
@@ -69,14 +70,14 @@ export function RanksPanel({ state, game }) {
       </View>
       <Text style={styles.boardTitle}>{`${scope.label} · ${regionName}`}</Text>
       {rows.map((row, i) => (
-        <View key={row.id} style={[styles.row, i % 2 === 0 && styles.rowStripe, row.isYou && styles.rowYou]}>
+        <View key={row.id ?? `live-${row.position}`} style={[styles.row, i % 2 === 0 && styles.rowStripe, row.isYou && styles.rowYou]}>
           <Text style={styles.pos}>{`#${row.position}`}</Text>
           <RankBadge rank={rankFor(row.score).current} size={26} />
           <Text style={[styles.player, row.isYou && styles.bold]}>{row.isYou ? "You" : row.name}</Text>
           <Text style={[styles.score, row.isYou && styles.bold]}>{row.score.toLocaleString()}</Text>
         </View>
       ))}
-      <Hint style={styles.spaced}>Other players are sample data until the app has a backend.</Hint>
+      <Hint style={styles.spaced}>{live ? "Live players in your region." : "Sample players: the live leaderboard is unavailable."}</Hint>
       <Button title="Reset my progress" variant="secondary" onPress={confirmReset} style={styles.spaced} />
     </View>
   );

@@ -18,7 +18,6 @@ export const SAVED_DEFAULTS = Object.freeze({
   trailChoice: "auto",
   trips: [], // [{ id, title, meters, amount, date, nessieId }]
   bank: null, // { customerId, checkingId, savingsId }
-  nessieKey: "", // sandbox key only; a real app keeps bank keys on a server
   mapRenderer: "garden", // iOS development build uses MapLibre; Expo Go falls back
   pets: STARTER_PETS, // [{ id, name, species, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
   eggs: [], // [{ id, startWalked, tier }] up to MAX_EGGS, all filling as you walk
@@ -36,6 +35,8 @@ export const RESETTABLE_KEYS = [
 export const INITIAL_STATE = Object.freeze({
   ...SAVED_DEFAULTS,
   loaded: false,
+  generation: 0, // invalidates asynchronous results after reset or disposal
+  resetting: false,
   position: DEFAULT_CENTER,
   blooms: [], // [{ id, lat, lon, emoji }]
   trailSegments: [], // [{ id, trailId, color, coords: [{ latitude, longitude }] }]
@@ -78,13 +79,15 @@ function petsFrom(saved) {
 }
 
 export function migrateSaved(saved) {
+  const { nessieKey: _legacyKey, ...safe } = saved;
   const progress = saved.progress ?? SAVED_DEFAULTS.progress;
   const walkXp = Number.isFinite(progress.walkXp)
     ? progress.walkXp
     : progress.steps / POINTS.stepsPerPoint;
   const player = saved.player?.id ? saved.player : newPlayer();
   return {
-    ...saved,
+    ...safe,
+    bank: saved.bank?.checkingId ? null : saved.bank ?? null,
     progress: { ...progress, walkXp },
     ...petsFrom(saved),
     eggsReceived: saved.eggsReceived ?? 0,

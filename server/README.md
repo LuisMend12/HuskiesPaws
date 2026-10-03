@@ -7,10 +7,11 @@ One small Node server (no dependencies) that backs the phone app (`../mobile/`).
 | `POST /api/voice` | Text-to-speech for agent memos. Body `{ text, agent?, voice? }` (text up to 600 characters). **Moss (`storyteller`)** uses **ElevenLabs** when `ELEVENLABS_API_KEY` is set. **Pip and Fern** use **Grok Voice** (`ara` / `eve`) when `XAI_API_KEY` is set. If only one key is present, every agent uses that provider. Returns raw audio; 503 if neither key is set. |
 | `POST /api/imagine` | **Grok Imagine:** postcard illustrations and pet portraits. Prompts are built here from fixed templates (the app can't send its own), and each image is generated once and cached. |
 | `POST /api/score`, `GET /api/leaderboard` | Live **local / statewide / national** leaderboards |
-| `GET /api/turf`, `POST /api/turf/claim` | **Turf:** guard landmarks with pets. A stronger pet takes over; holding earns XP per hour. |
-| `GET /api/health` | Shows whether Grok is on, the voice provider (`tts`: `"elevenlabs"`, `"grok"`, `"mixed"` or `null`), `ttsByAgent`, and which storage is in use |
+| `GET /api/turf`, `POST /api/turf/claim`, `POST /api/turf/recall` | **Turf:** claim with a stronger pet, recall your guard, and earn a walking XP boost while holding. Guards decay over time. |
+| `POST /api/bank/connect`, `POST /api/bank/transfer` | Nessie sandbox accounts and walk transfers using the server's key. |
+| `GET /api/health` | Shows whether Grok is on and which storage is in use |
 
-Without the server, the phone app still works: it uses on-device speech, SVG art and sample leaderboards, and turf is off.
+Without a configured API URL, the phone uses on-device speech, SVG art and sample leaderboards. Local turf is available in demo mode only. When an API URL is configured, a failed claim remains unconfirmed; it never grants local ownership.
 
 ## Run it locally
 
@@ -32,9 +33,8 @@ Settings come from the **repo-root `.env`** or `server/.env`. See [.env.example]
 
 | Setting | Needed for |
 |---|---|
-| `XAI_API_KEY` | Grok Imagine, and Grok Voice when ElevenLabs is off. Get it at console.x.ai. `GROK_API_KEY` works as another name for it. |
-| `ELEVENLABS_API_KEY` | Optional. Voices memos with ElevenLabs instead of Grok. Get it at elevenlabs.io → Developers → API Keys. |
-| `ELEVENLABS_VOICE_SCOUT`, `ELEVENLABS_VOICE_STORYTELLER`, `ELEVENLABS_VOICE_PATHFINDER` | Optional. ElevenLabs voice IDs to use instead of the built-in premade voices (see `src/elevenlabs.js`). |
+| `XAI_API_KEY` | Grok Voice and Grok Imagine. Get it at console.x.ai. |
+| `NESSIE_API_KEY` | Optional Nessie sandbox banking. Kept on the backend; the phone's Connect savings button needs no key. HTTPS only, with no insecure redirect fallback. |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Optional. Without them, data is saved in `server/data/db.json`. |
 
 ## Deploy with HTTPS (Render, free)
@@ -55,6 +55,10 @@ Notes on the free plan:
 1. Create a project at [supabase.com](https://supabase.com).
 2. **SQL Editor → New query**, paste [supabase/schema.sql](supabase/schema.sql), and click **Run**.
 3. Copy the **Project URL** and the **service_role** key from **Project Settings → API** into `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
+
+**Existing projects:** re-run the updated schema before restarting the server. It adds the private bank tables and `turf_snapshot`, `commit_turf`, `recall_guard` and `reserve_transfer` functions. Territory decisions are computed from a consistent snapshot and committed only if the database revision still matches, including the three-landmark ownership cap. RPC execution is restricted to `service_role`.
+
+Bank setup reuses the server's saved account mapping. Each transfer reserves its trip ID before contacting Nessie. Completed transfers can be read again safely; pending transfers need reconciliation after an uncertain response and are never automatically sent twice. As with scores and turf, player IDs currently act as capabilities rather than authenticated accounts; this remains a sandbox demo.
 
 The service-role key is a full-access key. It stays on the server; row-level security blocks direct access from clients. **The Supabase code hasn't been tested against a live project yet,** so check `/api/health` (it should say `"storage":"supabase"`) and post a score after setting it up.
 

@@ -1,7 +1,7 @@
 import { distanceMeters } from "../core/geo.js";
 import { petPower } from "../core/pets.js";
 import { xpBoostFor } from "../core/rank.js";
-import { claimTurf, fetchLeaderboard, fetchTurf, submitScore } from "../api.js";
+import { apiAvailable, claimTurf, fetchLeaderboard, fetchTurf, recallGuard, submitScore } from "../api.js";
 import { scoreOf } from "./state.js";
 
 const FIGHT_RANGE_M = 150; // same as the landmark screen (components/landmarks.js)
@@ -9,6 +9,10 @@ const WINS = ["claimed", "captured", "reinforced"];
 
 export function createOnline({ get, set, persist, say }) {
   let lastSubmitted = null;
+  let turfRequest = 0;
+  let boardRequest = 0;
+  let scoreQueue = Promise.resolve();
+  const current = (generation) => generation === get().generation && !get().resetting;
 
   const player = () => get().player;
 
@@ -18,42 +22,66 @@ export function createOnline({ get, set, persist, say }) {
   }
 
   async function refreshTurf() {
+    if (!apiAvailable() || !player()?.id || get().resetting) return;
+    const generation = get().generation;
+    const request = ++turfRequest;
     const data = await fetchTurf(player().id);
-    if (!data?.turf) return;
-    applyTurf(data.turf);
+    if (!current(generation) || request !== turfRequest) return;
+    if (!data?.turf) { set({ xpBoost: 1 }); return; }
+    const offset = Date.now() - (data.serverNow ?? Date.now());
+    applyTurf(data.turf.map((t) => ({ ...t, decaysAt: Date.parse(t.claimedAt) + offset })));
+  }
+
+  function expireTurf() {
+    if (!apiAvailable() || !get().turf) return;
+    const now = Date.now();
+    const alive = get().turf.filter((t) => !Number.isFinite(t.decaysAt)
+      || (t.maxHp ?? t.pet.power) - Math.floor(Math.max(0, now - t.decaysAt) / 3_600_000 * 10) > 0);
+    if (alive.length !== get().turf.length) applyTurf(alive);
   }
 
   async function refreshLeaderboard() {
     const state = get();
     const scope = state.scope;
     const region = state.region[scope];
+    const generation = state.generation;
+    const request = ++boardRequest;
+    if (!player()?.id || state.resetting) return;
     const data = await fetchLeaderboard({ scope, region, me: player().id });
+    if (!current(generation) || request !== boardRequest || get().scope !== scope || get().region[scope] !== region) return;
     if (!data?.players) {
       set({ leaderboard: null });
       return;
     }
-    set({ leaderboard: { scope, rows: data.players } });
+    set({ leaderboard: { scope, region, rows: data.players } });
   }
 
-  async function pushScore() {
+  function pushScore() {
     const state = get();
     const me = player();
-    if (!me?.id) return;
+    if (!me?.id || state.resetting) return Promise.resolve();
     const score = scoreOf(state);
-    const key = `${score}|${me.name}|${state.region.local}`;
-    if (key === lastSubmitted) return;
-    const saved = await submitScore({ playerId: me.id, name: me.name, score, region: state.region });
-    if (!saved) return;
-    lastSubmitted = key;
-    await refreshLeaderboard();
+    const key = `${score}|${me.name}|${JSON.stringify(state.region)}`;
+    const generation = state.generation;
+    const run = scoreQueue.catch(() => {}).then(async () => {
+      if (!current(generation) || key === lastSubmitted) return;
+      const saved = await submitScore({ playerId: me.id, name: me.name, score, region: state.region });
+      if (!saved || !current(generation)) return;
+      lastSubmitted = key;
+      await refreshLeaderboard();
+    });
+    scoreQueue = run;
+    return run;
   }
 
   // Leaves a squad pet on guard, or challenges the guard. Returns
   // { result, won, message } for the landmark screen's battle, or null when the
-  // server can't be reached (the screen then uses its local rules).
+  // there is no configured server. Online failures return an explicit outcome.
   // landmark: { title, lat, lon } when it isn't one of your found places (a rival's turf).
   async function claimLandmark(landmarkId, petId, landmark = null) {
     const state = get();
+    const generation = state.generation;
+    if (state.resetting) return null;
     const place = state.found.find((p) => String(p.id) === String(landmarkId)) ?? (landmark && { id: landmarkId, ...landmark });
     if (!place) {
       say("Walk to a landmark first.");
@@ -69,6 +97,10 @@ export function createOnline({ get, set, persist, say }) {
       return null;
     }
     const me = player();
+    if (!apiAvailable()) {
+      if (!state.demoMode) say("Configure the server to claim territory on real walks.");
+      return null;
+    }
     const data = await claimTurf({
       playerId: me.id,
       playerName: me.name,
@@ -88,9 +120,37 @@ export function createOnline({ get, set, persist, say }) {
         art: pet.art,
       },
     });
-    if (!data) return null;
+    if (!current(generation)) return null;
+    if (!data) {
+      await refreshTurf(); // a timed-out claim may already have committed
+      if (!current(generation)) return null;
+      return { result: "unavailable", won: false, message: "The server could not confirm this claim. Check the map and try again." };
+    }
     await refreshTurf();
+    if (!current(generation)) return null;
     return { result: data.result, won: data.won ?? WINS.includes(data.result), message: data.message };
+  }
+
+  async function recallPet(petId) {
+    const generation = get().generation;
+    if (!apiAvailable()) {
+      if (!get().demoMode) return false;
+      applyTurf((get().turf ?? []).filter((t) => !(t.mine && t.pet?.id === petId)));
+      return true;
+    }
+    // Always ask the server: local ownership can be stale or missing.
+    const data = await recallGuard({ playerId: player().id, petId });
+    if (!current(generation)) return false;
+    if (!data) { say("Couldn't confirm the recall. Your squad is unchanged; try again."); return false; }
+    applyTurf((get().turf ?? []).filter((t) => !(t.mine && t.pet?.id === petId)));
+    await refreshTurf();
+    return current(generation);
+  }
+
+  function invalidate() {
+    turfRequest += 1;
+    boardRequest += 1;
+    lastSubmitted = null;
   }
 
   function rename(name) {
@@ -102,5 +162,5 @@ export function createOnline({ get, set, persist, say }) {
     return true;
   }
 
-  return { refreshTurf, refreshLeaderboard, pushScore, claimLandmark, rename };
+  return { refreshTurf, refreshLeaderboard, pushScore, claimLandmark, recallPet, expireTurf, invalidate, rename };
 }

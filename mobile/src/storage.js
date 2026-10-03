@@ -4,6 +4,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Kept from the app's earlier name so existing saved progress isn't lost.
 const PREFIX = "wanderlings:";
+let writes = Promise.resolve();
+const enqueue = (run) => {
+  const next = writes.then(run);
+  writes = next.catch(() => {});
+  return next;
+};
 
 export async function loadAll(defaults) {
   const keys = Object.keys(defaults);
@@ -18,20 +24,23 @@ export async function loadAll(defaults) {
   }
 }
 
-export async function saveAll(values) {
-  try {
-    await AsyncStorage.multiSet(
-      Object.entries(values).map(([key, value]) => [PREFIX + key, JSON.stringify(value)]),
-    );
-  } catch (error) {
-    console.warn("Could not save progress:", error);
-  }
+export function saveAll(values) {
+  const entries = Object.entries(values).map(([key, value]) => [PREFIX + key, JSON.stringify(value)]);
+  return enqueue(async () => {
+    try {
+      await AsyncStorage.multiSet(entries);
+    } catch (error) {
+      console.warn("Could not save progress:", error);
+    }
+  });
 }
 
-export async function clearKeys(keys) {
-  try {
-    await AsyncStorage.multiRemove(keys.map((key) => PREFIX + key));
-  } catch (error) {
-    console.warn("Could not clear saved progress:", error);
-  }
+export function clearKeys(keys) {
+  return enqueue(async () => {
+    try {
+      await AsyncStorage.multiRemove(keys.map((key) => PREFIX + key));
+    } catch (error) {
+      console.warn("Could not clear saved progress:", error);
+    }
+  });
 }
