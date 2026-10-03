@@ -159,5 +159,5 @@ const styles = StyleSheet.create({
   actionActiveText: { color: colors.greenDark },
   dim: { opacity: 0.6 },
   pressed: { opacity: 0.7 },
-  capture: { position: "absolute", left: 0, right: 0, bottom: 56, alignItems: "center" },
+  capture: { position: "absolute", left: 0, right: 64, bottom: 56, alignItems: "center" }, // right: clear of the 3D and recenter buttons
 });

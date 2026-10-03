@@ -199,46 +199,88 @@ function Accessory({ petClass }) {
   return null;
 }
 
-// One pet. `phase` offsets its hop so a group doesn't move in lockstep.
-export function Pup({ pet, position = [0, 0, 0], phase = 0, turn = 0 }) {
+// Wandering: each pet walks its own small triangle (x, z corners around its spot).
+const TRIANGLE = [[0, 0.75], [0.7, -0.45], [-0.7, -0.45]];
+const EDGES = TRIANGLE.map((a, i) => {
+  const b = TRIANGLE[(i + 1) % TRIANGLE.length];
+  return { a, dx: b[0] - a[0], dz: b[1] - a[1], length: Math.hypot(b[0] - a[0], b[1] - a[1]) };
+});
+const PERIMETER = EDGES.reduce((sum, e) => sum + e.length, 0);
+const WALK_SPEED = 0.55; // units per second
+const STEP_RATE = 9; // waddles per second (radians)
+
+function alongTriangle(distance) {
+  let d = ((distance % PERIMETER) + PERIMETER) % PERIMETER;
+  for (const e of EDGES) {
+    if (d <= e.length) return { x: e.a[0] + (e.dx * d) / e.length, z: e.a[1] + (e.dz * d) / e.length, dx: e.dx, dz: e.dz };
+    d -= e.length;
+  }
+  return { x: TRIANGLE[0][0], z: TRIANGLE[0][1], dx: EDGES[0].dx, dz: EDGES[0].dz };
+}
+
+// Turns `from` toward `to` by at most `step` radians, the short way round.
+function turnToward(from, to, step) {
+  const diff = Math.atan2(Math.sin(to - from), Math.cos(to - from));
+  return from + Math.max(-step, Math.min(step, diff));
+}
+
+// One pet. `phase` offsets its motion so a group doesn't move in lockstep.
+// wander: walk a small triangle (the shadow moves with it, so it stays grounded);
+// otherwise stand in place, hop and look around.
+export function Pup({ pet, position = [0, 0, 0], phase = 0, turn = 0, wander = false }) {
+  const mover = useRef(null);
   const ref = useRef(null);
+  const heading = useRef(turn);
   const fur = colorOf(pet).hex;
   const rarity = rarityOf(pet);
   const species = pet.species ?? "husky";
 
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
+  useFrame(({ clock }, delta) => {
+    if (!ref.current || !mover.current) return;
     const t = clock.getElapsedTime() + phase;
+    if (wander) {
+      const spot = alongTriangle(t * WALK_SPEED);
+      mover.current.position.x = spot.x;
+      mover.current.position.z = spot.z;
+      heading.current = turnToward(heading.current, Math.atan2(spot.dx, spot.dz), delta * 5); // the model faces +z
+      mover.current.rotation.y = heading.current;
+      ref.current.rotation.y = 0;
+      ref.current.rotation.z = Math.sin(t * STEP_RATE) * 0.08; // waddle
+      ref.current.position.y = Math.abs(Math.sin(t * STEP_RATE)) * 0.06; // small steps, feet near the ground
+      return;
+    }
     ref.current.rotation.y = turn + Math.sin(t * 0.8) * 0.45; // look around
     ref.current.position.y = Math.abs(Math.sin(t * 2.4)) * 0.12; // little hops
   });
 
   return (
     <group position={position}>
-      <mesh position={[0, -0.86, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.75, 24]} />
-        <meshBasicMaterial color={INK} transparent opacity={0.2} />
-      </mesh>
-      {rarity.id !== "common" && (
-        <mesh position={[0, -0.85, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.8, 0.92, 32]} />
-          <meshBasicMaterial color={rarity.color} transparent opacity={0.8} />
+      <group ref={mover}>
+        <mesh position={[0, -0.86, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.75, 24]} />
+          <meshBasicMaterial color={INK} transparent opacity={0.28} />
         </mesh>
-      )}
-      <group ref={ref}>
-        <Outlined color={fur} geometry={<primitive object={BODY} attach="geometry" />} />
-        <Ears species={species} fur={fur} />
-        {[-1, 1].map((side) => (
-          <Outlined key={side} position={[side * 0.4, -0.68, 0.24]} color={fur} geometry={<primitive object={FOOT} attach="geometry" />} />
-        ))}
-        <Face species={species} />
-        <Accessory petClass={pet.petClass} />
-        {rarity.id === "legendary" && (
-          <mesh position={[0, 1.35, 0]} rotation={[Math.PI / 2.3, 0, 0]}>
-            <torusGeometry args={[0.4, 0.06, 8, 32]} />
-            <Flat color={rarity.color} />
+        {rarity.id !== "common" && (
+          <mesh position={[0, -0.85, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.8, 0.92, 32]} />
+            <meshBasicMaterial color={rarity.color} transparent opacity={0.8} />
           </mesh>
         )}
+        <group ref={ref}>
+          <Outlined color={fur} geometry={<primitive object={BODY} attach="geometry" />} />
+          <Ears species={species} fur={fur} />
+          {[-1, 1].map((side) => (
+            <Outlined key={side} position={[side * 0.4, -0.68, 0.24]} color={fur} geometry={<primitive object={FOOT} attach="geometry" />} />
+          ))}
+          <Face species={species} />
+          <Accessory petClass={pet.petClass} />
+          {rarity.id === "legendary" && (
+            <mesh position={[0, 1.35, 0]} rotation={[Math.PI / 2.3, 0, 0]}>
+              <torusGeometry args={[0.4, 0.06, 8, 32]} />
+              <Flat color={rarity.color} />
+            </mesh>
+          )}
+        </group>
       </group>
     </group>
   );

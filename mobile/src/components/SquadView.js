@@ -15,8 +15,8 @@ import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { Pup } from "./Pet3D.js";
 
 const PET_SCALE = 0.7;
-const SPACING = 1.9; // between pets, before scaling
-const PET_WIDTH = 1.7; // one pet with its ears, before scaling
+const SPACING = 2.7; // between pets, before scaling (room for each one's walking triangle)
+const PET_WIDTH = 3.1; // one pet plus its walking triangle, before scaling
 
 // Pets stand in a shallow arc facing you, the middle one a little forward.
 function spotFor(i, count) {
@@ -98,7 +98,7 @@ export default function SquadView({ visible, squad, onClose }) {
           <CameraRig count={pets.length} />
           <group scale={PET_SCALE}>
             {pets.map((pet, i) => (
-              <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 0.7} turn={(i - (pets.length - 1) / 2) * -0.15} />
+              <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 1.7} wander />
             ))}
           </group>
         </Canvas>
