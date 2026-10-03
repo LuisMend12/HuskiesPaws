@@ -90,9 +90,13 @@ async function renderCard(source, place, agent, level, date) {
   ctx.fillRect(0, 0, width, height);
   await drawPhoto(ctx, source);
 
-  const svg = creatureSvg(agent, level);
-  const creatureImg = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
-  ctx.drawImage(creatureImg, border + 8, border + photo - creature - 4, creature, creature);
+  try {
+    const svg = creatureSvg(agent, level);
+    const creatureImg = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
+    ctx.drawImage(creatureImg, border + 8, border + photo - creature - 4, creature, creature);
+  } catch (error) {
+    console.warn("Could not draw the agent on the postcard:", error); // the card still works without it
+  }
 
   ctx.fillStyle = "#2c3a2a";
   ctx.font = "bold 24px system-ui, sans-serif";

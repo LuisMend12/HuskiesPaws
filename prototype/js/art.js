@@ -17,7 +17,7 @@ export function creatureSvg(agent, level = 1) {
        </g>`
     : "";
   return `
-    <svg viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="${agent.name}">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="${agent.name}">
       <path d="M32 18 C30 8 22 6 20 4 C26 4 33 8 32 18" fill="${agent.leaf}"/>
       <ellipse cx="32" cy="40" rx="18" ry="20" fill="${agent.color}"/>
       <ellipse cx="32" cy="46" rx="10" ry="8" fill="#ffffff" opacity="0.25"/>
