@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "huskiespaws",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -14,6 +15,7 @@
       }
     },
     "android": {
+      "package": "com.huskiespaws.app",
       "adaptiveIcon": {
         "backgroundColor": "#0B1F3A",
         "foregroundImage": "./assets/icon.png"
@@ -51,6 +53,7 @@
         }
       ],
       "expo-asset",
+      "expo-dev-client",
       "@maplibre/maplibre-react-native"
     ]
   }

@@ -57,7 +57,7 @@ Windows cannot compile iOS locally.
 
 ### From Windows / EAS (install on a physical iPhone)
 
-You need an [Expo](https://expo.dev) account and an Apple Developer account for a device build.
+You need an [Expo](https://expo.dev) account (`npx eas-cli@latest login`) and a **paid Apple Developer account** for a device build. This machine is not logged into EAS yet.
 
 ```bash
 cd mobile

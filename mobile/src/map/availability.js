@@ -3,13 +3,12 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import { Platform } from "react-native";
 
 export function isExpoGo() {
-  return Constants.appOwnership === "expo";
+  // StoreClient is Expo Go *and* expo-dev-client; expoGoConfig / appOwnership mark Go.
+  return Constants.appOwnership === "expo" || Boolean(Constants.expoGoConfig);
 }
 
-// StoreClient covers Expo Go *and* expo-dev-client, so appOwnership is the Go check.
 export function canUseNativeMapLibre() {
-  if (Platform.OS !== "ios") return false;
-  if (isExpoGo()) return false;
+  if (Platform.OS !== "ios" || isExpoGo()) return false;
   const env = Constants.executionEnvironment;
   return env === ExecutionEnvironment.Bare || env === ExecutionEnvironment.Standalone || env === ExecutionEnvironment.StoreClient;
 }

@@ -17,6 +17,10 @@ Key prompts and implementation decisions for the SpaceX / Cursor track.
 - iOS bundle id `com.huskiespaws.app`. `expo-dev-client` + `eas.json` development profiles for device/simulator builds. Windows cannot run `expo run:ios` locally; use EAS or a Mac.
 - No Unity, no paid tile keys, no secrets in the bundle.
 
-## Earlier work (other branches)
+## 2026-10-03 — Garden map on `presentation`
+
+The MapLibre/OpenFreeMap garden map was already in `presentation` (commit `039584b`). Setup on this branch: `scheme` `huskiespaws`, Android package `com.huskiespaws.app`, `expo-dev-client` plugin, tighter Expo Go detection. EAS iOS device build still needs `eas login` and a paid Apple Developer account — this Windows machine cannot compile iOS locally.
+
+
 
 Backend pets/turf/leaderboards and branding were implemented on other branches (`backend`, branding merge on `main`). This log file was created on `3d-map` because `origin/main` did not include it yet.
