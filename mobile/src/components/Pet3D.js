@@ -3,6 +3,7 @@
 // STATUS: test. Shown only behind the dev-only "3D test" button in the Pets tab
 // until it's proven smooth on a real phone; then it replaces the hatch art.
 /* eslint-disable react/no-unknown-property -- three.js elements (mesh, args, roughness...) aren't DOM tags */
+import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
 import { Canvas, useFrame } from "@react-three/fiber/native";
 import { useMemo, useRef } from "react";
 import { Modal, StyleSheet, Text, View } from "react-native";
