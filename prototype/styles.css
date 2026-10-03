@@ -49,6 +49,31 @@ main {
 
 #map { flex: 1; min-height: 45vh; }
 
+.me-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--leaf-dark);
+  border: 3px solid #fff;
+  box-shadow: var(--shadow);
+}
+
+.map-token-form {
+  max-width: 360px;
+  margin: 40px auto;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.map-token-form p { margin: 0; }
+.map-token-form input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; font: inherit; }
+
 .sheet {
   background: var(--card);
   border-top: 1px solid var(--border);
