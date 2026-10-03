@@ -61,3 +61,31 @@ export async function fetchPetPortrait(body) {
   const data = await postJson("/api/imagine", { kind: "pet", ...body }, { timeout: IMAGINE_TIMEOUT_MS });
   return absoluteUrl(data?.image) ?? null;
 }
+
+export const recallGuard = (body) => postJson("/api/turf/recall", body);
+export const connectBank = (playerId) => postJson("/api/bank/connect", { playerId });
+export const transferWalk = (body) => postJson("/api/bank/transfer", body);
+
+export async function fetchPostcard(body) {
+  const data = await postJson("/api/imagine", { kind: "postcard", ...body }, { timeout: IMAGINE_TIMEOUT_MS });
+  return absoluteUrl(data?.image);
+}
+
+export async function fetchVoice(text, voice, signal) {
+  if (!apiAvailable()) return null;
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  const timer = setTimeout(abort, 25_000);
+  signal.addEventListener("abort", abort);
+  if (signal.aborted) abort();
+  try {
+    const response = await fetch(`${apiBase()}/api/voice`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text.slice(0, 600), voice }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    return new Uint8Array(await response.arrayBuffer());
+  } catch { return null; }
+  finally { clearTimeout(timer); signal.removeEventListener("abort", abort); }
+}

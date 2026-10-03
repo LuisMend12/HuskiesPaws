@@ -7,7 +7,7 @@ import { MAX_SPEECH_CHARS, VOICES, petPrompt, postcardPrompt } from "./grok.js";
 import { HttpError, clientIp, readJson, sendError, sendJson } from "./http.js";
 import { createRateLimiter } from "./rateLimit.js";
 import { currentHp, decideClaim } from "./turf.js";
-import { validateClaim, validateImagine, validateLeaderboardQuery, validateScore, validateSpeech } from "./validate.js";
+import { validateClaim, validateImagine, validateLeaderboardQuery, validateRecall, validateScore, validateSpeech } from "./validate.js";
 
 const LEADERBOARD_LIMIT = 10;
 const IMAGE_FETCH_TIMEOUT_MS = 30_000;
@@ -61,6 +61,11 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
   }
 
   return {
+    async recallGuard(req, res) {
+      const { playerId, petId } = validateRecall(await readJson(req));
+      const recalled = await store.recallGuard(playerId, petId);
+      sendJson(res, 200, { recalled });
+    },
     async health(req, res) {
       sendJson(res, 200, { grok: grok.enabled, storage: store.kind });
     },
@@ -136,7 +141,7 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
           };
         })
         .filter(Boolean);
-      sendJson(res, 200, { turf });
+      sendJson(res, 200, { turf, serverNow: now });
     },
 
     async claimTurf(req, res) {

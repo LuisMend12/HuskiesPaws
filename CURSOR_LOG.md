@@ -1,5 +1,17 @@
 # Cursor log
 
+## 2026-10-03 — Code review fixes on `presentation` (Codex)
+
+**Prompt.** Review the complete repository, then fix the nine reported findings on the presentation branch.
+
+**Execution.** These fixes were made through Codex workspace tools. Cursor Agent was not available to control from this session; this entry does not count them as Cursor usage.
+
+**Changes.** Empty Supabase write responses; database revision checks for concurrent territory claims; ownership-checked guard recall; live leaderboard rows; Grok memo playback and postcard requests; online failures kept separate from local demo claims; foreground territory refresh and HP expiry; server-only Nessie credentials and transfer deduplication; reset cancellation and stale-result guards.
+
+**Setup.** Re-run `server/supabase/schema.sql` for existing Supabase projects. Configure `NESSIE_API_KEY` on the backend and `EXPO_PUBLIC_API_URL` on the phone. Audio uses SDK-compatible `expo-audio`; rebuild existing development clients after installing the new native module.
+
+**Validation.** Core, server, iMessage and mobile regression suites; Expo lint; JS module compilation with TypeScript; Android and iOS Hermes exports. Native playback and the live banking/Supabase services still need device/service verification.
+
 Key prompts and implementation decisions for the SpaceX / Cursor track.
 
 ## 2026-10-03 — Stylized iOS 3D garden map (`3d-map`)

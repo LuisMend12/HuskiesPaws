@@ -168,6 +168,19 @@ describe("HuskiesPaws API", () => {
     assert.equal((await post(app.base, "/api/leaderboard", {})).status, 404);
   });
 
+  test("recall checks ownership, releases the guard, and is idempotent", async () => {
+    await post(app.base, "/api/turf/claim", claim("player-recall", "recall-landmark", 30));
+    const wrong = await json(await post(app.base, "/api/turf/recall", { playerId: "player-other", petId: "pet-000001" }));
+    assert.equal(wrong.data.recalled, false);
+    const recalled = await json(await post(app.base, "/api/turf/recall", { playerId: "player-recall", petId: "pet-000001" }));
+    assert.equal(recalled.data.recalled, true);
+    const again = await json(await post(app.base, "/api/turf/recall", { playerId: "player-recall", petId: "pet-000001" }));
+    assert.equal(again.data.recalled, false);
+    const turf = await json(await fetch(`${app.base}/api/turf?me=player-recall`));
+    assert.equal(turf.data.turf.some((t) => t.landmarkId === "recall-landmark"), false);
+    assert.equal((await post(app.base, "/api/turf/recall", { playerId: "x" })).status, 400);
+  });
+
   test("turf: claim, defend, capture, reinforce, and cap", async () => {
     const claimed = await json(await post(app.base, "/api/turf/claim", claim("player-owner1", "L1", 30)));
     assert.equal(claimed.data.result, "claimed");

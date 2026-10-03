@@ -3,9 +3,11 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { HttpError, sendError, serveStatic } from "./http.js";
 import { createRoutes } from "./routes.js";
+import { createBankRoutes } from "./bank.js";
 
-export function createApp({ config, store, grok }) {
+export function createApp({ config, store, grok, bankClient }) {
   const routes = createRoutes({ store, grok, imagesDir: join(config.dataDir, "images"), limits: config.limits });
+  const bank = createBankRoutes({ store, key: config.nessieKey, client: bankClient });
 
   const table = {
     "GET /api/health": routes.health,
@@ -15,6 +17,9 @@ export function createApp({ config, store, grok }) {
     "GET /api/leaderboard": routes.leaderboard,
     "GET /api/turf": routes.listTurf,
     "POST /api/turf/claim": routes.claimTurf,
+    "POST /api/turf/recall": routes.recallGuard,
+    "POST /api/bank/connect": bank.connect,
+    "POST /api/bank/transfer": bank.transfer,
   };
 
   return createServer(async (req, res) => {

@@ -10,6 +10,21 @@ import {
 } from "../pets.js";
 import { LEAGUES, TRAILS, activeTrail, rankFor, scoreFor, xpBoostFor } from "../rank.js";
 import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
+import { transferToSavings } from "../nessie.js";
+
+test("Nessie sends credentials only over HTTPS and refuses redirects", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  let requested;
+  globalThis.fetch = async (url, options) => {
+    requested = { url: new URL(url), options };
+    return Response.json({ objectCreated: { _id: "transfer-test" } });
+  };
+  assert.equal(await transferToSavings("sandbox-key", { checkingId: "check", savingsId: "save" }, 8, "Walk"), "transfer-test");
+  assert.equal(requested.url.protocol, "https:");
+  assert.equal(requested.url.searchParams.get("key"), "sandbox-key");
+  assert.equal(requested.options.redirect, "error");
+});
 
 // Deterministic "random" that walks through a list of values.
 const sequence = (...values) => {

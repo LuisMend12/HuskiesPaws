@@ -18,6 +18,10 @@ export const READY_HP = 50;
 // HP right now from a stored { hp, hpAt } (hpAt in ms; no hpAt = no healing).
 export function hpNow(entry, now = Date.now()) {
   if (!entry) return MAX_HP;
+  if (Number.isFinite(entry.decaysAt)) {
+    return Math.max(0, (entry.maxHp ?? entry.pet?.power ?? MAX_HP)
+      - Math.floor(Math.max(0, now - entry.decaysAt) / 3_600_000 * 10));
+  }
   if (!entry.hpAt) return entry.hp ?? MAX_HP;
   return Math.min(entry.maxHp ?? MAX_HP, entry.hp + ((now - entry.hpAt) / 60000) * HEAL_PER_MINUTE);
 }

@@ -9,7 +9,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { Suspense, lazy, useEffect, useMemo } from "react";
-import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { AppState, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
@@ -74,7 +74,18 @@ function Main() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    game.load();
+    game.load().catch(() => game.set({ status: "Couldn't load progress. Restart the app to try again." }));
+    const timer = setInterval(() => {
+      if (AppState.currentState === "active") game.refreshOnline();
+    }, 15_000);
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") game.refreshOnline();
+    });
+    return () => {
+      clearInterval(timer);
+      subscription.remove();
+      game.dispose();
+    };
   }, [game]);
 
   const { pets, squad } = petsView(state);

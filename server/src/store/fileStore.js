@@ -4,7 +4,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
-const EMPTY = Object.freeze({ players: {}, turf: {}, images: {} });
+const EMPTY = Object.freeze({ players: {}, turf: {}, images: {}, banks: {}, transfers: {} });
 
 export function createFileStore(dataDir) {
   const file = join(dataDir, "db.json");
@@ -73,6 +73,38 @@ export function createFileStore(dataDir) {
 
     async getImage(key) {
       return (await load()).images[key] ?? null;
+    },
+
+    async recallGuard(ownerId, petId) {
+      let recalled = false;
+      await update((db) => {
+        const turf = Object.fromEntries(Object.entries(db.turf).filter(([, t]) => {
+          const remove = t.ownerId === ownerId && t.pet?.id === petId;
+          recalled ||= remove;
+          return !remove;
+        }));
+        return { ...db, turf };
+      });
+      return recalled;
+    },
+
+    async getBank(playerId) { return (await load()).banks[playerId] ?? null; },
+    async saveBank(playerId, bank) {
+      await update((db) => ({ ...db, banks: { ...db.banks, [playerId]: bank } }));
+    },
+    async getTransfer(playerId, tripId) { return (await load()).transfers[`${playerId}:${tripId}`] ?? null; },
+    async saveTransfer(playerId, tripId, transfer) {
+      await update((db) => ({ ...db, transfers: { ...db.transfers, [`${playerId}:${tripId}`]: transfer } }));
+    },
+    async reserveTransfer(playerId, tripId, transfer) {
+      let reserved = false;
+      await update((db) => {
+        const key = `${playerId}:${tripId}`;
+        if (db.transfers[key]) return db;
+        reserved = true;
+        return { ...db, transfers: { ...db.transfers, [key]: transfer } };
+      });
+      return reserved;
     },
 
     async saveImage(key, path) {
