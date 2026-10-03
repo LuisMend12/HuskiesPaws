@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/huskiespaws-logo-dark.png">
+    <img alt="HuskiesPaws logo: a husky with a blooming paw print" src="docs/logo/huskiespaws-logo.png" width="560">
+  </picture>
+</p>
+
 # 🐾 HuskiesPaws
 
 **Walk more, explore more, save more.**
