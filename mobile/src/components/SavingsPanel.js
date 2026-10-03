@@ -1,6 +1,5 @@
 // Walk-instead-of-ride savings: the growing tree, recent walks, and Nessie.
-import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { treeSvg } from "../core/art.js";
 import { MIN_TRIP_M, formatDollars, totalSaved, treeStage } from "../core/savings.js";
@@ -10,13 +9,9 @@ import { Button, Hint, SectionTitle } from "./ui.js";
 const RECENT_TRIPS = 8;
 
 export function SavingsPanel({ state, game }) {
-  const [key, setKey] = useState("");
   const saved = totalSaved(state.trips);
   const stage = treeStage(saved);
 
-  const connect = async () => {
-    if (await game.connectBank(key)) setKey("");
-  };
 
   return (
     <View>
@@ -56,17 +51,7 @@ export function SavingsPanel({ state, game }) {
       </Hint>
       {!state.bank && (
         <View style={styles.form}>
-          <TextInput
-            value={key}
-            onChangeText={setKey}
-            placeholder="Paste your Nessie API key"
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            accessibilityLabel="Nessie API key"
-            style={styles.input}
-          />
-          <Button title="Connect" onPress={connect} />
+          <Button title="Connect savings" onPress={game.connectBank} />
         </View>
       )}
     </View>
@@ -84,14 +69,4 @@ const styles = StyleSheet.create({
   tripPlace: { fontFamily: fonts.semibold, color: colors.ink },
   amount: { fontFamily: fonts.extrabold, color: colors.leafDark },
   form: { flexDirection: "row", gap: 8, marginTop: 8, alignItems: "center" },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: colors.card,
-    fontFamily: fonts.semibold,
-  },
 });

@@ -1,31 +1,67 @@
-// Agent voice memos. With a server, Moss speaks through ElevenLabs and Pip/Fern
-// through Grok Voice. Without a server, or on any failure, we use on-device speech.
+// Grok memos play from a temporary file, with on-device speech on any failure.
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
+import { File, Paths } from "expo-file-system";
 import * as Speech from "expo-speech";
-import { canUseServerVoice, playServerVoice, stopServerVoice } from "./serverVoice.js";
+import { fetchVoice } from "./api.js";
 
 const DEFAULT_VOICE = { pitch: 1.2, rate: 1 };
 
-// Bumped on every memo so a slow download can't talk over a newer one.
-let memoTurn = 0;
+let generation = 0;
+let controller = null;
+let cleanup = null;
 
-// agent is optional: callers without a speaker (e.g. a hatch) get a cheerful default.
-export function speakMemo(text, agent) {
-  const voice = agent?.voice ?? DEFAULT_VOICE;
-  memoTurn += 1;
-  const turn = memoTurn;
-  const isCurrent = () => turn === memoTurn;
+export function stopMemo() {
+  generation += 1;
+  controller?.abort();
+  controller = null;
+  cleanup?.();
+  cleanup = null;
   Speech.stop();
-  stopServerVoice();
+}
 
-  const speakOnDevice = () => {
-    if (isCurrent()) Speech.speak(text, { pitch: voice.pitch, rate: voice.rate });
+export async function speakMemo(text, agent) {
+  stopMemo();
+  const token = generation;
+  controller = new AbortController();
+  const fallback = () => {
+    if (token !== generation) return;
+    const voice = agent?.voice ?? DEFAULT_VOICE;
+    Speech.speak(text, { pitch: voice.pitch, rate: voice.rate });
   };
-  if (!canUseServerVoice(text, agent?.id)) {
-    speakOnDevice();
-    return;
+  let file;
+  let player;
+  let subscription;
+  let timeout;
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    clearTimeout(timeout);
+    subscription?.remove();
+    player?.remove();
+    if (file?.exists) file.delete();
+    if (cleanup === dispose) cleanup = null;
+  };
+  try {
+    const bytes = await fetchVoice(text, agent?.grokVoice ?? "ara", controller.signal);
+    if (token !== generation) return;
+    if (!bytes?.length) { fallback(); return; }
+    file = new File(Paths.cache, `memo-${Date.now()}-${token}.mp3`);
+    file.create();
+    file.write(bytes);
+    await setAudioModeAsync({ playsInSilentMode: true });
+    if (token !== generation) { dispose(); return; }
+    player = createAudioPlayer(file.uri);
+    cleanup = dispose;
+    subscription = player.addListener("playbackStatusUpdate", (status) => {
+      if (status.error) { dispose(); fallback(); }
+      else if (status.didJustFinish) dispose();
+      else if (status.isLoaded) clearTimeout(timeout);
+    });
+    timeout = setTimeout(() => { dispose(); fallback(); }, 8000);
+    player.play();
+  } catch {
+    dispose();
+    fallback();
   }
-  playServerVoice(text, agent, isCurrent).catch((error) => {
-    console.warn("Server voice failed, using device speech:", error?.message ?? error);
-    speakOnDevice();
-  });
 }

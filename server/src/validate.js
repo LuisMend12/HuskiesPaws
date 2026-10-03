@@ -33,9 +33,22 @@ function oneOf(value, field, options) {
   return value;
 }
 
-function playerId(value) {
+export function playerId(value) {
   if (typeof value !== "string" || !ID_PATTERN.test(value)) fail("playerId is invalid");
   return value;
+}
+
+export function validateRecall(body) {
+  return { playerId: playerId(body.playerId), petId: playerId(body.petId) };
+}
+
+export function validateBankWalk(body) {
+  return {
+    playerId: playerId(body.playerId),
+    tripId: playerId(body.tripId),
+    title: str(body.title, "title", { max: 120 }),
+    meters: num(body.meters, "meters", { min: 300, max: 100_000 }),
+  };
 }
 
 function region(value) {

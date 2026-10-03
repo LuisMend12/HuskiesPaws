@@ -14,7 +14,7 @@ services:
         value: "22"
       - key: XAI_API_KEY # Grok Voice + Imagine (required for the Cursor track)
         sync: false
-      - key: ELEVENLABS_API_KEY # optional: ElevenLabs voices (falls back to Grok Voice)
+      - key: NESSIE_API_KEY
         sync: false
       - key: SUPABASE_URL # optional: keeps leaderboards and turf across redeploys
         sync: false
