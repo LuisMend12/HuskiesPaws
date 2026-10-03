@@ -14,7 +14,7 @@ import { Euler, Quaternion, Vector3 } from "three";
 import { Pup } from "./Pet3D.js";
 
 const EYE = 3.2; // camera height above the floor, in world units (a pet is ~1 tall)
-const PET_SCALE = 0.7;
+const PET_SCALE = 0.56;
 const FEET = 0.86 * PET_SCALE; // lift each pet so its feet touch the floor (y = 0)
 const VIEW_DISTANCE = { min: 2.5, max: 8, fallback: 4.5 }; // where on the floor the group gathers
 const SETTLE_MS = 450; // the phone must be still this long before pets react
@@ -23,8 +23,9 @@ const MOVE_ON = 1.4; // pets regroup when the view is this far from their spot
 const RUN_SPEED = 3.2; // units per second
 const STAGGER_S = 0.18; // each pet starts running a little after the one before
 const ARRIVED = 0.08;
-// Each pet's spot around the group's center, in view space (x right, z toward you).
-const SLOTS = [[0, 0], [-1.25, 0.35], [1.25, 0.35], [-0.65, -0.9], [0.65, -0.9]];
+// Each pet's spot around the group's center, in view space (x right, z toward you),
+// spaced for the pet size.
+const SLOTS = [[0, 0], [-1.25, 0.35], [1.25, 0.35], [-0.65, -0.9], [0.65, -0.9]].map(([x, z]) => [x * PET_SCALE / 0.7, z * PET_SCALE / 0.7]);
 
 // --- Phone orientation -> camera rotation (the W3C deviceorientation recipe) ---
 const ZEE = new Vector3(0, 0, 1);
