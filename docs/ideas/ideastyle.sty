@@ -1,0 +1,53 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ideastyle}[2026/10/02 BigRed//Hacks idea sheet style]
+
+\RequirePackage[margin=1in,headheight=14pt]{geometry}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}
+\RequirePackage{xcolor}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{enumitem}
+\RequirePackage{titlesec}
+\RequirePackage{fancyhdr}
+\RequirePackage[colorlinks=true,linkcolor=bigred,urlcolor=bigred]{hyperref}
+
+\definecolor{bigred}{HTML}{B31B1B}
+\definecolor{okgreen}{HTML}{1B7F3B}
+\definecolor{warnamber}{HTML}{B36B00}
+
+\titleformat{\section}{\large\bfseries\color{bigred}}{}{0em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\section}{0pt}{1.2em}{0.4em}
+
+\setlist{nosep,leftmargin=1.5em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{BigRed//Hacks 2026 --- SpaceX Track Idea}
+\cfoot{\thepage}
+
+% \ideatitle{Name}{One-line pitch}
+\newcommand{\ideatitle}[2]{%
+  \rhead{#1}%
+  {\LARGE\bfseries\color{bigred}#1\par}
+  \vspace{0.3em}
+  {\large\itshape #2\par}
+  \vspace{0.5em}\hrule\vspace{0.8em}}
+
+% Track-requirement checklist rows: \req{requirement}{how we meet it}
+\newcommand{\req}[2]{\textbf{#1} & #2 \\}
+
+% Ratings 1-5: \rating{label}{score}{note}
+\newcommand{\rating}[3]{#1 & \textbf{#2}/5 & #3 \\}
+
+% Limitation entry: \limitation{title}{problem}{mitigation}
+\newcommand{\limitation}[3]{%
+  \item \textbf{\color{warnamber}#1.} #2\\
+        \textit{\color{okgreen}Mitigation:} #3}
+
+\endinput

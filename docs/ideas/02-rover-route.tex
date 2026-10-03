@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{Rover Route}{AI path planning for a Mars rover on real Martian terrain.}
+
+\section{The Idea}
+Choose a start point and a destination on real Mars elevation data. Rover Route
+plans the safest drive, avoiding steep slopes and rough ground the way rover
+drivers do, and shows it on a map. Grok Voice plays Mission Control and narrates
+the drive; Grok Imagine renders a ``rover camera'' view at each waypoint. You can
+compare your planned route to the path the real rover actually drove.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Pathfinding, data pipeline, and UI all built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Imagine} for waypoint views, \textbf{Voice} for Mission Control narration.}
+\req{Real space data}{Mars elevation models (MOLA global, HiRISE high-resolution), real rover routes.}
+\req{Navigation theme}{Autonomous navigation on another planet. Matches the prompt ``How do you train AI to better navigate the world?''}
+\req{Also eligible}{Big Red, Software, Design.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Load one pre-processed terrain tile (e.g. around Jezero Crater) as a heightmap.
+  \item Compute slope per cell; mark cells above a safety threshold as impassable.
+  \item A* search with a cost based on distance, slope, and roughness.
+  \item Draw the route on a shaded-relief map; click to set start and goal.
+  \item Grok Voice narrates the route summary (distance, max slope, hazards).
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item 3D terrain view in three.js with the rover driving the path.
+  \item Overlay the real Perseverance traverse for comparison.
+  \item Grok Imagine ``rover cam'' image at each waypoint.
+  \item Tunable risk slider: fastest route vs.\ safest route.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Data prep: Python with \texttt{rasterio}/GDAL to crop and downsample elevation GeoTIFFs.
+  \item Backend: Python (FastAPI) running A*, or A* in the browser on a small grid.
+  \item Frontend: React with a canvas or Leaflet map; three.js for 3D.
+  \item Data: NASA PDS / HiRISE digital terrain models, MOLA global elevation, published rover traverse maps.
+  \item AI: Grok Imagine and Grok Voice APIs.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Large, awkward data files}{HiRISE terrain models are large GeoTIFFs in Mars-specific map projections. Processing them can eat hours.}{Pre-process one small tile Friday night and ship it as a static file. Do not support arbitrary regions in the MVP.}
+\limitation{Simplified physics}{Slope and roughness are only part of real rover planning (wheel slip, sand, rocks smaller than the pixel size, power, communication windows).}{Say so in the pitch: ``a simplified model of how JPL plans drives.''}
+\limitation{Grok Imagine is not real data}{Generated rover views are artistic guesses, which may clash with the ``real space data'' spirit of the track.}{Label them as artist's impressions, or ground them by sending real HiRISE imagery of that spot as a reference.}
+\limitation{Pathfinding performance}{A* on a full-resolution grid (millions of cells) can be slow in the browser.}{Downsample the grid, or run A* on the backend.}
+\limitation{Less ``live'' demo}{It's a map-based demo; less physical than pointing a phone at the sky.}{Make the 3D drive animation and voice narration the hero moment.}
+\limitation{Grok API unknowns}{API details, rate limits, and image generation time are not verified.}{Pre-generate waypoint images for the demo route and cache them.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Strong visual if the 3D view works.}
+\rating{Buildable in 24h}{3}{Data prep is the bottleneck.}
+\rating{Navigation theme}{5}{Autonomous navigation on Mars.}
+\rating{Wow factor}{4}{Real Mars terrain impresses.}
+\rating{Technical risk (5 = riskiest)}{3}{Moderate (GIS data, 3D).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Strong second choice.} Best for a team with some Python and data
+experience. Reduce risk by fixing on one terrain tile early.
+
+\end{document}

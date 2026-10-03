@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{StarFix}{Navigate without GPS: find your direction from a photo of the stars, like a spacecraft does.}
+
+\section{The Idea}
+Spacecraft use star trackers: cameras that recognize star patterns to work out
+which way they are pointing. Sailors used the stars to find their position. StarFix
+brings that to a phone. Take or upload a photo of the night sky; StarFix identifies
+the stars, works out where the camera was pointing, and, combined with the time
+and the phone's tilt, estimates where you are on Earth. Grok Voice walks you
+through the result.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Image pipeline, star matching, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} explains the fix; \textbf{Imagine} can produce a labeled sky chart.}
+\req{Real space data}{Hipparcos or Yale Bright Star catalog; real star-tracker methods.}
+\req{Navigation theme}{Navigation when GPS is unavailable: on Mars, in deep space, or when GPS is jammed.}
+\req{Also eligible}{Big Red, Software; Hardware if using a Raspberry Pi camera.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Upload a night-sky photo.
+  \item Detect stars and match them to a catalog (``plate solving'').
+  \item Show the photo with stars and constellations labeled, plus the pointing direction.
+  \item Grok Voice explains: \emph{``You were facing northeast, about 40 degrees up.''}
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Estimate latitude and longitude from the star fix, time, and phone tilt.
+  \item Live camera mode.
+  \item Raspberry Pi camera as a DIY star tracker (Hardware track).
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Star matching: astrometry.net (local install or its web API), or Python \texttt{tetra3}.
+  \item Image processing: Python with OpenCV / Astropy.
+  \item Frontend: React upload page with an annotated image.
+  \item AI: Grok Voice API (and optionally Imagine).
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Hardest technically}{Reliable star matching is a serious algorithm. Writing it from scratch in 24 hours is very risky.}{Use an existing solver (astrometry.net, tetra3) and focus on the experience. Prototype this step first, Friday night.}
+\limitation{Phone photos are hard}{Phones capture few stars, with noise, blur, and light pollution, especially in Ithaca in October (often cloudy).}{Use long-exposure or night-mode photos and keep a set of good sample images ready.}
+\limitation{Daytime indoor judging}{You cannot take a sky photo during judging.}{Demo with pre-captured photos; show a short video of capturing one.}
+\limitation{Location needs more than a photo}{A sky photo alone gives pointing direction, not position. Position also needs an accurate time and the camera's angle to the horizon.}{Keep location as a stretch goal; the MVP is ``which way am I pointing.''}
+\limitation{Solver setup}{astrometry.net's local install needs large index files and is awkward on Windows; its web API can be slow (minutes per image).}{Test both Friday night; pre-solve demo images and cache the results.}
+\limitation{Grok fit is thinner}{Voice explains results but isn't essential to the core function.}{Make the voice explanation educational: how sailors and spacecraft do this.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{3}{Pre-captured images only.}
+\rating{Buildable in 24h}{2}{Depends heavily on the solver working.}
+\rating{Navigation theme}{5}{Navigation without GPS.}
+\rating{Wow factor}{5}{``Our phone found where it was from the stars.''}
+\rating{Technical risk (5 = riskiest)}{5}{High.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{High risk, high reward.} The most ``legendary'' concept, but only pick it
+if a quick test Friday night shows the star solver working on a phone photo.
+
+\end{document}

@@ -1,0 +1,76 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{OrbitWatch}{Space traffic control: a live globe of satellites and debris, with voice briefings on close approaches.}
+
+\section{The Idea}
+A 3D globe showing thousands of real satellites and pieces of debris moving in
+real time. OrbitWatch screens for objects that will pass close to each other and
+Grok Voice delivers a ``flight director'' briefing:
+\emph{``Three close approaches in the next 24 hours. The closest is\ldots''}
+You can also ask by voice: \emph{``Show me every Starlink satellite over Europe.''}
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Globe rendering, orbit propagation, and screening logic built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} for briefings and voice queries.}
+\req{Real space data}{CelesTrak orbital data for active satellites and debris.}
+\req{Navigation theme}{Navigating increasingly crowded orbits over the next 100 years.}
+\req{Also eligible}{Big Red, Software, Design.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item 3D globe with live positions of active satellites (a few thousand objects).
+  \item Filter by group (Starlink, ISS, weather, debris).
+  \item Close-approach screening for one chosen satellite against all others over the next 24 hours.
+  \item Spoken Grok briefing summarizing the results.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Voice queries that change the globe view.
+  \item Suggest a simple avoidance maneuver (raise or lower the orbit).
+  \item Timeline scrubber to replay the past week.
+  \item Add the full debris catalog.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Frontend: CesiumJS or three.js / globe.gl.
+  \item Orbits: CelesTrak GP data, propagated with \texttt{satellite.js} (SGP4).
+  \item Screening: Python or a Web Worker; coarse filter, then fine time-step check.
+  \item AI: Grok Voice API.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Not real collision risk}{Public orbital data (TLEs) is only accurate to around a kilometer or more and degrades over days. Real conjunction assessment uses error estimates (covariance) that are not public.}{Call the output ``close-approach screening'', not collision prediction. State this in the pitch; judges will respect it.}
+\limitation{Scale}{Tens of thousands of tracked objects means checking every pair is billions of comparisons.}{Screen only one chosen satellite against all others, and use a cheap altitude-band filter first.}
+\limitation{Rendering performance}{Animating thousands of points on a 3D globe can drop frames on laptops.}{Use instanced points, update positions a few times a second, and cap the default object count.}
+\limitation{Originality}{Existing visualizers (stuffin.space, CelesTrak SOCRATES, LeoLabs) already do much of this.}{Differentiate with the voice ``flight director'' and natural-language queries.}
+\limitation{Weak use of Grok Imagine}{Only Voice fits naturally; Imagine would feel forced.}{The track requires Imagine \emph{or} Voice, so Voice alone is enough.}
+\limitation{CelesTrak usage limits}{CelesTrak asks users not to download data too often.}{Download once, cache locally, refresh at most every few hours.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{The live globe is eye-catching.}
+\rating{Buildable in 24h}{3}{Globe is easy; screening takes care.}
+\rating{Navigation theme}{4}{Good, slightly indirect.}
+\rating{Wow factor}{4}{Thousands of moving satellites.}
+\rating{Technical risk (5 = riskiest)}{3}{Moderate (performance, scale).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Solid option.} Visually impressive and data-heavy, which suits the
+SpaceX track. The main weakness is that similar tools already exist, so the voice
+experience must carry the originality.
+
+\end{document}

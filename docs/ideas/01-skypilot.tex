@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{SkyPilot}{A voice-guided stargazing navigator that talks you onto the ISS, planets, and satellites.}
+
+\section{The Idea}
+Point your phone at the sky and ask out loud: \emph{``Where's the ISS?''},
+\emph{``What's that bright dot?''}, \emph{``When does the next Starlink train pass
+over Ithaca?''} SkyPilot computes where the object is from real orbital data,
+compares that to where your phone is pointing, and Grok Voice guides you onto it:
+\emph{``Turn left about 30 degrees\ldots{} now tilt up a little\ldots{} there.''}
+An on-screen arrow and an audio-only mode make it usable by low-vision users.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Entire web app built in Cursor (Agent for scaffolding, rules file, prompt log).}
+\req{Grok Voice / Imagine}{\textbf{Voice} is the core interface. \textbf{Imagine} renders a ``what you'd see through a telescope'' view.}
+\req{Real space data}{Live satellite orbits (CelesTrak), planet ephemerides, bright-star catalog.}
+\req{Navigation theme}{Literally navigates your gaze across the sky; accessible audio navigation (a prompt from the opening slides).}
+\req{Also eligible}{Big Red, Software, Design, People's Choice.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP (must have by Saturday night)}
+\begin{itemize}
+  \item Mobile web page reading phone compass heading and tilt.
+  \item Compute altitude/azimuth of the ISS and 5 naked-eye planets for the user's location and time.
+  \item ``Find it'' mode: arrow + spoken directions until the phone is on target.
+  \item Voice questions answered by Grok using the computed data.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Upcoming visible-pass list with notifications.
+  \item Haptic ``warmer/colder'' vibration for eyes-free use.
+  \item Camera AR overlay with labels.
+  \item Grok Imagine telescope view of the selected object.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Frontend: React/Next.js (PWA), \texttt{DeviceOrientationEvent} for heading and tilt.
+  \item Orbits: CelesTrak GP/TLE data propagated with \texttt{satellite.js}.
+  \item Planets: \texttt{astronomy-engine} (JS) or JPL Horizons.
+  \item AI: Grok Voice API (conversation), Grok Imagine (images).
+  \item Hosting: Vercel or similar (HTTPS is required for phone sensors).
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Judging is indoors, in daylight}{Judging runs 9:00 AM--12:30 PM inside PSB. You cannot actually see the ISS or most planets during the demo.}{Build a ``demo sky'' mode that simulates nighttime at the current location; the pointing guidance still works on the real ceiling. Record a real nighttime clip Saturday night as backup.}
+\limitation{Phone compass accuracy}{Magnetometers are often off by 10--20$^\circ$ indoors, near laptops, or near steel structures.}{Calibrate against a known reference (e.g. the Sun or a bright planet), use a generous ``on target'' tolerance, and be honest about it in the pitch.}
+\limitation{Browser sensor permissions}{iOS Safari requires an explicit permission prompt and HTTPS for orientation events; Android browsers differ in what ``heading'' means.}{Test on both platforms Friday night; deploy over HTTPS from the start.}
+\limitation{ISS visibility is limited}{The ISS is only visible when it is sunlit and the observer is in darkness (around dawn and dusk), on a pass over your location.}{Show ``visible passes'' honestly; always allow ``point to where it is'' even if it isn't visible.}
+\limitation{Voice latency}{A round trip of speech to Grok and back can lag behind someone sweeping their phone around.}{Generate the turn-by-turn cues locally (short pre-made phrases or the browser speech API) and use Grok only for conversational questions.}
+\limitation{Originality}{Sky-map apps (SkyView, Stellarium, Star Walk) already exist.}{Differentiate on \emph{voice-first, accessible navigation} and conversation, not on the star map.}
+\limitation{Grok API unknowns}{Exact Voice/Imagine API shape, rate limits, and cost are not verified yet.}{Confirm at the Friday 9:30 PM Grok/Cursor workshop; get one call working before building on it.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Memorable, but needs a simulated sky indoors.}
+\rating{Buildable in 24h}{4}{Mostly frontend and well-known libraries.}
+\rating{Navigation theme}{5}{Direct fit, plus accessibility.}
+\rating{Wow factor}{4}{Talking phone pointing at the sky.}
+\rating{Technical risk (5 = riskiest)}{2}{Low to moderate (sensors, latency).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Recommended.} It has the best balance of theme fit, demo impact, and
+buildability. The main risk is the indoor daylight demo, which a simulated-sky
+mode solves.
+
+\end{document}

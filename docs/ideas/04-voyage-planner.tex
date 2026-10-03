@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{Voyage Planner}{Plan a trip across the solar system: routes, launch windows, and travel time.}
+
+\section{The Idea}
+Pick an origin and a destination (Earth to Mars, Earth to Jupiter's moon Europa).
+Voyage Planner computes a transfer orbit, shows the travel time, the fuel needed
+(delta-v), and the next good launch windows, then animates the trajectory. Grok
+Voice acts as the ship's AI explaining the plan, and Grok Imagine creates a
+``postcard'' for each leg of the trip. You can also replay real missions such as
+Voyager and New Horizons.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Orbital mechanics code, animation, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Imagine} postcards, \textbf{Voice} ship AI.}
+\req{Real space data}{JPL Horizons planet positions; real mission trajectories.}
+\req{Navigation theme}{Interplanetary navigation.}
+\req{Also eligible}{Big Red, Software, Design.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Choose origin and destination planets.
+  \item Compute a Hohmann (minimum-energy) transfer: delta-v and travel time.
+  \item Find the next launch window from the planets' relative positions.
+  \item 2D animated top-down view of the orbits and the transfer path.
+  \item Grok Voice explains the plan in plain language.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Porkchop plot (launch date vs.\ arrival date vs.\ fuel cost).
+  \item Gravity-assist routes (e.g. Earth--Venus--Jupiter).
+  \item Replay Voyager 2 or New Horizons from real trajectory data.
+  \item Grok Imagine postcards for each stop.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Math: Python (\texttt{poliastro}-style calculations or hand-written) or JS.
+  \item Data: JPL Horizons API for planet and spacecraft positions.
+  \item Frontend: React with canvas/SVG, or three.js for 3D.
+  \item AI: Grok Imagine and Grok Voice APIs.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Hard math}{Anything beyond a simple Hohmann transfer (porkchop plots, gravity assists) needs a Lambert solver and careful orbital mechanics. It is easy to get wrong under time pressure.}{Ship the Hohmann version first. Use an existing, tested library for anything harder.}
+\limitation{Simplified model}{Hohmann transfers assume circular, flat (coplanar) orbits. Real missions differ, sometimes a lot.}{Label results as approximations; compare to a real mission's numbers as a sanity check.}
+\limitation{Library availability}{\texttt{poliastro}, a popular Python orbital library, is archived and may not install cleanly on new Python versions.}{Check installation Friday night; have a hand-written Hohmann fallback.}
+\limitation{Weak live demo}{It's a planning tool on a screen; less interactive than the phone or globe ideas.}{Make the animation and the ship-AI voice the centerpiece.}
+\limitation{Originality}{NASA's Trajectory Browser and many educational tools exist.}{Focus on the conversational, story-like experience rather than raw calculations.}
+\limitation{Grok Imagine accuracy}{Postcards are artistic, not real images.}{Label them clearly; pair with real NASA images where available.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{3}{Screen-only demo.}
+\rating{Buildable in 24h}{3}{MVP is fine; stretch goals are math-heavy.}
+\rating{Navigation theme}{4}{Clear fit.}
+\rating{Wow factor}{3}{Depends on visuals.}
+\rating{Technical risk (5 = riskiest)}{3}{Moderate (orbital math).}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Good if the team likes math and physics.} Educational and on-theme, but
+the demo is less exciting than SkyPilot or Rover Route.
+
+\end{document}

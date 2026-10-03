@@ -1,0 +1,70 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{Launch Lens}{A voice companion for exploring past and upcoming rocket launches.}
+
+\section{The Idea}
+Ask \emph{``What's launching this week, and where is it going?''} Launch Lens shows
+past and upcoming launches, booster landings, and orbit ground tracks on a map,
+and lets you explore them by voice. Grok Imagine generates mission-patch-style
+artwork for each launch.
+
+\section{Track Fit}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{Built with Cursor}{Data fetching, map, and UI built in Cursor.}
+\req{Grok Voice / Imagine}{\textbf{Voice} Q\&A and \textbf{Imagine} mission patches. Uses both APIs.}
+\req{Real space data}{Launch Library 2 (The Space Devs) launch data; orbital data for ground tracks.}
+\req{Navigation theme}{Weak. Ground tracks and booster-recovery ship routes help a little.}
+\req{Also eligible}{Software, Design, People's Choice.}
+\bottomrule
+\end{tabular}
+
+\section{Features}
+\subsection{MVP}
+\begin{itemize}
+  \item Timeline of upcoming and recent launches with rocket, mission, and launch site.
+  \item Map with launch site and ground track for a selected mission.
+  \item Voice Q\&A about launches using Grok.
+\end{itemize}
+\subsection{Stretch}
+\begin{itemize}
+  \item Grok Imagine mission patch for each launch.
+  \item Booster landing and recovery-ship locations.
+  \item ``Can I see it from here?'' visibility check for your location.
+\end{itemize}
+
+\section{Tech Stack and Data}
+\begin{itemize}
+  \item Data: Launch Library 2 API; CelesTrak for orbits once in space.
+  \item Frontend: React with Leaflet or Mapbox.
+  \item AI: Grok Voice and Grok Imagine.
+\end{itemize}
+
+\section{Limitations and Risks}
+\begin{itemize}
+\limitation{Weak theme fit}{Hard to argue it changes how we navigate in the next 100 years, which hurts in the Big Red track.}{Lean into ground tracks and ``where will it fly over'', or accept that it targets the SpaceX track only.}
+\limitation{Least original}{Many launch tracker apps and sites already exist (Next Spaceflight, RocketLaunch.live).}{Voice-first exploration and generated patches are the only differentiators; that may not be enough.}
+\limitation{API rate limits}{The free Launch Library 2 tier allows only a small number of requests per hour.}{Fetch once, cache to a JSON file, and serve from cache. Use their development server while building.}
+\limitation{Stale community APIs}{The popular community SpaceX API is no longer maintained, so recent launches may be missing.}{Use Launch Library 2 as the main source.}
+\limitation{Mission patches can mislead}{Generated patches could be confused with official mission artwork.}{Label them as AI-generated fan art.}
+\end{itemize}
+
+\section{Scorecard}
+\begin{tabular}{@{}P{0.25\textwidth}P{0.08\textwidth}P{0.6\textwidth}@{}}
+\toprule
+\rating{Demo-able}{4}{Easy, reliable screen demo.}
+\rating{Buildable in 24h}{5}{Simplest of the six.}
+\rating{Navigation theme}{2}{Weak.}
+\rating{Wow factor}{2}{Feels familiar.}
+\rating{Technical risk (5 = riskiest)}{1}{Low.}
+\bottomrule
+\end{tabular}
+
+\section{Verdict}
+\textbf{Fallback only.} Choose it for a beginner-heavy team or if another idea
+collapses on Saturday. Unlikely to stand out on originality or theme.
+
+\end{document}
