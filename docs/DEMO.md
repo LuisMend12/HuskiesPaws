@@ -9,7 +9,7 @@ Judging is **science-fair style: 4 minutes per table** (2-minute pitch, 2-minute
 | 0:00 | "How we navigate today is shortest path, alone, staring at a phone. HuskiesPaws makes walking an adventure, and it pays you to skip the ride." | App open on the map |
 | 0:15 | "Your agent squad scouts real places." | **Squad → Explore.** Pip's voice memo plays (**Grok Voice**), and the postcard appears with a **Grok Imagine** illustration. |
 | 0:40 | "Fern walks you there, and your trail blooms." | **Take me there**: the trail blooms, and the status shows "You skipped a ~$8 ride". |
-| 1:00 | "That money really moves into savings through **Capital One's Nessie**, and it grows your tree." | **Savings** tab: the tree and the trip list |
+| 1:00 | "That fare moves into a savings account through **Capital One's Nessie API**, and it grows your tree." | **Savings** tab: the tree and the trip list |
 | 1:15 | "Walking hatches eggs. Every pet is drawn by Grok, and rare eggs are more likely when the **ISS is passing overhead**, using live orbital data." | **Pets** tab: the hatched pet's portrait, and the 🛰️ banner if it's up |
 | 1:30 | "Leave your pet to guard a landmark. Someone with a stronger pet can take it, so people keep walking back." | **Claim** the landmark. **Ranks**: live local, statewide and national boards |
 | 1:45 | "It works on the web, as a phone app with a real step counter, and over iMessage." | Show a text thread with Pip (Photon) |

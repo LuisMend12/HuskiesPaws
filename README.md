@@ -1,242 +1,159 @@
 # 🐾 HuskiesPaws
 
-**Walk more, explore more, save more.** HuskiesPaws is a walking game for [Big Red Hacks 2026](https://bigredhacks2026.devpost.com/) (theme: **Navigation**). Every walk blooms a flower trail on the map. AI agent companions scout real places for you. And every ride you skip by walking grows a savings tree.
+**Walk more, explore more, save more.**
 
-> **Status:** building for the **Sunday 8:30 AM** Devpost deadline. See [PLAN.md](PLAN.md) for scope and priorities.
+HuskiesPaws turns everyday walking into an adventure. Every walk blooms a flower trail on the map. A squad of AI agents scouts real places for you and walks you there. Walking hatches pets that guard the landmarks you discover. And every rideshare you skip by walking moves the fare into a savings account (through Capital One's Nessie banking sandbox) that grows a tree.
 
-## The app
+Built at **[BigRed//Hacks 2026](https://bigredhacks2026.devpost.com/)**, Cornell University, October 2–4, 2026. Theme: **Navigation**.
 
-| Feature | What it does |
+| | |
 |---|---|
-| 🌸 **Blooming trails** | Your walk leaves a trail of flowers on the map. Each rank unlocks a new trail (Meadow, Rose Garden, Cherry Blossom, Starlight…). |
-| 🤖 **Agent squad** | **Pip (Scout)** finds places you've never been, **Moss (Storyteller)** tells their history, and **Fern (Pathfinder)** walks you there. They only report facts from real data (Wikipedia and OpenStreetMap). |
-| 🏆 **Ranks and leaderboards** | Points come from steps, landmarks found and landmarks captured. The ranks go 🌱 Seedling → 🌲 Ancient Oak, with **Local**, **Statewide** and **National** leaderboards. |
-| 🥚 **Eggs and pets** | Walking earns eggs, and walking more hatches them into pets with a rarity (common to legendary), each drawn by **Grok Imagine**. While the **ISS is overhead** (live orbital data), rare pets are 3x as likely. |
-| 🏰 **Turf** | Leave your pet to guard a landmark and earn XP for every hour it holds. Someone with a stronger pet can take it over. |
-| 📸 **Landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
-| 💰 **Walk-instead-of-ride savings** | Each walk over 300 m counts as an Uber you skipped. The fare moves into savings through **Capital One's Nessie API** and grows your 🌰 → 🍎 savings tree. |
-| 💬 **iMessage agents** | Text the squad: "explore", "story", "take me there". Built with **Photon Spectrum**. |
-| 🎙️ **Grok** | **Grok Voice** speaks the agents' memos, and **Grok Imagine** draws postcards and pet portraits, through our server so the key stays secret. Needs an `XAI_API_KEY`. |
-
-### Three ways to use it
-
-| Version | Folder | Run it |
-|---|---|---|
-| 🌐 **Web app + server** | [`server/`](server/) and [`prototype/`](prototype/) | `cd server` then `npm start`, and open http://localhost:8765. This turns on Grok, live leaderboards and turf ([guide](server/README.md)). `python serve.py` in `prototype/` still works without them. |
-| 📱 **Phone app** (Expo) | [`mobile/`](mobile/) | `cd mobile`, `npm install`, `npx expo start`, then scan the QR code with Expo Go ([guide](mobile/README.md)) |
-| 💬 **iMessage agent** | [`imessage-agent/`](imessage-agent/) | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys), or `npm start` with Photon keys ([guide](imessage-agent/README.md)) |
-
-All three share the same game logic in [`prototype/js/`](prototype/js/). Notes for AI coding agents (Cursor, Claude Code) are in [AGENTS.md](AGENTS.md).
-
-### Prize tracks
-
-**Cursor (SpaceX)**, **Capital One (Best Use of Nessie)**, **Photon (iMessage agents)**, **Big Red** (best fit to the Navigation theme), **Design**, **Software** and **People's Choice**.
-
-### Still to do
-
-Add the real `XAI_API_KEY` and test Grok live, deploy to Render for HTTPS ([steps](server/README.md#deploy-with-https-render-free)), record the backup video ([demo plan](docs/DEMO.md)), and bring pets and turf to the phone app. The full list is in [PLAN.md](PLAN.md).
-
----
-
-## Hackathon notes and brainstorming
-
-The rest of this file is the background: hackathon facts, track rules, and every idea we considered before choosing HuskiesPaws, which was called **Wanderlings** during brainstorming.
-
-## Key facts from the opening ceremony
-
-- **Theme: Navigation.** *"What do we build next to change how we navigate in the next 100 years?"*
-- **Deadline: Sunday 8:30 AM** on [Devpost](https://bigredhacks2026.devpost.com/). Judging starts at 9:00 AM. Finalist demos are at 11:30 AM in Baker 200.
-- **Team registration:** Friday by 11:59 PM.
-- **Don't miss:** the SpaceX Cursor Workshop, **Friday 9:30 PM, GSH 132**. Workshops also earn raffle tickets.
-- **Help:** use `#technical-inquiries` on Discord or find an organizer (black "STAFF" shirt).
-
-## Our target: SpaceX track, "Make it Legendary"
-
-> Real space data goes in and a legendary project comes out.
-
-| Requirement | What it means for us |
-|---|---|
-| **Built with Cursor** (required) | Write the whole project in Cursor. *"The more you use Cursor, the more likely you are to win."* |
-| **Grok Imagine or Grok Voice API** (required) | At least one must be a core feature, not a gimmick. |
-| **Real space data** | Use public datasets: NASA, JPL, CelesTrak, star catalogs, and so on. |
-| Grok Bot for planning (bonus) | Use Grok Bot for task planning and team coordination, and take screenshots. |
-| **Prize** | A Cursor mechanical keyboard for every member of the winning team. Every entrant goes into a raffle for a Cursor Owala water bottle. |
-
-**Stack prizes:** A space project that fits the **Navigation** theme can also compete for the **Big Red Track** (best fit to the theme). Depending on what we build, it can also enter **Software**, **Design** (best UI/UX) and **People's Choice**.
-
-### Showing judges we used Cursor heavily
-
-- Use **Cursor Agent** for scaffolding, features and refactors. Use **Tab** autocomplete everywhere else.
-- Commit a `.cursor/rules/` file with project conventions. It shows deliberate, structured Cursor use.
-- Keep a `CURSOR_LOG.md`: a short list of the key prompts and what they built. Screenshot the best moments.
-- Commit small and often, so git history shows steady progress.
-- In the Devpost writeup and the demo, include a **"How we built it with Cursor"** section.
-
----
-
-## SpaceX / Cursor track ideas
-
-Every idea here uses real space data, a Grok API and the Navigation theme.
-
-### 1. ⭐ SkyPilot: voice-guided stargazing navigator *(recommended)*
-Point your phone at the sky and ask out loud: *"Where's the ISS?"*, *"Which bright thing is that?"*, *"When does the next Starlink train pass over Ithaca?"* Grok Voice answers and talks you onto the target: *"Turn left 30°, raise your phone a bit… there."*
-- **Space data:** live ISS position and satellite orbits (CelesTrak TLEs plus `satellite.js`), planet positions (JPL Horizons or an astronomy library), a bright-star catalog
-- **Grok:** **Voice API** for the conversational guide. **Imagine** for a "what you'd see through a telescope" picture of the target.
-- **Navigation angle:** It guides your eyes across the sky with voice and an on-screen arrow. An audio-only mode helps low-vision users, which matches one of the theme prompts.
-- **MVP:** A web app using phone compass and tilt sensors that finds the ISS and 5 planets with voice guidance
-- **Stretch:** Pass alerts, AR overlay, haptic "warmer/colder" vibration
-- **Why it can win:** The live demo is memorable: you can walk judges outside or point the phone at the ceiling. It's strong on theme, voice and design.
-
-### 2. Rover Route: AI path planning on real Mars terrain
-Pick a start point and a destination on real Mars elevation data. The app plans a safe rover route that avoids steep slopes and rough terrain, the same way rover drivers plan drives. Grok Voice acts as Mission Control and narrates the drive. Grok Imagine renders a "rover camera" view at each waypoint.
-- **Space data:** Mars elevation and terrain maps (NASA PDS and HiRISE elevation models), real Perseverance or Curiosity routes for comparison
-- **Grok:** **Imagine** for waypoint views, **Voice** for mission control
-- **Navigation angle:** It directly answers the prompt *"How do you train AI to better navigate the world?"*
-- **MVP:** A 2D heightmap, A* pathfinding with a slope cost, the route on a map and narrated waypoints
-- **Stretch:** A 3D terrain view in three.js, and a comparison of your route to the real rover's path
-
-### 3. OrbitWatch: space-traffic control for satellites
-A 3D globe of thousands of real satellites and pieces of debris. It flags close approaches between objects, and Grok Voice delivers a "flight director" briefing: *"Three high-risk approaches in the next 24 hours…"*
-- **Space data:** CelesTrak TLEs (active satellites and debris), propagated with `satellite.js`
-- **Grok:** **Voice** briefings and a voice query mode: *"Show me everything Starlink over Europe."*
-- **Navigation angle:** Navigating crowded orbits is a real problem for the next 100 years.
-- **MVP:** A CesiumJS or three.js globe with live satellites, simple close-approach detection and a spoken briefing
-- **Stretch:** Suggest an avoidance maneuver for a chosen satellite
-
-### 4. Voyage Planner: plan a trip across the solar system
-Pick an origin and destination (Earth to Mars, Earth to Europa). The app computes a transfer orbit, shows the travel time, the fuel needed (delta-v) and the next launch windows, and animates the trajectory. Grok Imagine makes a "postcard" for each leg, and Grok Voice is your ship's AI.
-- **Space data:** JPL Horizons planet positions, real mission trajectories (Voyager, New Horizons) to replay
-- **Grok:** **Imagine** postcards, **Voice** ship AI
-- **Navigation angle:** It's interplanetary navigation, and it teaches orbital mechanics while you plan.
-- **MVP:** Transfer orbits between planets, launch-window finder, 2D orbit animation
-- **Stretch:** Gravity-assist routes, and comparing your plan to real missions
-
-### 5. StarFix: navigate without GPS, like a spacecraft
-Spacecraft and sailors find their orientation by recognizing star patterns. Take a photo of the night sky (or upload one), and StarFix matches the stars against a catalog to work out where the camera is pointing and roughly where you are on Earth. Grok Voice walks you through the result.
-- **Space data:** Hipparcos or Yale Bright Star catalog, real star-tracker methods
-- **Grok:** **Voice** for an explanation like *"You're facing northeast, about 42°N…"*. **Imagine** for a labeled sky chart.
-- **Navigation angle:** Navigation when GPS is unavailable, as on Mars, in a war zone or deep in space
-- **MVP:** Upload a sky photo, identify stars and show the pointing direction (you can use an existing star-matching library and focus on the UX)
-- **Stretch:** Live camera mode, and a latitude estimate from Polaris
-- **Risk:** This is the hardest one technically. Prototype the star-matching step early.
-
-### 6. Launch Lens: a voice companion for SpaceX launches
-Ask *"What's launching this week, and where will it go?"* The app shows past and upcoming launches, rocket recoveries and ground tracks on a map, and you can explore them by voice. Grok Imagine generates mission-patch-style art for each launch.
-- **Space data:** launch schedule and past-launch data (Launch Library 2 API), ground tracks from orbit data
-- **Grok:** **Voice** Q&A, **Imagine** mission art
-- **Navigation angle:** Weaker on theme. Ground tracks and recovery-ship navigation help a bit.
-- **MVP:** Launch timeline, ground-track map, voice Q&A
-- **Note:** This is the easiest to build but the least original. Keep it as a fallback.
-
----
-
-## Cursor track ideas without space
-
-The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space data is how SpaceX frames the track, so a non-space project is allowed but may score a little lower with their judges. Each idea has a full sheet in [docs/ideas/](docs/ideas/).
-
-| Idea | Pitch | Best for |
-|---|---|---|
-| **GuideVoice** | A voice and camera walking guide for blind and low-vision users | Top non-space pick; demos live indoors |
-| **Campus Wayfinder** | Voice-guided indoor directions inside PSB and Klarman | Live demo, People's Choice |
-| **HillSmart** | Routes that avoid Ithaca's hills and stairs, with voice guidance | A practical, relatable pick |
-| **VoiceRover** | A Raspberry Pi robot car you drive by voice | Hardware track too, if motors are available |
-| **PictureRoute** | Directions as illustrated landmark cards, made with Grok Imagine | Design track |
-| **Wanderlings** | Pikmin Bloom with AI agents: walk to make your trail bloom, and send agent companions to scout real places. They return with Grok Imagine postcards and Grok Voice memos. | People's Choice, Design, and Photon if agents text you |
-
-## ⭐ Wanderlings: the idea we chose
-
-This became **HuskiesPaws**. See [The app](#the-app) at the top of this file. The original idea sheet is [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex), and the mobile plan is [docs/mobile-migration.md](docs/mobile-migration.md).
-
-## Other ideas that fit the Navigation theme
-
-These target other tracks, in case we change plans.
-
-- **AccessiMap** (Big Red, Design): step-free campus routes that avoid stairs, hills and broken elevators, with crowdsourced obstacle reports.
-- **Haptic Compass** (Hardware, Big Red): a wristband or belt that vibrates toward your destination, so blind and low-vision users can navigate without looking at a phone.
-- **Nessie Money Navigator** (Capital One): a spending-path planner on Capital One's Nessie API that "navigates" you to a savings goal, recalculating like GPS.
-- **iMessage Trip Agent** (Photon): an agent in iMessage, built with Photon Spectrum, that coordinates group rides and directions.
-
-## Scoring sheet
-
-Score each idea from 1 to 5 on each column.
-
-| # | Idea | Demo-able | Buildable in ~24h | Navigation theme | Wow | Excitement | **Total** |
-|---|------|:----:|:----:|:----:|:----:|:----:|:----:|
-| 1 | SkyPilot | | | | | | |
-| 2 | Rover Route | | | | | | |
-| 3 | OrbitWatch | | | | | | |
-| 4 | Voyage Planner | | | | | | |
-| 5 | StarFix | | | | | | |
-| 6 | Launch Lens | | | | | | |
-| 7 | GuideVoice | | | | | | |
-| 8 | Campus Wayfinder | | | | | | |
-| 9 | HillSmart | | | | | | |
-| 10 | VoiceRover | | | | | | |
-| 11 | PictureRoute | | | | | | |
-| 12 | Wanderlings | | | | | | |
+| 🏆 **Devpost** | _TODO: add the Devpost project link_ |
+| 🎬 **Demo video** | _TODO: add the video link (see [docs/DEMO.md](docs/DEMO.md))_ |
+| 📊 **Pitch deck (PDF)** | _TODO: add the Google Drive link to the deck PDF_ |
+| 🌐 **Live app** | _TODO: add the Render HTTPS link (see [server/README.md](server/README.md#deploy-with-https-render-free))_ |
+| 💻 **Code** | https://github.com/LuisMend12/big-red-hacks2026 |
 
 ## Team
 
-| Name | Strengths | Contact |
-|------|-----------|---------|
-| Luis Mendez | | |
-| | | |
-| | | |
+| Name | Role |
+|---|---|
+| Luis Mendez | _TODO_ |
+| Abdullah Rashid | _TODO_ |
 
-## Timeline
+---
 
-| When | Goal |
-|------|------|
-| Fri night | Pick the idea, register the team (by 11:59 PM), attend the Cursor workshop, get Grok API keys working |
-| Sat morning | Data pipeline working, plus a working Grok call |
-| Sat afternoon | End-to-end MVP of the demo path |
-| Sat night | Polish the UI, record a backup demo video |
-| Sun 6:00 AM | **Feature freeze.** Only fix bugs and write the Devpost. |
-| Sun 8:30 AM | **Submit on Devpost** |
+## The problem, and why it matters
 
-## Getting started
+The hackathon asked: *"What do we build next to change how we navigate in the next 100 years?"*
 
-### Web app
+Today's navigation is built for one thing: **the shortest path.** It puts us in cars and rideshares for trips we could walk, and keeps our eyes on a blue dot instead of the place around us.
 
-The HuskiesPaws web app is in [`prototype/`](prototype/).
+- **Short trips add up.** Students take rides for walks of 10–15 minutes, which costs money every week and adds traffic and emissions.
+- **We miss what's around us.** Most people walk the same few routes and never discover the landmarks a few blocks away.
+- **Healthy habits are hard to keep.** Step counters log numbers but don't give people a reason to walk somewhere new.
 
-```bash
-cd big-red-hacks2026/prototype
-python serve.py      # reads the Mapbox token (MAPBOXKEY) from the root .env
-# then open http://localhost:8765
+## Our solution
+
+HuskiesPaws makes **where you go** the fun part. Navigation becomes about curiosity, not just speed, and it rewards you for walking instead of riding.
+
+| Feature | What it does |
+|---|---|
+| 🤖 **Agent squad** | **Pip (Scout)** finds real places you've never been, **Moss (Storyteller)** tells their history, and **Fern (Pathfinder)** plans the walking route and guides you. Agents only report facts from real data (Wikipedia and OpenStreetMap), and every postcard links to its source. |
+| 🎙️ **Grok Voice and Grok Imagine** | Each agent speaks its memos in its own **Grok Voice**. **Grok Imagine** illustrates every place the agents discover and draws a unique portrait for every pet. |
+| 🌸 **Blooming trails** | Your walk leaves a trail of flowers on the map. Each rank unlocks a new trail, from 🌱 Sprout Path to ✨ Starlight. |
+| 💰 **Walk instead of ride** | Every walk over 300 m counts as a rideshare you skipped. The estimated fare moves into a savings account through **Capital One's Nessie API**, and your savings grow a tree from 🌰 seed to 🍎 fruit tree. |
+| 🥚 **Eggs and pets** | Walking earns eggs, and walking further hatches them into pets with a rarity, from common to legendary. **While the ISS is overhead** (live orbital data), rare pets are 3x as likely. |
+| 🏰 **Turf** | Leave your pet to guard a landmark you walked to and earn XP every hour it holds. A player with a stronger pet can take it over, which gives people a reason to keep walking back. |
+| 🏆 **Ranks and leaderboards** | Points come from steps, discoveries, captures and turf. Live **local, statewide and national** leaderboards. |
+| 📸 **Landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
+| 💬 **iMessage** | Text the squad: "explore", "story", "take me there". Built with **Photon Spectrum**. |
+
+### Screenshots
+
+_TODO: add 3–4 screenshots to `docs/screenshots/` and link them here: the map with a blooming trail, a Grok Imagine postcard, a pet hatch, and the Savings tree._
+
+## How we built it
+
+```mermaid
+flowchart LR
+  subgraph Clients
+    Web["🌐 Web app<br/>prototype/"]
+    Phone["📱 Phone app<br/>mobile/ (Expo)"]
+    IM["💬 iMessage agent<br/>imessage-agent/ (Photon)"]
+  end
+  Core["Shared game logic<br/>prototype/js/<br/>agents · ranks · pets · savings"]
+  Server["HuskiesPaws server<br/>server/ (Node)"]
+  Web --> Server
+  Web -.uses.-> Core
+  Phone -.synced copy.-> Core
+  IM -.uses.-> Core
+  Server --> Grok["xAI Grok<br/>Voice + Imagine"]
+  Server --> DB["Supabase or<br/>JSON file storage"]
+  Web --> Nessie["Capital One Nessie"]
+  Core --> Data["Wikipedia · OpenStreetMap<br/>walking routes · ISS position"]
 ```
 
-For full steps, demo instructions, phone setup and troubleshooting, see [prototype/README.md](prototype/README.md).
+- **One set of game rules, three apps.** The agents, ranks, trails, pets, savings and Nessie client are plain JavaScript in [`prototype/js/`](prototype/js/), shared by the web app, the Expo phone app and the iMessage agent.
+- **A small server holds every secret.** The Grok key never reaches the browser. The browser can't send its own image prompts; the server builds them from fixed templates. There are per-IP and daily limits, and each image is generated once and cached.
+- **Real data only.** Places and facts come from Wikipedia, routes and regions from OpenStreetMap, and the ISS position from wheretheiss.at.
 
-### Phone app (Expo)
+**Built with:** JavaScript, Node.js, HTML/CSS, Mapbox GL JS, Expo / React Native, xAI Grok (Voice, Imagine), Capital One Nessie API, Photon Spectrum, Supabase, Wikipedia API, OpenStreetMap (Nominatim, OSRM), wheretheiss.at, Render, **Cursor**.
 
-The phone version is in [`mobile/`](mobile/). It has a real step counter, a native map, the camera and saved progress, and it runs in **Expo Go** without app store setup.
+### Built with Cursor
 
-```bash
-cd big-red-hacks2026/mobile
-npm install
-npx expo start      # scan the QR code with Expo Go
-```
+_TODO (team): describe how you used Cursor (Agent mode, Tab, rules files), with a few example prompts and what they built. Link `CURSOR_LOG.md` and screenshots if you have them, and mention Grok Bot if you used it for planning. Keep it accurate: judges may ask._
 
-See [mobile/README.md](mobile/README.md) for the full guide and known limits. It was built outside Cursor, so keep building it in Cursor for the track.
+## Prize tracks
 
-### iMessage agent (Photon)
+| Track | How HuskiesPaws meets it |
+|---|---|
+| **BigRed Track** (technical, design, creativity, impact, theme) | Navigation by curiosity instead of shortest path. Three working apps sharing one codebase, real data, and an automated test suite. |
+| **SpaceX: Make it Legendary** | **Grok Voice** (agent memos) and **Grok Imagine** (postcards and pet portraits) are core features. **Real space data:** live ISS position and visibility footprint decide when rare eggs hatch. Built with **Cursor** (see above). |
+| **Capital One: Best Use of Nessie** | Each walk that replaces a ride moves the estimated fare from checking into savings with a Nessie **transfer**. The account is set up with Nessie customer and account endpoints. Savings grow a visible tree, and eggs are never bought with that money. |
+| **Photon: Agents in iMessage** | The agent squad runs on iMessage through **Photon Spectrum**: explore, stories, walking directions and savings by text. |
+| **Software** | A backend with validation, rate limits, caching and storage that's swappable between Supabase and a file. 24 automated tests plus browser end-to-end tests. |
+| **Design** | A cohesive, cozy visual language: blooming trails, illustrated postcards, rarity reveals and an accessible tab layout. |
+| **People's Choice** | Turf turns other hackers into players: claim landmarks around PSB and Klarman and defend them. |
 
-The squad also works as an iMessage agent in [`imessage-agent/`](imessage-agent/). You text "explore", "story" and "take me there", and "arrived" grows your savings tree.
+## Devpost answers (drafts)
 
-```bash
-cd big-red-hacks2026/imessage-agent
-npm install
-npm run terminal    # try it in the terminal, no keys needed
-npm start           # real iMessage, after adding Photon keys to .env
-```
+**Inspiration.** Walking games like Pikmin Bloom and Pokémon GO get people outside. We wanted that joy, plus agents that do real work for you and a tangible reward, visible savings, for choosing to walk instead of ride. The Navigation theme pushed us to ask what "getting somewhere" could mean beyond the shortest route.
 
-To set up the Photon keys (Project ID and Secret from app.photon.codes), see [imessage-agent/README.md](imessage-agent/README.md).
+**What it does.** See [Our solution](#our-solution): agents scout real places and guide you there, your walk blooms on the map, skipped rides become real savings through Nessie, walking hatches Grok-drawn pets that guard landmarks, and everything works on the web, on your phone and over iMessage.
 
-### Open the project in Cursor
+**How we built it.** See [How we built it](#how-we-built-it): shared JavaScript game logic, a Node server that keeps the Grok key private, an Expo phone app, and a Photon Spectrum iMessage agent.
 
-```bash
-git clone https://github.com/LuisMend12/big-red-hacks2026.git
-cd big-red-hacks2026
-# Open in Cursor, add the Grok API key to .env (never commit it)
-```
+**Challenges we ran into.**
+- **The Nessie API kept resetting connections** while we built, so savings are kept in a local ledger first and mirrored to Nessie when it responds. The demo never breaks.
+- **Wikipedia and OpenStreetMap returned 403** to the phone app's default identity, so we added an identifying User-Agent for the phone and the iMessage agent, while browsers stay on CORS-safe defaults.
+- **Keeping an AI key safe in a public web app:** server-side prompt templates, validation, rate limits and image caching.
+- **Judging is indoors,** so we built a demo mode that simulates walks along real walking routes.
+- **There's no public Uber pricing API,** so fares are a clearly labeled estimate.
+
+**Accomplishments that we're proud of.** Three working clients that share one set of game rules. Agents that only say what real data supports. Grok features that fall back gracefully without a key. Rare eggs tied to the real ISS overhead.
+
+**What we learned.** Designing APIs so secrets stay on the server, building one codebase for web, phone and chat, and how much a small reward changes whether people choose to walk.
+
+**What's next.**
+- Pets, turf and Grok in the phone app.
+- Real AR capture (ARKit / ARCore) and background walk tracking.
+- Accessibility: tagging stairs, ramps and broken elevators.
+- Friends and shared campus gardens.
+- Real accounts, and server-side checks against fake steps.
+
+## Run it
+
+| Version | Run it | Guide |
+|---|---|---|
+| 🌐 **Web app + server** (Grok, leaderboards, turf) | `cd server` then `npm start`, and open http://localhost:8765 | [server/README.md](server/README.md) |
+| 🌐 Web app only (no server features) | `cd prototype` then `python serve.py` | [prototype/README.md](prototype/README.md) |
+| 📱 **Phone app** | `cd mobile`, `npm install`, `npx expo start`, then scan with Expo Go | [mobile/README.md](mobile/README.md) |
+| 💬 **iMessage agent** | `cd imessage-agent`, `npm install`, `npm run terminal` (no keys) or `npm start` | [imessage-agent/README.md](imessage-agent/README.md) |
+
+Keys go in a root `.env` file, which git ignores. See [server/.env.example](server/.env.example) and [imessage-agent/.env.example](imessage-agent/.env.example). The app runs without keys, using fallbacks.
+
+**Tests:** `npm test` in `prototype/` (game logic), `server/` (API, using a fake Grok service) and `imessage-agent/` (full conversation).
+
+## Submission checklist (due Sunday 8:30 AM on Devpost)
+
+- [ ] **GitHub link** to this repo on Devpost, with the repo **public**
+- [ ] **Pitch deck** as a **Google Drive link to a PDF**: name and team, problem and why it matters, solution and screenshots, tech stack, impact and future potential (this README has all of it)
+- [ ] Devpost questions answered (drafts above) and **tracks selected**: BigRed, SpaceX, Capital One, Photon, Software, Design, People's Choice
+- [ ] Demo video linked
+- [ ] Live HTTPS app deployed, with `XAI_API_KEY` set and `/api/health` showing `"grok":true`
+- [ ] TODOs in this README filled in: team, links, screenshots, Cursor section
+- [ ] At least 5 minutes set aside to submit; late submissions aren't accepted
+- [ ] Ready for judging: 9:00 AM, 4 minutes per table (2-minute pitch, 2-minute Q&A). Script: [docs/DEMO.md](docs/DEMO.md)
+
+## Repository
+
+| Path | What's there |
+|---|---|
+| [`server/`](server/) | Backend: serves the web app, plus Grok, leaderboards and turf APIs |
+| [`prototype/`](prototype/) | Web app and the shared game logic (`js/`) |
+| [`mobile/`](mobile/) | Expo phone app |
+| [`imessage-agent/`](imessage-agent/) | Photon Spectrum iMessage agent |
+| [`docs/`](docs/) | [Demo plan](docs/DEMO.md), [mobile plan](docs/mobile-migration.md), [hackathon info](docs/general-info.pdf), [brainstorming archive](docs/brainstorm.md), idea sheets |
+| [PLAN.md](PLAN.md) | Scope and priorities for the weekend |
+| [AGENTS.md](AGENTS.md) | Notes for AI coding agents (Cursor, Claude Code) |
