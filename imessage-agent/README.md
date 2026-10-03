@@ -28,24 +28,50 @@ Type messages like `hi`, `explore` and `take me there` and press Enter.
 
 ## 2. Set up your Photon keys
 
-1. **Create an account and project** at [app.photon.codes](https://app.photon.codes/). The hackathon promo code from the opening ceremony is **`HACKWITHPHOTON`**.
-2. **Get your credentials:** open your project's **Settings** page and copy the **Project ID** and **Project Secret**.
-3. **Make a `.env` file** in this folder from the template:
+The team already has a Photon project called **HuskiesPaws** (iMessage on, free plan). Ask Luis to add you, or make your own with the steps below.
 
-   ```bash
-   cp .env.example .env        # Windows PowerShell: Copy-Item .env.example .env
-   ```
+### Fastest: the Photon CLI (version 2.2.0)
 
-   Then fill it in:
+Run these in this folder. In PowerShell, set the variable with `$env:PHOTON_PROJECT_ID="<project-id>"` instead of `export`.
 
-   ```
-   SPECTRUM_PROJECT_ID=your-project-id
-   SPECTRUM_PROJECT_SECRET=your-project-secret
-   DEMO_PHONE_NUMBER=+16075551234
-   ```
+```bash
+npx @photon-ai/cli login                       # opens the browser: sign in and approve this computer
+npx @photon-ai/cli projects create --name "HuskiesPaws" --platforms imessage
+export PHOTON_PROJECT_ID=<the id it printed>
+npx @photon-ai/cli spectrum platforms ls       # imessage should say "on"
+npx @photon-ai/cli spectrum users add --first-name You --phone +16075551234   # each person who'll text the agent (not yet tried)
+```
 
-   `.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, rotate it in the dashboard.
-4. **Check that iMessage is enabled and your project has a phone line** in the dashboard. With the Photon CLI, `photon spectrum lines ls` lists the lines assigned to your project.
+**Get the secret into `.env` without showing it on screen:**
+
+```bash
+npx @photon-ai/cli projects regenerate-secret --yes --json
+```
+
+This prints the new secret once. Copy it straight into `.env` (below), and don't paste it into chat. Rotating it makes any older secret stop working.
+
+### Or: the dashboard
+
+At [app.photon.codes](https://app.photon.codes/), create a project with iMessage on, then copy the **Project ID** and **Project Secret** from its **Settings**. The hackathon promo code from the opening ceremony is **`HACKWITHPHOTON`**.
+
+### Then make `.env`
+
+```bash
+cp .env.example .env        # Windows PowerShell: Copy-Item .env.example .env
+```
+
+```
+SPECTRUM_PROJECT_ID=your-project-id
+SPECTRUM_PROJECT_SECRET=your-project-secret
+DEMO_PHONE_NUMBER=+16075551234
+```
+
+`.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, run `regenerate-secret` again.
+
+### Free plan notes
+
+- **No dedicated phone line.** `photon spectrum lines add` returns *"Line add/remove is only available on the business plan"*. That's fine: on the free plan, Photon sends messages from a **shared pool** of numbers, so you don't need a line of your own.
+- **Add each person who'll text the agent as a user** (`spectrum users add --phone …`). Set `DEMO_PHONE_NUMBER` to your own number, and Pip texts you first when the agent starts, so you just reply.
 
 ## 3. Run it on iMessage
 
@@ -72,7 +98,7 @@ This runs a full conversation (locate → explore → take me there → arrived 
 - **Sessions live in memory,** so restarting the agent forgets everyone's location and savings. Fine for a demo; a real version would store them in the shared backend.
 - **Pip prefers places at least 300 m away,** far enough that you'd otherwise take a ride, so walking there saves money.
 - Wikipedia and OpenStreetMap require an identifying User-Agent. `src/index.js` sets one; without it, they return 403.
-- **Verified:** terminal mode and the conversation tests. **Not verified:** the live iMessage connection, which needs your Photon keys.
+- **Verified:** terminal mode, the conversation tests, and that the agent connects to Photon with real keys (`HuskiesPaws agent listening on iMessage…`). **Not verified yet:** an actual text arriving on a phone.
 - **Grok** isn't used here yet. Pip's replies come from templates filled with real data. Grok chat could give each agent more personality.
 
 ## Files
