@@ -9,6 +9,7 @@ import { currentTrail } from "./state.js";
 const WALK_TICK_MS = 100; // 10 updates a second is smooth enough and cheap to render
 const MAX_BLOOMS = 150; // keep the map fast: oldest flowers fade out
 const ARRIVAL_RADIUS_M = 40;
+const MID_WALK_EVERY = 10; // ticks: check eggs about once a second during a simulated walk
 
 const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
 
@@ -88,6 +89,7 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     store.setState({ walking: true, capturable: null });
     return new Promise((resolve) => {
       let segment = 0;
+      let ticks = 0;
       let into = 0; // meters into the current segment
       const timer = setInterval(() => {
         into += (DEMO_WALK_SPEED_MPS * WALK_TICK_MS) / 1000;
@@ -108,6 +110,8 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
         }
         const length = distanceMeters(points[segment], points[segment + 1]);
         stepTo(interpolate(points[segment], points[segment + 1], length ? into / length : 1), { notifyWalk: false });
+        ticks += 1;
+        if (ticks % MID_WALK_EVERY === 0) onWalk?.({ final: false }); // eggs appear and hatch mid-walk
       }, WALK_TICK_MS);
     });
   }

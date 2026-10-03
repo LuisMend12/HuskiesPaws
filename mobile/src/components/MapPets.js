@@ -1,7 +1,7 @@
 // Pets standing on the tilted map, like Google Maps' car: your squad follows
 // you, an exploring pet walks out to its place and back, and every landmark has
 // a food bag on a ring, with its guard pet and HP bar when someone holds it.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Marker, Polyline } from "react-native-maps";
 import { colors, fonts, radius } from "../theme.js";
@@ -112,13 +112,25 @@ function Landmark({ landmark, onOpen }) {
 // squad: [{ pet, status, agentId }] from squadStatuses().
 // landmarks: from landmarksView(); onOpenLandmark(id) opens the landmark screen.
 export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark }) {
+  // iOS keeps a tapped marker "selected", and the next tap only deselects it (no
+  // press event), so every other tap was lost. Remounting the bags after each
+  // open clears the selection. The ref guards against the press events that fire together.
+  const [opens, setOpens] = useState(0);
+  const lastOpen = useRef(0);
+  const open = (id) => {
+    const now = Date.now();
+    if (now - lastOpen.current < 400) return;
+    lastOpen.current = now;
+    setOpens((n) => n + 1);
+    onOpenLandmark?.(id);
+  };
   const following = squad.filter((s) => s.status === "with-you").map((s) => s.pet).slice(0, FOLLOW_SPOTS.length);
   const explorer = expedition ? squad.find((s) => s.status === "exploring" && s.agentId === expedition.agentId)?.pet : null;
   return (
     <>
       {landmarks.map((l) => (
         // Keyed by who holds it and its HP (in tens), so the marker redraws when they change.
-        <Landmark key={`landmark-${l.landmarkId}-${ringOf(l)}-${l.guard?.pet.id ?? ""}-${l.guard ? Math.floor(hpNow(l.guard) / 10) : ""}`} landmark={l} onOpen={onOpenLandmark} />
+        <Landmark key={`landmark-${l.landmarkId}-${ringOf(l)}-${l.guard?.pet.id ?? ""}-${l.guard ? Math.floor(hpNow(l.guard) / 10) : ""}-${opens}`} landmark={l} onOpen={open} />
       ))}
       {explorer && <ExplorerPet key={`explore-${expedition.startedAt}`} pet={explorer} expedition={expedition} home={position} />}
       {following.map((pet, i) => (

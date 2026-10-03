@@ -23,7 +23,17 @@ export function createGame() {
   const get = store.getState;
   const set = store.setState;
   const say = (status) => set({ status });
-  const persist = () => saveAll(savedFields(get()));
+  // Saves only fields that changed since the last save. State updates are
+  // immutable, so a new reference means a change. This keeps album photos
+  // (big data URIs) from being re-saved on every step, which froze the app.
+  let lastSaved = {};
+  const persist = () => {
+    const fields = savedFields(get());
+    const changed = Object.fromEntries(Object.entries(fields).filter(([key, value]) => lastSaved[key] !== value));
+    if (Object.keys(changed).length === 0) return;
+    lastSaved = fields;
+    saveAll(changed);
+  };
   const gainXp = (agentId) => ({ xp: { ...get().xp, [agentId]: get().xp[agentId] + 1 } });
 
   const squadSize = () => {
@@ -37,9 +47,10 @@ export function createGame() {
     onArrive: (place, meters) => arrive(place, meters),
     onRegionFound: async (position) => set({ region: await getRegion(position, get().region) }),
     persist,
-    onWalk: () => {
+    // final: false while a simulated walk is still going (no score upload yet).
+    onWalk: ({ final = true } = {}) => {
       pets.tickPets();
-      online.pushScore();
+      if (final) online.pushScore();
     },
   });
 

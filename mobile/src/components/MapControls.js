@@ -112,7 +112,7 @@ export function MapControls({ state, game }) {
         />
       </View>
       <View style={styles.column}>
-        <Pressable onPress={() => setSquadOpen(true)} accessibilityRole="button" accessibilityLabel="See your squad in 3D" style={({ pressed }) => [styles.paw, pressed && styles.pressed]}>
+        <Pressable onPress={() => setSquadOpen(true)} hitSlop={12} accessibilityRole="button" accessibilityLabel="See your squad in 3D" style={({ pressed }) => [styles.paw, pressed && styles.pressed]}>
           <Text style={styles.pawIcon}>🐾</Text>
           <Text style={styles.pawLabel}>3D</Text>
         </Pressable>
