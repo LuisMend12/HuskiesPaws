@@ -8,7 +8,7 @@ import {
   EGG_TIERS, PET_SPECIES, eggProgress, eggsEarned, hatchEgg, hatchMetersOf, maybeNewEgg, metersToHatch, petLevel, petPower, rollEggTier,
   rollRarity, stepsToNextEgg,
 } from "../pets.js";
-import { TRAILS, activeTrail, rankFor, scoreFor } from "../rank.js";
+import { LEAGUES, TRAILS, activeTrail, rankFor, scoreFor, xpBoostFor } from "../rank.js";
 import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
 
 // Deterministic "random" that walks through a list of values.
@@ -35,6 +35,13 @@ test("eggs hatch after walking HATCH_METERS", () => {
   assert.equal(eggProgress(egg, 100 + HATCH_METERS / 2), 0.5);
   assert.equal(eggProgress(egg, 100 + HATCH_METERS * 3), 1);
   assert.equal(metersToHatch(egg, 100 + HATCH_METERS - 10), 10);
+});
+
+test("starter pets are valid common huskies", async () => {
+  const { STARTER_PETS, MAX_EGGS } = await import("../pets.js");
+  assert.deepEqual(STARTER_PETS.map((p) => p.name), ["Pip", "Moss", "Fern"]);
+  for (const p of STARTER_PETS) assert.match(p.id, /^[A-Za-z0-9_-]{6,64}$/, "matches the server's id check");
+  assert.equal(MAX_EGGS, 5);
 });
 
 test("egg tiers: longer eggs take longer and hatch rarer pets", () => {
@@ -71,17 +78,22 @@ test("hatched pets get power in their rarity's range and level up by walking", (
   assert.equal(petPower(pet, 500 + LEVEL_EVERY_M), pet.basePower + 4);
 });
 
-test("score counts steps, landmarks, captures and turf bonus", () => {
-  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 160);
-  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 200);
+test("score counts walking XP and captures; finds give no XP", () => {
+  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 110);
+  assert.equal(scoreFor({ steps: 100, walkXp: 15, landmarksFound: 9, landmarksCaptured: 1 }), 115);
+  assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 150);
+  assert.equal(xpBoostFor(0), 1);
+  assert.equal(xpBoostFor(3), 1.3);
   assert.equal(rankFor(0).current.name, "Bronze III");
   assert.equal(rankFor(100).current.name, "Bronze II");
+  assert.equal(rankFor(100).current.division, 2);
+  assert.equal(activeTrail(150, "starlight").id, "sprouts", "locked trail falls back");
   assert.equal(rankFor(300).current.name, "Silver III");
   assert.equal(rankFor(5000).current.name, "Crystal I");
   assert.equal(rankFor(5000).next, null);
-  assert.equal(activeTrail(150, "starlight").id, "sprouts", "locked trail falls back");
   assert.equal(activeTrail(900, "meadow").id, "meadow", "an unlocked trail can be chosen");
   assert.equal(TRAILS.length, 5);
+  assert.equal(LEAGUES.length, 5);
 });
 
 test("savings: fares, totals and tree stages", () => {

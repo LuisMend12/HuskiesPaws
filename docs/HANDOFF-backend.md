@@ -1,6 +1,21 @@
-# Handoff: presentation → backend (updated Sat Oct 3, ~4:45 PM)
+# Handoff: presentation → backend (updated Sat Oct 3, evening: backend merged)
 
 **For:** Luis and his coding agent, working on the `backend` branch. Read [SPLIT.md](../SPLIT.md) and [AGENTS.md](../AGENTS.md) first; this file adds what changed and what the screens now expect.
+
+## 0. `backend` was merged into `main` (Sat evening)
+
+Abdullah merged `backend` into `main` and brought it up to the agreed rules. **Pull `main` into `backend` before you continue** (`git checkout backend && git pull && git merge main`). Changes made to your code in the merge:
+
+| File | Change |
+|---|---|
+| `core/pets.js` | `STARTER_PETS` (Pip, Moss, Fern: common huskies) and `MAX_EGGS = 5`; tested |
+| `mobile/src/game/state.js` | `pets` defaults to the starters; `egg` → `eggs` (list); `activePetId` → `squad`; `turf` is left unset until the server answers (screens show sample rivals offline); `migrateSaved` upgrades old saves (single egg, empty pets, stale squad) |
+| `mobile/src/game/petsLoop.js` | Works on the `eggs` list (carry up to 5, all fill, one hatches at a time); hatched pets join the squad if there's room; `setActivePet` → `setSquad`; portrait request sends `species` |
+| `mobile/src/game/online.js` | `claimLandmark(landmarkId, petId, landmark?)` uses the chosen squad pet, a 150 m range, sends `species`, and **returns `{ result, won, message }`** (or `null` offline, so the landmark screen uses local rules) |
+| `mobile/src/game/game.js` | Exposes `setSquad`; squad size grows at Gold and Crystal; reset brings back sample rivals |
+| `mobile/App.js` | Uses the Pets tab (`PetsPanel`) instead of `PetsTurfProbe` (file kept, unused) |
+
+Still to do on the server: accept and store `pet.species` (validate against `PET_SPECIES`); turf HP decay as in 4.3; `recallGuard` and `walkTo` (4.3 / landmark notes).
 
 ## 1. Get up to date (do this first)
 

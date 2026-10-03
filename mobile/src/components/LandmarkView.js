@@ -18,7 +18,7 @@ import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
 import {
-  FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf,
+  FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
 } from "./landmarks.js";
 import { PetSvg } from "./PetArt.js";
 import { squadStatuses } from "./petStatus.js";
@@ -157,7 +157,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const finish = (outcome, attacker, after) => {
     const now = clockNow();
     const patch = { status: outcome.message };
-    if (!game.claimTurf) {
+    if (after && !outcome.won) patch.petHp = { ...state.petHp, [attacker.id]: { hp: 0, hpAt: now } }; // the loser rests
+    if (outcome.local) {
       let turf = outcome.turf;
       if (turf && outcome.won) {
         const hp = after ? after.you : petHpOf(state, attacker.id, now);
@@ -167,9 +168,9 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
         turf = petsView(state).turf.map((t) =>
           String(t.landmarkId) === landmark.landmarkId ? { ...t, hp: after.them, maxHp: t.maxHp ?? MAX_HP, hpAt: now } : t,
         );
-        patch.petHp = { ...state.petHp, [attacker.id]: { hp: 0, hpAt: now } };
       }
       if (turf) patch.turf = turf;
+      if (turf) patch.xpBoost = xpBoostFromTurf(turf);
     }
     game.set(patch);
     setBattle(null);
@@ -194,7 +195,9 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     if (!picked) return;
     setBusy(true);
     const power = petPower(picked, walked);
-    const outcome = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id) : claimLocally(state, landmark, picked, power);
+    // The server decides when it can be reached; otherwise the same rules run here.
+    const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark) : null;
+    const outcome = online ?? { ...claimLocally(state, landmark, picked, power), local: true };
     if (!outcome) {
       setBusy(false);
       return;

@@ -25,11 +25,10 @@ export function hpNow(entry, now = Date.now()) {
 export const petHpOf = (state, petId, now) => hpNow(state.petHp?.[petId], now);
 export const healMinutes = (hp, target = MAX_HP) => Math.max(0, Math.ceil((target - hp) / HEAL_PER_MINUTE));
 
-// 1 + 0.1 for each landmark you hold (max 1.3 with the cap of 3).
-export function xpBoostOf(state) {
-  const held = (state.turf ?? []).filter((t) => t.mine).length;
-  return state.xpBoost ?? 1 + held * XP_BOOST_PER_LANDMARK;
-}
+// 1 + 0.1 for each landmark you hold (max 1.3 with the cap of 3). Worked out
+// from the turf list, so it matches what walking uses (state.xpBoost).
+export const xpBoostFromTurf = (turf) => 1 + (turf ?? []).filter((t) => t.mine).length * XP_BOOST_PER_LANDMARK;
+export const xpBoostOf = (state) => xpBoostFromTurf(state.turf);
 
 // Which food sits at a landmark: always the same one for the same place.
 export const FOODS = Object.freeze(["bag", "tuna", "treats"]);
@@ -101,8 +100,10 @@ export function recallLocally(state, petId) {
   const turf = state.turf ?? [];
   const post = turf.find((t) => t.mine && t.pet?.id === petId);
   if (!post) return null;
+  const rest = turf.filter((t) => t !== post);
   return {
-    turf: turf.filter((t) => t !== post),
+    turf: rest,
+    xpBoost: xpBoostFromTurf(rest),
     petHp: { ...state.petHp, [petId]: { hp: hpNow(post), hpAt: Date.now() } },
     status: `${post.pet.name} left ${post.title} and came back to your squad.`,
   };

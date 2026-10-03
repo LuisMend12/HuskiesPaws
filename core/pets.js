@@ -119,3 +119,13 @@ export function petLevel(pet, walked) {
 }
 
 export const petPower = (pet, walked) => pet.basePower + (petLevel(pet, walked) - 1) * POWER_PER_LEVEL;
+
+// Every player starts with these three common huskies (the old agents Pip, Moss
+// and Fern, now pets). Levels grow from 0 m walked like any pet.
+export const STARTER_PETS = Object.freeze([
+  { id: "pet-starter-pip", name: "Pip", species: "husky", rarity: "common", petClass: "Scout", color: "cinnamon", basePower: 12, hatchedAtWalked: 0, spaceBorn: false, art: null },
+  { id: "pet-starter-moss", name: "Moss", species: "husky", rarity: "common", petClass: "Storyteller", color: "midnight", basePower: 12, hatchedAtWalked: 0, spaceBorn: false, art: null },
+  { id: "pet-starter-fern", name: "Fern", species: "husky", rarity: "common", petClass: "Pathfinder", color: "mint", basePower: 12, hatchedAtWalked: 0, spaceBorn: false, art: null },
+]);
+
+export const MAX_EGGS = 5; // eggs you can carry at once; all of them fill up as you walk

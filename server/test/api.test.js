@@ -59,7 +59,9 @@ const post = (base, path, body) =>
 const json = async (response) => ({ status: response.status, ...(await response.json()) });
 
 const region = { local: "Ithaca", state: "New York", national: "United States" };
-const pet = (power, id = "pet-000001") => ({ id, name: `Pup${power}`, rarity: "rare", petClass: "Guardian", power, emoji: "🐾" });
+const pet = (power, id = "pet-000001") => ({
+  id, name: `Pup${power}`, rarity: "rare", petClass: "Guardian", power, emoji: "🐾", color: "mint", spaceBorn: false,
+});
 const claim = (playerId, landmarkId, power) => ({
   playerId, playerName: playerId.endsWith("owner1") ? "Olivia" : "Riley", landmarkId, title: `Landmark ${landmarkId}`, lat: 42.45, lon: -76.48, pet: pet(power),
 });
@@ -139,6 +141,13 @@ describe("HuskiesPaws API", () => {
   test("imagine only accepts known kinds (no free-form prompts)", async () => {
     assert.equal((await post(app.base, "/api/imagine", { kind: "anything", prompt: "draw a logo" })).status, 400);
     assert.equal((await post(app.base, "/api/imagine", { kind: "pet", petId: "pet-123456", rarity: "mythic", petClass: "Scout", color: "gold" })).status, 400);
+    assert.equal((await post(app.base, "/api/imagine", { kind: "pet", petId: "pet-123456", rarity: "rare", petClass: "Scout", color: "gold" })).status, 400);
+
+    const petArt = await json(await post(app.base, "/api/imagine", { kind: "pet", petId: "pet-123456", rarity: "rare", petClass: "Scout", color: "mint" }));
+    assert.equal(petArt.success, true);
+    const petCall = xai.calls.findLast((c) => c.path === "/v1/images/generations");
+    assert.match(petCall.body.prompt, /rounded-cube husky pup/);
+    assert.match(petCall.body.prompt, /leaf sprout/);
   });
 
   test("leaderboard marks you without exposing player ids", async () => {
@@ -179,7 +188,12 @@ describe("HuskiesPaws API", () => {
 
     const list = await json(await fetch(`${app.base}/api/turf?me=player-rival1`));
     assert.equal(list.data.turf.filter((t) => t.mine).length, 3);
-    assert.equal(list.data.turf.find((t) => t.landmarkId === "L1").pet.power, 50);
+    const guarded = list.data.turf.find((t) => t.landmarkId === "L1");
+    assert.equal(guarded.pet.power, 50);
+    assert.equal(guarded.pet.color, "mint");
+    assert.equal(guarded.pet.spaceBorn, false);
+    assert.equal(guarded.hp, 50);
+    assert.equal(guarded.maxHp, 50);
     assert.doesNotMatch(JSON.stringify(list), /player-/);
   });
 });

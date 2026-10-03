@@ -1,0 +1,12 @@
+---
+description: Shared game logic lives in core/; sync into mobile after edits.
+globs: core/**,mobile/src/core/**,mobile/src/game/**
+alwaysApply: false
+---
+
+# Core is the source of truth
+
+- Edit game rules in `core/`, not `mobile/src/core/` (generated).
+- After changing `core/`, run `npm test` in `core/`, then `npm run sync-core` in `mobile/`.
+- Keep core files free of DOM and React Native.
+- Immutable updates in `mobile/src/game/` (spread, map, filter). Keep files under about 400 lines.
