@@ -87,7 +87,7 @@ test("legacy bank keys are removed from phone storage and state", async () => {
   } finally { r.game.dispose(); }
 });
 
-test("Grok audio is requested and played; failed requests fall back to speech", async () => {
+test("Moss's stories request ElevenLabs via agent; failed requests fall back to speech", async () => {
   let fail = false;
   const calls = [];
   const r = await runtime({ api: "https://fake.invalid", fetchImpl: async (url, options) => {
@@ -99,10 +99,13 @@ test("Grok audio is requested and played; failed requests fall back to speech", 
   } });
   try {
     const voice = await r.module("src/voice.js");
-    await voice.speakMemo("Hi from Pip", { grokVoice: "ara" });
-    assert.equal(calls[0].voice, "ara");
+    await voice.speakMemo("Once upon a trail", { id: "storyteller", grokVoice: "rex" });
+    assert.equal(calls[0].agent, "storyteller");
+    assert.equal(calls[0].voice, "rex");
     assert.equal(r.audio.length, 1);
     assert.equal(r.speech.length, 0);
+    await voice.speakMemo("Hi from Pip", { id: "scout", grokVoice: "ara" });
+    assert.equal(calls[1].agent, "scout");
     fail = true;
     await voice.speakMemo("Fallback memo");
     assert.equal(r.speech.at(-1), "Fallback memo");

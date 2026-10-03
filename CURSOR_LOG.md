@@ -1,5 +1,15 @@
 # Cursor log
 
+## 2026-10-03 — ElevenLabs for Moss story voice
+
+**Prompt (summary).** Use the ElevenLabs API key for storytelling voice.
+
+**Decisions.**
+
+- Key stays in gitignored root `.env` (`ELEVENLABS_API_KEY`); never in the Expo bundle. Server already routes `agent: "storyteller"` to ElevenLabs (`eleven_flash_v2_5`) and Pip/Fern to Grok Voice.
+- Phone `fetchVoice` now posts `{ text, agent, voice }` so Squad → Tell a story hits ElevenLabs instead of Grok `rex`.
+- On-device `expo-speech` remains the fallback when `EXPO_PUBLIC_API_URL` is unset or `/api/voice` fails.
+
 ## 2026-10-03 — Paw-trail GIF on `presentation` (Codex)
 
 Prompt: make a quick GIF using the OneTake skills repository. User selected the

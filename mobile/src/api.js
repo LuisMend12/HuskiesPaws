@@ -71,21 +71,30 @@ export async function fetchPostcard(body) {
   return absoluteUrl(data?.image);
 }
 
-export async function fetchVoice(text, voice, signal) {
+// agent (scout | storyteller | pathfinder) lets the server pick ElevenLabs for Moss.
+export async function fetchVoice(text, { voice, agent, signal } = {}) {
   if (!apiAvailable()) return null;
   const controller = new AbortController();
   const abort = () => controller.abort();
   const timer = setTimeout(abort, 25_000);
-  signal.addEventListener("abort", abort);
-  if (signal.aborted) abort();
+  signal?.addEventListener("abort", abort);
+  if (signal?.aborted) abort();
   try {
     const response = await fetch(`${apiBase()}/api/voice`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text.slice(0, 600), voice }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text.slice(0, 600),
+        ...(agent ? { agent } : {}),
+        ...(voice ? { voice } : {}),
+      }),
       signal: controller.signal,
     });
     if (!response.ok) return null;
     return new Uint8Array(await response.arrayBuffer());
   } catch { return null; }
-  finally { clearTimeout(timer); signal.removeEventListener("abort", abort); }
+  finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", abort);
+  }
 }

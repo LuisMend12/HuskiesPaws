@@ -1,4 +1,5 @@
-// Grok memos play from a temporary file, with on-device speech on any failure.
+// Server memos (ElevenLabs for Moss's stories, Grok Voice for Pip/Fern) play from
+// a temporary file. On-device speech is the fallback when the API is missing.
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { File, Paths } from "expo-file-system";
 import * as Speech from "expo-speech";
@@ -43,7 +44,11 @@ export async function speakMemo(text, agent) {
     if (cleanup === dispose) cleanup = null;
   };
   try {
-    const bytes = await fetchVoice(text, agent?.grokVoice ?? "ara", controller.signal);
+    const bytes = await fetchVoice(text, {
+      voice: agent?.grokVoice,
+      agent: agent?.id,
+      signal: controller.signal,
+    });
     if (token !== generation) return;
     if (!bytes?.length) { fallback(); return; }
     file = new File(Paths.cache, `memo-${Date.now()}-${token}.mp3`);
