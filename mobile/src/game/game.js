@@ -272,5 +272,9 @@ export function createGame() {
       set({ trailChoice });
       persist();
     },
+    setMapRenderer: (mapRenderer) => {
+      set({ mapRenderer, followCamera: true });
+      persist();
+    },
   };
 }

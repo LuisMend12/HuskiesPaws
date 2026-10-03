@@ -12,7 +12,11 @@
       "backgroundColor": "#0B1F3A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.huskiespaws.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -51,7 +55,8 @@
           "backgroundColor": "#0B1F3A"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "@maplibre/maplibre-react-native"
     ]
   }
 }

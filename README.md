@@ -83,7 +83,7 @@ flowchart LR
 - **A small server holds every secret.** The Grok key never ships inside the app. The app can't send its own image prompts; the server builds them from fixed templates. There are per-IP and daily limits, and each image is generated once and cached.
 - **Real data only.** Places and facts come from Wikipedia, routes and regions from OpenStreetMap, and the ISS position from wheretheiss.at.
 
-**Built with:** JavaScript, Node.js, Expo / React Native, react-native-maps, xAI Grok (Voice, Imagine), Capital One Nessie API, Photon Spectrum, Supabase, Wikipedia API, OpenStreetMap (Nominatim, OSRM), wheretheiss.at, Render, **Cursor**.
+**Built with:** JavaScript, Node.js, Expo / React Native, react-native-maps, MapLibre Native (iOS garden map, OpenFreeMap), xAI Grok (Voice, Imagine), Capital One Nessie API, Photon Spectrum, Supabase, Wikipedia API, OpenStreetMap (Nominatim, OSRM), wheretheiss.at, Render, **Cursor**.
 
 ### Built with Cursor
 
@@ -177,7 +177,9 @@ npm install
 npm run tunnel
 ```
 
-Wait for **"Tunnel ready."**, then scan the QR code: with the **Camera** app on iPhone, or **inside Expo Go** on Android. Tunnel mode works on any network, including the venue's guest Wi-Fi, which blocks the normal mode. On a home network where the phone and laptop share Wi-Fi, `npx expo start` is faster. Guide and troubleshooting: [mobile/README.md](mobile/README.md).
+Wait for **"Tunnel ready."**, then scan the QR code: with the **Camera** app on iPhone, or **inside Expo Go** on Android. Tunnel mode works on any network, including the venue's guest Wi-Fi, which blocks the normal mode. On a home network where the phone and laptop share Wi-Fi, `npx expo start --go` is faster. Guide and troubleshooting: [mobile/README.md](mobile/README.md).
+
+The **stylized 3D garden map** is iOS-only and needs a **development build** (MapLibre is not in Expo Go). Expo Go still runs the standard Apple Maps view. Steps: [mobile/README.md](mobile/README.md#ios-garden-map-development-build).
 
 ### 5. 💬 iMessage agent (Photon)
 

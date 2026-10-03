@@ -1,0 +1,15 @@
+---
+description: iOS garden map uses MapLibre in a development build; Expo Go keeps Apple Maps
+globs: mobile/src/map/**,mobile/src/components/TrailMap.js,mobile/src/components/StandardTrailMap.js,mobile/app.json
+alwaysApply: false
+---
+
+# iOS stylized 3D map
+
+- Product surface is `mobile/` only. Do not add a web map for this feature.
+- iOS garden renderer: `@maplibre/maplibre-react-native` v11 (`Map`, `Camera`, `GeoJSONSource`, `Layer` with `paint`/`layout`, `Marker` with `lngLat`). Native code is **not in Expo Go**.
+- Vector tiles and style: OpenFreeMap Liberty (`https://tiles.openfreemap.org/styles/liberty`), recast in `gardenStyle.js`. No API key. Keep OSM / OpenMapTiles / OpenFreeMap attribution. Do not use OSM public raster tiles as vector tiles.
+- Android and Expo Go keep `StandardTrailMap` (`react-native-maps`). Never import MapLibre at the top of `TrailMap.js`; load it only from `GardenMapGate.js` after `canUseNativeMapLibre()`.
+- Never edit `mobile/src/core/`. Shared logic stays in `core/`. Keep the `wanderlings:` storage prefix.
+- Camera: tilted follow while `followCamera` is true; stop on `onRegionDidChange` when `userInteraction` is true; Crosshair recenter sets `followCamera` and `mapFocus`. Garden / Map toggle is `setMapRenderer`.
+- Files around 400 lines. Immutable state updates. No hardcoded secrets. No Unity.

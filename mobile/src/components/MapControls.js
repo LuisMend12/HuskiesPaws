@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { petsView } from "./fakeData.js";
 import { RankBadge } from "./RankBadge.js";
+import { canUseNativeMapLibre } from "../map/availability.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { Button } from "./ui.js";
 
@@ -88,8 +89,10 @@ function usePulse(running) {
 export function MapControls({ state, game }) {
   const canCapture = Boolean(state.capturable) && !state.walking;
   const pulse = usePulse(canCapture);
-  const recenter = () => game.set({ mapFocus: { ...state.position, key: Date.now() } });
+  const recenter = () => game.set({ followCamera: true, mapFocus: { ...state.position, key: Date.now() } });
   const [squadOpen, setSquadOpen] = useState(false);
+  const gardenCapable = canUseNativeMapLibre();
+  const gardenOn = gardenCapable && state.mapRenderer === "garden";
 
   return (
     <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.md }]} pointerEvents="box-none">
@@ -113,6 +116,14 @@ export function MapControls({ state, game }) {
           <Text style={styles.pawIcon}>🐾</Text>
           <Text style={styles.pawLabel}>3D</Text>
         </Pressable>
+        {gardenCapable && (
+          <RoundButton
+            icon={gardenOn ? "🌿 Garden" : "🗺️ Map"}
+            label={gardenOn ? "Switch to the standard map" : "Switch to the garden map"}
+            onPress={() => game.setMapRenderer(gardenOn ? "standard" : "garden")}
+            active={gardenOn}
+          />
+        )}
         <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
       </View>
       {squadOpen && (

@@ -35,7 +35,52 @@ You need:
 
 4. **Scan the QR code.** On iPhone, use the Camera app. On Android, scan from inside Expo Go. Allow **location, camera and motion** access when the app asks.
 
-No API keys are needed.
+No API keys are needed for Expo Go or the garden map tiles (OpenFreeMap is free and has no registration).
+
+## iOS garden map (development build)
+
+The tilted **garden map** is a MapLibre Native vector map styled from [OpenFreeMap Liberty](https://openfreemap.org/) (OpenStreetMap data, OpenMapTiles schema). It is **not in Expo Go**. Official MapLibre docs require a custom native binary.
+
+Attribution (required): **OpenFreeMap · OpenMapTiles · OpenStreetMap**. MapLibre draws the style attribution; the app also shows a caption. There is **no API key** and no paid tile account.
+
+This is a custom stylized 3D renderer (extruded buildings from the Liberty `building-3d` layer, recast land/park/road/water colors, tilted follow camera). The Expo Go iOS map is still **Apple Maps** with pitch — a platform map, not that renderer. Android stays on `react-native-maps` / Google Maps.
+
+### On a Mac (local iPhone or simulator)
+
+1. `cd mobile` and `npm install`
+2. Connect an iPhone (Developer Mode on) or use the Simulator
+3. `npx expo run:ios`  
+   First run compiles native code (MapLibre plugin + `expo-dev-client`). Installs the **HuskiesPaws** dev client, not Expo Go.
+4. After that, `npx expo start` and open the project in the installed dev client.
+
+Windows cannot compile iOS locally.
+
+### From Windows / EAS (install on a physical iPhone)
+
+You need an [Expo](https://expo.dev) account and an Apple Developer account for a device build.
+
+```bash
+cd mobile
+npm install
+npx eas-cli@latest login
+npx eas-cli@latest build --platform ios --profile development
+```
+
+Install the build from the EAS page (QR / link) on the iPhone. Then on the laptop:
+
+```bash
+cd mobile
+npx expo start --dev-client
+```
+
+Open the project in the **HuskiesPaws** development client (not Expo Go). On guest Wi-Fi: `npm run tunnel -- --dev-client`.
+
+A simulator IPA: `--profile development-simulator` (install on a Mac simulator only).
+
+### In the app
+
+- **🌿 Garden** / **🗺️ Map** (iOS development build only): switch renderers. Saved as `wanderlings:mapRenderer`.
+- **Crosshair**: recenter and resume follow. Panning the garden map pauses follow until you recenter.
 
 ### Why the tunnel?
 
@@ -77,7 +122,7 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 | Feature | Web prototype | This app |
 |---|---|---|
 | Steps | Estimated from distance | **Real step counter** (`expo-sensors` Pedometer) |
-| Map | Leaflet | `react-native-maps` (Apple Maps / Google Maps) |
+| Map | Leaflet | `react-native-maps` on Android and in Expo Go; iOS development builds can use MapLibre + OpenFreeMap (garden map) |
 | Capture | Browser camera | `expo-camera` and `react-native-view-shot` |
 | Voice | Browser speech | `expo-speech` |
 | Saved progress | localStorage | AsyncStorage |
@@ -92,9 +137,10 @@ src/game/state.js       initial state, saved fields, derived values
 src/game/store.js       tiny state store (getState / setState / useStore)
 src/game/game.js        game actions: agents, guided walks, capture, savings, Nessie
 src/game/walking.js     movement: simulated walks, GPS, step counter, blooms, trails
-src/components/         TrailMap + MapPets, SquadPanel, PetsPanel + PetArt + HatchModal, RanksPanel + RankBadge,
-                        SavingsPanel, AlbumPanel, PostcardModal, CaptureModal, MapControls, StatusToast, ui
-src/storage.js          AsyncStorage
+src/components/         StandardTrailMap + MapPets, TrailMap switcher, SquadPanel, PetsPanel + PetArt + HatchModal,
+                        RanksPanel, SavingsPanel, AlbumPanel, PostcardModal, CaptureModal, MapControls, StatusToast, ui
+src/map/                iOS garden map: MapLibre + OpenFreeMap (not loaded in Expo Go)
+src/storage.js          AsyncStorage (`wanderlings:` prefix)
 src/voice.js            speech (placeholder for Grok Voice)
 ```
 
@@ -118,4 +164,5 @@ The app now runs on a real phone through Expo Go with `npm run tunnel`. Still te
 - **Nessie uses plain HTTP.** Expo Go allows that. A store build needs cleartext HTTP enabled for `api.nessieisreal.com` (Android `usesCleartextTraffic` via `expo-build-properties`, and an iOS App Transport Security exception). The Nessie calls are also **untested**, since the API was resetting connections during development.
 - **Leaderboards use sample players** until there's a backend (for example Supabase). See [docs/mobile-migration.md](../docs/mobile-migration.md).
 - **Android step counting** only works while the app is open. Background tracking and **true AR** (ViroReact) need a development build (`npx expo run:android` or EAS).
+- **Garden 3D map is iOS + development build only.** Expo Go keeps Apple Maps. Visual QA on a real iPhone is still outstanding on Windows (no local `expo run:ios`).
 - **Many flowers on the map** can slow older phones down. The map keeps only the newest 150 flowers.

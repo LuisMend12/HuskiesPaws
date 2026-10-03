@@ -13,6 +13,7 @@ export const SAVED_DEFAULTS = Object.freeze({
   trips: [], // [{ id, title, meters, amount, date, nessieId }]
   bank: null, // { customerId, checkingId, savingsId }
   nessieKey: "", // sandbox key only; a real app keeps bank keys on a server
+  mapRenderer: "garden", // iOS development build uses MapLibre; Expo Go falls back
 });
 
 // "Reset my progress" clears these but keeps the Nessie connection.
@@ -26,6 +27,7 @@ export const INITIAL_STATE = Object.freeze({
   trailSegments: [], // [{ id, trailId, color, coords: [{ latitude, longitude }] }]
   route: null, // [{ lat, lon }]
   mapFocus: null, // { lat, lon, key } to recenter the map
+  followCamera: true, // garden map: stop following after a manual pan
   walking: false,
   away: [], // agent ids on an expedition
   expedition: null, // { agentId, from, to: { lat, lon }, startedAt, durationMs } while a pet walks to a place

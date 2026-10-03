@@ -86,7 +86,11 @@ function Main() {
       <StatusBar style="dark" />
 
       <View style={styles.map}>
-        <TrailMap state={state} onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })} />
+        <TrailMap
+          state={state}
+          onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })}
+          onUserExplore={() => game.set({ followCamera: false })}
+        />
         <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} onRankPress={() => game.set({ tab: "ranks" })} />
         <StatusToast message={state.status} />
         <MapControls state={state} game={game} />

@@ -25,7 +25,12 @@ await new Promise((resolve) => tunnel.once("connected", resolve));
 const proxyUrl = url.replace(/^https:/, "http:");
 console.log(`Tunnel ready: ${url}`);
 
-const expo = spawn("npx", ["expo", "start", "--port", String(PORT), ...process.argv.slice(2)], {
+const extra = process.argv.slice(2);
+// expo-dev-client makes bare `expo start` prefer a native binary. Default the
+// tunnel to Expo Go so `npm run tunnel` still works on a phone without a
+// development build. Garden map: `npm run tunnel -- --dev-client`.
+const expoFlags = extra.length ? extra : ["--go"];
+const expo = spawn("npx", ["expo", "start", "--port", String(PORT), ...expoFlags], {
   stdio: "inherit",
   shell: true,
   env: { ...process.env, EXPO_PACKAGER_PROXY_URL: proxyUrl },
