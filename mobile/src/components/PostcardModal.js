@@ -17,7 +17,7 @@ export function PostcardModal({ visible, discovery, onClose, onGo, onReplay }) {
           <ScrollView>
             <SvgXml xml={postcardSvg(place.title, agent)} width="100%" height={160} />
             <View style={styles.body}>
-              <Text style={styles.from}>{`POSTCARD FROM ${agent.name.toUpperCase()}`}</Text>
+              <Text style={styles.from}>{`POSTCARD FROM ${(discovery.agentName ?? agent.name).toUpperCase()}`}</Text>
               <Text style={styles.title}>{place.title}</Text>
               {summary.photo && <Image source={{ uri: summary.photo }} style={styles.photo} accessibilityLabel={`Photo of ${place.title}`} />}
               <Text style={styles.fact}>{summary.extract || "No description available."}</Text>

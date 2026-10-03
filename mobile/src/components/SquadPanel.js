@@ -2,6 +2,7 @@
 // action. Slots grow with your league (3, then 4 at Gold, 5 at Crystal).
 // Reads squad / pet.status / squadSize (docs/HANDOFF-backend.md); until the
 // backend has them, class actions run the existing Pip/Moss/Fern agents.
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { AGENTS } from "../core/agents.js";
 import { petLevel, petPower, rarityOf } from "../core/pets.js";
@@ -20,6 +21,18 @@ const STATUS = {
   resting: { label: "💤 Resting", color: colors.muted, bg: colors.stripe },
 };
 
+// Seconds until an exploring pet is back, ticking once a second.
+function useSecondsLeft(expedition) {
+  const [now, setNow] = useState(() => expedition?.startedAt ?? 0);
+  useEffect(() => {
+    if (!expedition) return undefined;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [expedition]);
+  if (!expedition) return null;
+  return Math.max(0, Math.ceil((expedition.startedAt + expedition.durationMs - Math.max(now, expedition.startedAt)) / 1000));
+}
+
 function SquadCard({ pet, status, agentId, state, game }) {
   const walked = state.progress.walked;
   const agent = AGENTS.find((a) => a.id === agentId);
@@ -28,7 +41,10 @@ function SquadCard({ pet, status, agentId, state, game }) {
   const guarding = status === "defending" ? state.turf?.find((t) => t.pet?.id === pet.id) : null;
   const busy = status !== "with-you" || state.walking;
   const needsDiscovery = pet.petClass === "Pathfinder" && !state.discovery;
-  const run = () => (game.runPet ? game.runPet(pet.id) : game.runAgent(agent));
+  const trip = status === "exploring" && state.expedition?.agentId === agentId ? state.expedition : null;
+  const secondsLeft = useSecondsLeft(trip);
+  // Until the backend has runPet, run the class's agent under this pet's name.
+  const run = () => (game.runPet ? game.runPet(pet.id) : game.runAgent({ ...agent, name: pet.name }));
 
   return (
     <Card style={styles.card}>
@@ -44,7 +60,13 @@ function SquadCard({ pet, status, agentId, state, game }) {
         <Text style={styles.power}>{`⚡ ${petPower(pet, walked)} power`}</Text>
         <View style={[styles.status, { backgroundColor: look.bg }]}>
           <Text style={[styles.statusText, { color: look.color }]}>
-            {guarding ? `${look.label} ${guarding.title}` : status === "resting" && pet.restMeters ? `${look.label} · ${Math.ceil(pet.restMeters)} m` : look.label}
+            {guarding
+              ? `${look.label} ${guarding.title}`
+              : secondsLeft !== null
+                ? `${look.label} · back in ${secondsLeft} s`
+                : status === "resting" && pet.restMeters
+                  ? `${look.label} · ${Math.ceil(pet.restMeters)} m`
+                  : look.label}
           </Text>
         </View>
       </View>

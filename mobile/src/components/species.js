@@ -81,12 +81,12 @@ export const SPECIES = Object.freeze({
     Ears: ({ fur }) => (
       <G>
         <G fill={fur} {...line}>
-          <Ellipse cx={36} cy={14} rx={8} ry={20} transform="rotate(-12 36 14)" />
-          <Ellipse cx={64} cy={14} rx={8} ry={20} transform="rotate(12 64 14)" />
+          <Ellipse cx={36} cy={20} rx={8} ry={16} transform="rotate(-12 36 20)" />
+          <Ellipse cx={64} cy={20} rx={8} ry={16} transform="rotate(12 64 20)" />
         </G>
         <G fill={colors.pink}>
-          <Ellipse cx={36} cy={14} rx={3.5} ry={14} transform="rotate(-12 36 14)" />
-          <Ellipse cx={64} cy={14} rx={3.5} ry={14} transform="rotate(12 64 14)" />
+          <Ellipse cx={36} cy={20} rx={3.5} ry={11} transform="rotate(-12 36 20)" />
+          <Ellipse cx={64} cy={20} rx={3.5} ry={11} transform="rotate(12 64 20)" />
         </G>
       </G>
     ),

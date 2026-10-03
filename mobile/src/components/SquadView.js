@@ -4,9 +4,9 @@
 // Loaded lazily (it pulls in three.js), so it only costs anything when opened.
 /* eslint-disable react/no-unknown-property -- three.js elements (lights, positions) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
-import { Canvas } from "@react-three/fiber/native";
+import { Canvas, useThree } from "@react-three/fiber/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -14,12 +14,29 @@ import { rarityOf } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { Pup } from "./Pet3D.js";
 
-const SPACING = 1.9; // world units between pets
+const PET_SCALE = 0.7;
+const SPACING = 1.9; // between pets, before scaling
+const PET_WIDTH = 1.7; // one pet with its ears, before scaling
 
 // Pets stand in a shallow arc facing you, the middle one a little forward.
 function spotFor(i, count) {
   const x = (i - (count - 1) / 2) * SPACING;
-  return [x, 0, -Math.abs(x) * 0.35];
+  return [x, 0, -Math.abs(x) * 0.3];
+}
+
+// Frames the row: far enough back that every pet fits across the screen, and
+// looking down a little so they stand in the lower part, as if on the ground.
+function CameraRig({ count }) {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const halfWidthTan = Math.tan((camera.fov * Math.PI) / 360) * (size.width / size.height);
+    const rowWidth = ((Math.max(1, count) - 1) * SPACING + PET_WIDTH) * PET_SCALE;
+    const distance = Math.max(5.5, (rowWidth / 2 / halfWidthTan) * 1.2);
+    camera.position.set(0, distance * 0.28, distance);
+    camera.lookAt(0, distance * 0.16, 0);
+    camera.updateProjectionMatrix();
+  }, [camera, size, count]);
+  return null;
 }
 
 function Field() {
@@ -73,17 +90,17 @@ export default function SquadView({ visible, squad, onClose }) {
         <Canvas
           style={StyleSheet.absoluteFill}
           gl={{ alpha: true }}
-          camera={{ position: [0, 1.4, 7.2], fov: 42 }}
-          onCreated={({ gl, camera }) => {
-            gl.setClearColor(0x000000, 0); // see-through, so the camera or field shows behind
-            camera.lookAt(0, -0.2, 0);
-          }}
+          camera={{ fov: 42 }}
+          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)} // see-through: the camera or field shows behind
         >
           <ambientLight intensity={1.1} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.4} />
-          {pets.map((pet, i) => (
-            <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 0.7} turn={(i - (pets.length - 1) / 2) * -0.15} />
-          ))}
+          <CameraRig count={pets.length} />
+          <group scale={PET_SCALE}>
+            {pets.map((pet, i) => (
+              <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 0.7} turn={(i - (pets.length - 1) / 2) * -0.15} />
+            ))}
+          </group>
         </Canvas>
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>

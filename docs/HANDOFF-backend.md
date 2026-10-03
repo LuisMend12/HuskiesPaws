@@ -32,6 +32,7 @@ npx expo start --clear    # once, to drop Metro's old cache
 | `core/pets.js` | `PET_SPECIES`, `EGG_TIERS`, `rollEggTier`, `eggTierOf`, `hatchMetersOf`; `maybeNewEgg` adds `tier`; `hatchEgg` uses tier odds and adds `species` | Agreed with Abdullah: rarer long eggs, more animals |
 | `mobile/src/core/rank.js` | Re-synced (`npm run sync-core`) | Generated copy |
 | `mobile/src/game/game.js`, `state.js` | `runExpedition` sets `expedition: { agentId, from, to: { lat, lon }, startedAt, durationMs }` while a pet is out, and clears it in `finally` (new `expedition: null` in `INITIAL_STATE`) | The map walks the exploring pet to the place and back. If you rework expeditions as `game.runPet`, keep setting `expedition` |
+| `mobile/src/game/game.js` | The "heading toward" status adds "back in about N s"; `discovery` also stores `agentName`. The Squad tab runs agents as `runAgent({ ...agent, name: pet.name })` so messages use the pet's name | Return time; your Scout might be Nova, not Pip. `game.runPet` should do the same |
 | `mobile/src/game/game.js` | `checkRankUp`: only a league change (`rank.division === 3`) says "League up! New trail unlocked"; division changes say "Rank up!" | The old message claimed a new trail on every rank-up |
 
 Please pull before editing these.
