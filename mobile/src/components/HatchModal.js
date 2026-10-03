@@ -98,10 +98,13 @@ function Reveal({ pet, walked, onClose }) {
   );
 }
 
+// Mounted only while a pet is hatching: iOS shows one Modal at a time, so an
+// idle (hidden) Modal must not sit around blocking the 3D and landmark screens.
 export function HatchModal({ pet, walked, onClose }) {
+  if (!pet) return null;
   return (
-    <Modal visible={Boolean(pet)} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      {pet && <Reveal key={pet.id} pet={pet} walked={walked} onClose={onClose} />}
+    <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <Reveal key={pet.id} pet={pet} walked={walked} onClose={onClose} />
     </Modal>
   );
 }
