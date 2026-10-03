@@ -1,6 +1,6 @@
-// Full-screen 3D view of your squad (like Pikmin Bloom's world view): your
-// squad pets hop around in 3D over the live camera (AR-style), or on a grassy
-// field when the camera is off or not allowed. Opened from the 🐾 map button.
+// Full-screen 3D view of your squad (like Pikmin Bloom's world view): over the
+// live camera (motion-sensor AR, see ArSquad.js) the pets stay put in the room
+// and run to where you look; on the grassy field they walk little triangles. Opened from the 🐾 map button.
 // Loaded lazily (it pulls in three.js), so it only costs anything when opened.
 /* eslint-disable react/no-unknown-property -- three.js elements (lights, positions) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { rarityOf } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
+import { ArSquad } from "./ArSquad.js";
 import { Pup } from "./Pet3D.js";
 
 const PET_SCALE = 0.7;
@@ -96,12 +97,19 @@ export default function SquadView({ visible, squad, onClose }) {
         >
           <ambientLight intensity={1.1} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.4} />
-          <FitCamera width={rowWidth(pets.length)} />
-          <group scale={PET_SCALE}>
-            {pets.map((pet, i) => (
-              <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 1.7} wander />
-            ))}
-          </group>
+          {showCamera ? (
+            // AR: the camera follows the phone; pets stay put in the room and regroup where you look.
+            <ArSquad pets={pets} />
+          ) : (
+            <>
+              <FitCamera width={rowWidth(pets.length)} />
+              <group scale={PET_SCALE}>
+                {pets.map((pet, i) => (
+                  <Pup key={pet.id} pet={pet} position={spotFor(i, pets.length)} phase={i * 1.7} wander />
+                ))}
+              </group>
+            </>
+          )}
         </Canvas>
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
