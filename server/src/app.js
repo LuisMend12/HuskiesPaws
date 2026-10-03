@@ -5,8 +5,10 @@ import { HttpError, sendError, serveStatic } from "./http.js";
 import { createRoutes } from "./routes.js";
 import { createBankRoutes } from "./bank.js";
 
-export function createApp({ config, store, grok, bankClient }) {
-  const routes = createRoutes({ store, grok, imagesDir: join(config.dataDir, "images"), limits: config.limits });
+// elevenlabs and tts (per-agent voice choice) come from index.js; without them
+// every agent falls back to Grok Voice.
+export function createApp({ config, store, grok, elevenlabs, tts, bankClient }) {
+  const routes = createRoutes({ store, grok, elevenlabs, tts, imagesDir: join(config.dataDir, "images"), limits: config.limits });
   const bank = createBankRoutes({ store, key: config.nessieKey, client: bankClient });
 
   const table = {
