@@ -7,16 +7,19 @@ import {
 import { distanceMeters, interpolate } from "./geo.js";
 import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "./leaderboard.js";
 import { createMap } from "./map.js";
-import { rankFor, scoreFor, stepsFromMeters } from "./rank.js";
+import { TRAILS, activeTrail, rankFor, scoreFor, stepsFromMeters } from "./rank.js";
 import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute } from "./services.js";
 import { clearAll, load, save } from "./storage.js";
-import { agentCard, renderAlbum, renderLeaderboard, renderRankBadge, renderRankCard } from "./views.js";
+import {
+  agentCard, renderAlbum, renderLeaderboard, renderRankBadge, renderRankCard, renderTrailPicker,
+} from "./views.js";
 import { speakMemo } from "./voice.js";
 
 const $ = (id) => document.getElementById(id);
 const agentById = (id) => AGENTS.find((a) => a.id === id);
-const SAVED_KEYS = ["progress", "found", "album", "xp"];
+const SAVED_KEYS = ["progress", "found", "album", "xp", "trail"];
 const EMPTY_PROGRESS = Object.freeze({ walked: 0, landmarksFound: 0, landmarksCaptured: 0 });
+const RANK_START = rankFor(0).current.name;
 
 let state = {
   position: DEFAULT_CENTER,
@@ -33,11 +36,14 @@ let state = {
   found: load("found", []), // [{ id, title, lat, lon, photo }]
   album: load("album", []), // [{ id, title, image, date, agentId }]
   xp: load("xp", Object.fromEntries(AGENTS.map((a) => [a.id, 0]))),
+  trailChoice: load("trail", "auto"), // "auto" or a trail id
 };
+state = { ...state, rankName: rankFor(scoreFor(stats())).current.name };
 
 let cameraStream = null;
 
-const map = createMap("map", state.position);
+const currentTrail = () => activeTrail(scoreFor(stats()), state.trailChoice);
+const map = createMap("map", state.position, currentTrail());
 state = { ...state, blooms: map.moveTo(state.position) };
 state.found.forEach((place) => map.addPlace(place, "your squad"));
 
@@ -52,6 +58,7 @@ function persist() {
   save("found", state.found);
   save("album", state.album);
   save("xp", state.xp);
+  save("trail", state.trailChoice);
 }
 
 function setState(patch) {
@@ -61,16 +68,20 @@ function setState(patch) {
 
 // Applies a progress change, saves it, and announces rank-ups.
 function award(progressPatch, agent) {
-  const before = rankFor(scoreFor(stats())).current;
   state = { ...state, progress: { ...state.progress, ...progressPatch } };
-  const after = rankFor(scoreFor(stats())).current;
   persist();
   render();
-  if (after.name !== before.name) {
-    const message = `Rank up! You're now ${after.emoji} ${after.name}.`;
-    setStatus(message);
-    speakMemo(message, agent ?? agentById("scout"));
-  }
+  checkRankUp(agent);
+}
+
+function checkRankUp(agent) {
+  const rank = rankFor(scoreFor(stats())).current;
+  if (rank.name === state.rankName) return;
+  state = { ...state, rankName: rank.name };
+  const message = `Rank up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`;
+  setStatus(message);
+  speakMemo(message, agent ?? agentById("scout"));
+  render();
 }
 
 const gainXp = (agentId) => ({ xp: { ...state.xp, [agentId]: state.xp[agentId] + 1 } });
@@ -94,6 +105,7 @@ function renderStats() {
   $("btn-capture").textContent = state.capturable ? `📸 Capture ${state.capturable.title}` : "📸 Capture";
   const score = scoreFor(stats());
   renderRankBadge($("rank-badge"), rankFor(score), score);
+  map.setTrailStyle(activeTrail(score, state.trailChoice)); // no-op unless the trail changed
 }
 
 function renderAgents() {
@@ -118,6 +130,15 @@ function renderRanks() {
   $("leaderboard-title").textContent = `${scope.label} · ${regionName}`;
   const board = buildLeaderboard(demoPlayers(scope, regionName), { id: "you", name: "You", score });
   renderLeaderboard($("leaderboard"), topWithYou(board, LEADERBOARD_TOP));
+  renderTrailPicker($("trails"), TRAILS, {
+    score,
+    chosenId: state.trailChoice,
+    activeId: activeTrail(score, state.trailChoice).id,
+    onPick: (trailChoice) => {
+      setState({ trailChoice });
+      persist();
+    },
+  });
   document.querySelectorAll("[data-scope]").forEach((chip) => {
     chip.classList.toggle("active", chip.dataset.scope === state.scope);
   });
@@ -342,6 +363,7 @@ function walkAlong(points) {
         stepTo(points[points.length - 1]);
         persist();
         setState({ walking: false });
+        checkRankUp(null);
         resolve();
         return;
       }
@@ -363,9 +385,9 @@ async function demoWalk() {
       return;
     }
     const route = await getWalkingRoute(state.position, target);
+    const rankBefore = state.rankName;
     await walkAlong(route.points);
-    award({}, null); // re-check rank after the steps
-    setStatus(`Walked to ${target.title}. Send Pip to explore from here!`);
+    if (state.rankName === rankBefore) setStatus(`Walked to ${target.title}. Send Pip to explore from here!`);
   } catch (error) {
     console.error("Demo walk failed:", error);
     setStatus("Couldn't plan a walk (network problem).");
@@ -407,6 +429,8 @@ function resetProgress() {
     found: [],
     album: [],
     xp: Object.fromEntries(AGENTS.map((a) => [a.id, 0])),
+    trailChoice: "auto",
+    rankName: RANK_START,
     capturable: null,
     discovery: null,
   });

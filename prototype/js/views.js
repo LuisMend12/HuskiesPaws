@@ -67,6 +67,25 @@ export function renderLeaderboard(node, rows) {
   );
 }
 
+// Trail picker: "Auto" follows your rank; locked trails show the rank that unlocks them.
+export function renderTrailPicker(node, trails, { score, chosenId, activeId, onPick }) {
+  const auto = el("button", `chip${chosenId === "auto" ? " active" : ""}`, "✨ Auto (follows rank)");
+  auto.addEventListener("click", () => onPick("auto"));
+  const chips = trails.map((trail) => {
+    const unlocked = score >= trail.rank.min;
+    const label = unlocked
+      ? `${trail.flowers.slice(0, 2).join("")} ${trail.name}`
+      : `🔒 ${trail.name} · ${trail.rank.name}`;
+    const selected = chosenId === trail.id || (chosenId === "auto" && activeId === trail.id);
+    const chip = el("button", `chip${chosenId === trail.id ? " active" : ""}${selected ? " in-use" : ""}`, label);
+    chip.disabled = !unlocked;
+    chip.title = unlocked ? `Use the ${trail.name} trail` : `Reach ${trail.rank.name} to unlock`;
+    chip.addEventListener("click", () => onPick(trail.id));
+    return chip;
+  });
+  node.replaceChildren(auto, ...chips);
+}
+
 export function renderAlbum(node, emptyNode, cards) {
   emptyNode.hidden = cards.length > 0;
   node.replaceChildren(

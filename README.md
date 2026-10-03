@@ -105,6 +105,25 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 | **PictureRoute** | Directions as illustrated landmark cards, made with Grok Imagine | Design track |
 | **Wanderlings** | Pikmin Bloom with AI agents: walk to make your trail bloom, and send agent companions to scout real places. They return with Grok Imagine postcards and Grok Voice memos. | People's Choice, Design, and Photon if agents text you |
 
+## ⭐ Wanderlings: the current front-runner
+
+**Pikmin Bloom meets AI agents.** Walk, and your trail blooms on the map. Send agent companions to scout real places. Climb the ranks, and capture landmarks as postcards, Pokémon Go style.
+
+| Feature | What it does |
+|---|---|
+| 🤖 **Agent squad** | **Pip (Scout)** finds places you've never been. **Moss (Storyteller)** tells their history. **Fern (Pathfinder)** walks you there. Agents only report facts from real data (Wikipedia and maps). |
+| 🏆 **Ranks** | Points come from steps walked, landmarks found and landmarks captured. The ranks run 🌱 Seedling → 🌿 Sprout → 🌷 Bud → 🌸 Blossom → 🌳 Grove → 🌲 Ancient Oak. |
+| 🌍 **Leaderboards** | **Local** (your city), **Statewide** and **National** rankings, based on your GPS location. |
+| 🌸 **Custom trails** | Each rank unlocks a new trail with its own flowers and path color, such as Rose Garden, Cherry Blossom, Forest Floor and Starlight. Your trail upgrades when you rank up, or you can pick any trail you've unlocked. |
+| 📸 **AR landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
+| 🎙️ **Grok** | **Grok Voice** gives agents their voice memos. **Grok Imagine** makes postcard illustrations and creature art. |
+
+**Tracks:** Cursor (SpaceX), Big Red, People's Choice and Design. It can also enter Photon if the agents text you in iMessage.
+
+- **Try it:** a working prototype of everything above is in [`prototype/`](prototype/). See [prototype/README.md](prototype/README.md) to run it. It's a throwaway prototype; the submission must be built in Cursor.
+- **Idea sheet:** [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex)
+- **Going mobile:** real step counting, background GPS and true AR need a native app. See [docs/mobile-migration.md](docs/mobile-migration.md).
+
 ## Other ideas that fit the Navigation theme
 
 These target other tracks, in case we change plans.
