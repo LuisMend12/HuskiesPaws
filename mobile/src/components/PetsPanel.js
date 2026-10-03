@@ -6,7 +6,8 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
-  EGG_EVERY_STEPS, HATCH_METERS, ISS_RARITY_BOOST, RARITIES, hatchEgg, petLevel, petPower, rarityOf, stepsToNextEgg,
+  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggTierOf, hatchEgg, hatchMetersOf, petLevel, petPower, rarityOf, rollEggTier,
+  stepsToNextEgg,
 } from "../core/pets.js";
 import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
@@ -21,10 +22,9 @@ import { Button, Card, Hint } from "./ui.js";
 const Pet3DTest = lazy(() => import("./Pet3D.js").then((m) => ({ default: m.Pet3DTest })));
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
-const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked }, walked);
+const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked, tier: rollEggTier().id }, walked);
 
-// Each egg can carry its own distance (egg.hatchMeters); the default is HATCH_METERS.
-const eggNeeds = (egg) => egg.hatchMeters ?? HATCH_METERS;
+const formatMeters = (m) => (m >= 1000 ? `${m / 1000} km` : `${m} m`);
 const eggDone = (egg, walked) => Math.max(0, walked - egg.startWalked);
 
 const wobble = (v) =>
@@ -80,19 +80,21 @@ function EggRow({ egg, walked, index }) {
   const tilt = useLoop(wobble, index * 450); // eggs wobble one after another, not in sync
   const rotate = tilt.interpolate({ inputRange: [-1, 1], outputRange: ["-10deg", "10deg"] });
   const done = eggDone(egg, walked);
-  const needs = eggNeeds(egg);
+  const needs = hatchMetersOf(egg);
+  const tier = eggTierOf(egg);
   const progress = Math.min(1, done / needs);
   return (
     <View style={styles.eggRow}>
       <Animated.View style={{ transform: [{ rotate }] }}>
-        <EggArt size={46} seed={egg.id} />
+        <EggArt size={46} seed={egg.id} tier={egg.tier} />
       </Animated.View>
       <View style={styles.flex}>
         <View style={styles.eggTop}>
-          <Text style={type.label}>{progress >= 1 ? "Ready to hatch!" : `${Math.ceil(needs - done)} m to go`}</Text>
-          <Text style={styles.eggMeters}>{`${Math.floor(Math.min(done, needs))} / ${needs} m`}</Text>
+          <Text style={type.label}>{`${tier?.label ?? "Egg"} · ${formatMeters(needs)}`}</Text>
+          <Text style={styles.eggMeters}>{progress >= 1 ? "Ready!" : `${Math.ceil(needs - done)} m to go`}</Text>
         </View>
         <ProgressBar progress={progress} id={egg.id} />
+        {tier && <Text style={styles.eggOdds}>{`${tier.odds.epic + tier.odds.legendary}% epic or legendary`}</Text>}
       </View>
     </View>
   );
@@ -235,5 +237,6 @@ const styles = StyleSheet.create({
   eggRow: { flexDirection: "row", alignItems: "center", gap: space.md },
   eggTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   eggMeters: { ...type.caption },
+  eggOdds: { ...type.caption, fontSize: 11 },
   track: { height: 10, borderRadius: 5, backgroundColor: colors.stripe, overflow: "hidden" },
 });

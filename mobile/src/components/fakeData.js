@@ -23,9 +23,9 @@ export function samplePets(walked) {
   return PETS.map(({ ago, ...p }) => ({ ...p, hatchedAtWalked: walked - ago }));
 }
 
-// Eggs at different stages of hatching (meters already walked with each).
-const EGGS = [["01", 240], ["02", 130], ["03", 40]];
-export const sampleEggs = (walked) => EGGS.map(([id, done]) => ({ id: `egg-sample${id}`, startWalked: walked - done }));
+// Eggs of each tier at different stages (meters already walked with each).
+const EGGS = [["01", "short", 240], ["02", "medium", 330], ["03", "long", 120]];
+export const sampleEggs = (walked) => EGGS.map(([id, tier, done]) => ({ id: `egg-sample${id}`, tier, startWalked: walked - done }));
 
 // Rival guards at real Cornell landmarks near the default map center.
 const guard = (landmarkId, title, lat, lon, ownerName, guardPet, hp) => ({

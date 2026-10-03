@@ -5,7 +5,8 @@ import { choosePlace, firstSentences } from "../agents.js";
 import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../leaderboard.js";
 import {
   EGG_EVERY_STEPS, HATCH_METERS, LEVEL_EVERY_M, MAX_LEVEL, RARITIES,
-  eggProgress, eggsEarned, hatchEgg, maybeNewEgg, metersToHatch, petLevel, petPower, rollRarity, stepsToNextEgg,
+  EGG_TIERS, PET_SPECIES, eggProgress, eggsEarned, hatchEgg, hatchMetersOf, maybeNewEgg, metersToHatch, petLevel, petPower, rollEggTier,
+  rollRarity, stepsToNextEgg,
 } from "../pets.js";
 import { TRAILS, activeTrail, rankFor, scoreFor } from "../rank.js";
 import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
@@ -23,6 +24,7 @@ test("eggs are earned every EGG_EVERY_STEPS steps, one at a time", () => {
   assert.equal(maybeNewEgg({ egg: null, eggsReceived: 0, steps: 10, walked: 0 }), null, "not earned yet");
   const egg = maybeNewEgg({ egg: null, eggsReceived: 0, steps: EGG_EVERY_STEPS, walked: 123 });
   assert.equal(egg.startWalked, 123);
+  assert.ok(EGG_TIERS.some((t) => t.id === egg.tier), "new eggs have a tier");
   assert.equal(maybeNewEgg({ egg, eggsReceived: 1, steps: EGG_EVERY_STEPS * 5, walked: 200 }), null, "already carrying one");
   assert.equal(maybeNewEgg({ egg: null, eggsReceived: 1, steps: EGG_EVERY_STEPS, walked: 200 }), null, "already received it");
 });
@@ -33,6 +35,21 @@ test("eggs hatch after walking HATCH_METERS", () => {
   assert.equal(eggProgress(egg, 100 + HATCH_METERS / 2), 0.5);
   assert.equal(eggProgress(egg, 100 + HATCH_METERS * 3), 1);
   assert.equal(metersToHatch(egg, 100 + HATCH_METERS - 10), 10);
+});
+
+test("egg tiers: longer eggs take longer and hatch rarer pets", () => {
+  assert.equal(rollEggTier(() => 0).id, "short");
+  assert.equal(rollEggTier(() => 0.7).id, "medium");
+  assert.equal(rollEggTier(() => 0.95).id, "long");
+  assert.equal(hatchMetersOf({ tier: "long" }), 1000);
+  assert.equal(hatchMetersOf({}), HATCH_METERS, "older eggs without a tier");
+  assert.equal(eggProgress({ startWalked: 0, tier: "medium" }, 300), 0.5);
+  const [short, , long] = EGG_TIERS;
+  assert.equal(rollRarity(() => 0.85, { tier: short }).id, "rare");
+  assert.equal(rollRarity(() => 0.85, { tier: long }).id, "epic");
+  assert.equal(rollRarity(() => 0.95, { tier: long }).id, "legendary");
+  for (const tier of EGG_TIERS) assert.equal(Object.values(tier.odds).reduce((a, b) => a + b, 0), 100, tier.id);
+  assert.ok(PET_SPECIES.includes(hatchEgg({ id: "egg-2", startWalked: 0, tier: "long" }, 1000).species));
 });
 
 test("rarity roll follows the weights", () => {

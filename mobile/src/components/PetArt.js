@@ -125,16 +125,23 @@ export function PetArt({ pet, size = 96 }) {
   return <PetSvg pet={pet} size={size} />;
 }
 
-const EGG_SPOTS = ["#7cc96b", colors.ice, colors.pink, colors.yellow, "#b39ddb", colors.coral];
+// Shell and spot colors per egg tier (core/pets.js EGG_TIERS): meadow, forest, crystal.
+const EGG_LOOKS = {
+  short: { shell: "#fff6e0", spots: ["#7cc96b", colors.yellow, "#a5d6a7", colors.pink] },
+  medium: { shell: "#e3f2fd", spots: [colors.ice, "#3f8fd2", "#7cc96b", "#b3e5fc"] },
+  long: { shell: "#efe4ff", spots: ["#9b59d0", "#d6b4ff", colors.ice, "#ffffff"] },
+};
+const DEFAULT_LOOK = { shell: "#fff6e0", spots: ["#7cc96b", colors.ice, colors.pink, colors.yellow] };
 
-// A speckled egg to carry until it hatches; `seed` (the egg id) varies its spots.
-export function EggArt({ size = 64, seed = "" }) {
-  const start = hashString(seed) % EGG_SPOTS.length;
-  const spot = (i) => EGG_SPOTS[(start + i) % EGG_SPOTS.length];
+// A speckled egg; its tier sets the colors and `seed` (the egg id) shuffles the spots.
+export function EggArt({ size = 64, seed = "", tier }) {
+  const look = EGG_LOOKS[tier] ?? DEFAULT_LOOK;
+  const start = hashString(seed) % look.spots.length;
+  const spot = (i) => look.spots[(start + i) % look.spots.length];
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel="Your egg">
       <Ellipse cx={50} cy={92} rx={24} ry={4} fill={INK} opacity={0.12} />
-      <Path d="M50 8 Q78 10 80 56 Q80 90 50 90 Q20 90 20 56 Q22 10 50 8 Z" fill="#fff6e0" stroke={INK} strokeWidth={2.5} />
+      <Path d="M50 8 Q78 10 80 56 Q80 90 50 90 Q20 90 20 56 Q22 10 50 8 Z" fill={look.shell} stroke={INK} strokeWidth={2.5} />
       <Path d="M30 30 Q42 20 50 22" stroke="#ffffff" strokeWidth={5} strokeLinecap="round" fill="none" />
       <Circle cx={38} cy={50} r={6} fill={spot(0)} />
       <Circle cx={62} cy={40} r={4.5} fill={spot(1)} />
