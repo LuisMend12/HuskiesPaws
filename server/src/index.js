@@ -21,9 +21,10 @@ const config = {
 const store = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY
   ? createSupabaseStore({ url: env.SUPABASE_URL, serviceKey: env.SUPABASE_SERVICE_KEY })
   : createFileStore(config.dataDir);
-const grok = createGrok({ apiKey: env.XAI_API_KEY, baseUrl: env.XAI_BASE_URL });
+// XAI_API_KEY is xAI's own name for it; GROK_API_KEY is accepted too.
+const grok = createGrok({ apiKey: env.XAI_API_KEY || env.GROK_API_KEY, baseUrl: env.XAI_BASE_URL });
 
 createApp({ config, store, grok }).listen(config.port, () => {
   console.log(`HuskiesPaws running at http://localhost:${config.port}`);
-  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · storage: ${store.kind}`);
+  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY or GROK_API_KEY)"} · storage: ${store.kind}`);
 });
