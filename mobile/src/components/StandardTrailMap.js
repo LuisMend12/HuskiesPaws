@@ -1,9 +1,10 @@
 // Tilted Apple Maps (iOS) / Google Maps (Android) with blooms, routes, and pets.
 import { useEffect, useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from "react-native-maps";
 import { DEFAULT_CENTER } from "../core/config.js";
 import { distanceMeters } from "../core/geo.js";
+import { GOOGLE_GARDEN_STYLE } from "../map/googleGardenStyle.js";
 import { colors } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { MapPets, useSettled } from "./MapPets.js";
@@ -17,6 +18,8 @@ const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
 const BAG_LIFT_PX = 26;
 const TAP_RADIUS_PX = 46;
 const LANDMARK_ID = "landmark:";
+// Google Maps takes a color style (Apple Maps doesn't), so Android gets the garden look.
+const ANDROID_GARDEN = Platform.OS === "android" ? { provider: PROVIDER_GOOGLE, customMapStyle: GOOGLE_GARDEN_STYLE } : {};
 const cameraAt = (p, meters = 0) => ({
   center: toCoord(p),
   pitch: TILT,
@@ -86,6 +89,7 @@ export function StandardTrailMap({ state, onOpenLandmark }) {
   return (
     <MapView
       ref={mapRef}
+      {...ANDROID_GARDEN}
       style={StyleSheet.absoluteFill}
       initialCamera={cameraAt(DEFAULT_CENTER)}
       showsBuildings

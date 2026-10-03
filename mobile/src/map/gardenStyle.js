@@ -4,16 +4,21 @@
 
 export const LIBERTY_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
-const LAND = "#cfe8b8";
-const PARK = "#7bc86a";
-const WOOD = "#5eaa62";
-const GRASS = "#9ed67a";
-const WATER = "#5eb7ef";
-const ROAD = "#f6f0dc";
-const ROAD_EDGE = "#e4d4b2";
-const BUILDING = "#f0ddb8";
-const LABEL = "#3d5a3a";
-const HALO = "#f7fbe9";
+// Shared with the Google Maps garden look (googleGardenStyle.js).
+export const GARDEN = Object.freeze({
+  land: "#cfe8b8",
+  park: "#7bc86a",
+  wood: "#5eaa62",
+  grass: "#9ed67a",
+  water: "#5eb7ef",
+  road: "#f6f0dc",
+  roadEdge: "#e4d4b2",
+  building: "#f0ddb8",
+  label: "#3d5a3a",
+  halo: "#f7fbe9",
+});
+const { land: LAND, park: PARK, wood: WOOD, grass: GRASS, water: WATER } = GARDEN;
+const { road: ROAD, roadEdge: ROAD_EDGE, building: BUILDING, label: LABEL, halo: HALO } = GARDEN;
 
 const FILL = {
   background: LAND,
