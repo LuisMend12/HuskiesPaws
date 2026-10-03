@@ -13,7 +13,7 @@ export const SAVED_DEFAULTS = Object.freeze({
   trips: [], // [{ id, title, meters, amount, date, nessieId }]
   bank: null, // { customerId, checkingId, savingsId }
   nessieKey: "", // sandbox key only; a real app keeps bank keys on a server
-  mapRenderer: "garden", // iOS development build uses MapLibre; Expo Go falls back
+  mapRenderer: "garden", // development builds (iOS + Android) use MapLibre; Expo Go falls back
 });
 
 // "Reset my progress" clears these but keeps the Nessie connection.
