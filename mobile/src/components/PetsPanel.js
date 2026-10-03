@@ -10,6 +10,7 @@ import {
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
+import { Pet3DTest } from "./Pet3D.js";
 import { Button, Card, Hint } from "./ui.js";
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
@@ -160,6 +161,7 @@ function PetTile({ pet, walked, active, onPress }) {
 
 export function PetsPanel({ state, game }) {
   const [filter, setFilter] = useState(null);
+  const [test3d, setTest3d] = useState(null);
   const { walked, steps } = state.progress;
   const { sample, pets, egg, active } = petsView(state); // sample data until the backend adds pets
   const shown = filter ? pets.filter((p) => p.rarity === filter) : pets;
@@ -193,6 +195,8 @@ export function PetsPanel({ state, game }) {
 
       {sample && <Hint>Sample pets for now. Your real pets appear here once hatching is connected.</Hint>}
       {__DEV__ && <Button title="🥚 Preview hatch (dev only)" variant="secondary" onPress={previewHatch} />}
+      {__DEV__ && active && <Button title="🧊 3D test (dev only)" variant="secondary" onPress={() => setTest3d(active)} />}
+      <Pet3DTest pet={test3d} onClose={() => setTest3d(null)} />
     </View>
   );
 }
