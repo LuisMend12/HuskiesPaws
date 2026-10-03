@@ -28,5 +28,5 @@ The SpaceX track requires the project to be **built with Cursor**, and judges re
 1. **Grok is wired up but untested live:** `server/` calls xAI TTS and Imagine, tested only against a fake. Needs `XAI_API_KEY`. The app falls back to browser speech and SVG art without it.
 2. **Not deployed yet:** `render.yaml` is ready. Supabase storage is written but untested; file storage is the default.
 3. **Nessie calls are untested.** The API was resetting connections. It uses plain HTTP, which store builds block.
-4. The mobile app hasn't been run on a physical phone yet, and it doesn't have pets, turf or Grok yet.
+4. The mobile app runs on a real phone through Expo Go (`npm run tunnel`), but it doesn't have pets, turf or Grok yet.
 5. iMessage sessions are kept in memory only.
