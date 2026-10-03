@@ -4,11 +4,11 @@ One small Node server (no dependencies) that backs the phone app (`../mobile/`).
 
 | Endpoint | What it does |
 |---|---|
-| `POST /api/voice` | Text-to-speech for agent memos. Body `{ text, agent?, voice? }` (text up to 600 characters). Uses **ElevenLabs** when `ELEVENLABS_API_KEY` is set, picking the voice from `agent` (`scout`, `storyteller`, `pathfinder`); otherwise **Grok Voice** with `voice` (`eve`, `ara`, `rex`; default `eve`). Returns raw audio; 503 if neither key is set. |
+| `POST /api/voice` | Text-to-speech for agent memos. Body `{ text, agent?, voice? }` (text up to 600 characters). **Moss (`storyteller`)** uses **ElevenLabs** when `ELEVENLABS_API_KEY` is set. **Pip and Fern** use **Grok Voice** (`ara` / `eve`) when `XAI_API_KEY` is set. If only one key is present, every agent uses that provider. Returns raw audio; 503 if neither key is set. |
 | `POST /api/imagine` | **Grok Imagine:** postcard illustrations and pet portraits. Prompts are built here from fixed templates (the app can't send its own), and each image is generated once and cached. |
 | `POST /api/score`, `GET /api/leaderboard` | Live **local / statewide / national** leaderboards |
 | `GET /api/turf`, `POST /api/turf/claim` | **Turf:** guard landmarks with pets. A stronger pet takes over; holding earns XP per hour. |
-| `GET /api/health` | Shows whether Grok is on, the voice provider (`tts`: `"elevenlabs"`, `"grok"` or `null`) and which storage is in use |
+| `GET /api/health` | Shows whether Grok is on, the voice provider (`tts`: `"elevenlabs"`, `"grok"`, `"mixed"` or `null`), `ttsByAgent`, and which storage is in use |
 
 Without the server, the phone app still works: it uses on-device speech, SVG art and sample leaderboards, and turf is off.
 

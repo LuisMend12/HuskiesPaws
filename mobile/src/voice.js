@@ -1,5 +1,5 @@
-// Agent voice memos. With a server (EXPO_PUBLIC_API_URL) each agent speaks with
-// its ElevenLabs voice; without one, or on any failure, we use on-device speech.
+// Agent voice memos. With a server, Moss speaks through ElevenLabs and Pip/Fern
+// through Grok Voice. Without a server, or on any failure, we use on-device speech.
 import * as Speech from "expo-speech";
 import { canUseServerVoice, playServerVoice, stopServerVoice } from "./serverVoice.js";
 
@@ -24,7 +24,7 @@ export function speakMemo(text, agent) {
     speakOnDevice();
     return;
   }
-  playServerVoice(text, agent.id, isCurrent).catch((error) => {
+  playServerVoice(text, agent, isCurrent).catch((error) => {
     console.warn("Server voice failed, using device speech:", error?.message ?? error);
     speakOnDevice();
   });

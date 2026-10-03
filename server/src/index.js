@@ -6,6 +6,7 @@ import { createElevenLabs, voicesFromEnv } from "./elevenlabs.js";
 import { createGrok } from "./grok.js";
 import { createFileStore } from "./store/fileStore.js";
 import { createSupabaseStore } from "./store/supabaseStore.js";
+import { createSquadTts } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const env = process.env;
@@ -29,9 +30,10 @@ const elevenlabs = createElevenLabs({
   baseUrl: env.ELEVENLABS_BASE_URL || undefined,
   voices: voicesFromEnv(env),
 });
-const tts = elevenlabs.enabled ? "ElevenLabs" : grok.enabled ? "Grok" : "off (set ELEVENLABS_API_KEY or XAI_API_KEY)";
+const tts = createSquadTts({ grok, elevenlabs });
+const voiceLabel = tts.summary === "mixed" ? "ElevenLabs (Moss) + Grok Voice (Pip, Fern)" : tts.summary === "elevenlabs" ? "ElevenLabs" : tts.summary === "grok" ? "Grok Voice" : "off (set ELEVENLABS_API_KEY or XAI_API_KEY)";
 
-createApp({ config, store, grok, elevenlabs }).listen(config.port, () => {
+createApp({ config, store, grok, elevenlabs, tts }).listen(config.port, () => {
   console.log(`HuskiesPaws running at http://localhost:${config.port}`);
-  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · voice: ${tts} · storage: ${store.kind}`);
+  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · voice: ${voiceLabel} · storage: ${store.kind}`);
 });

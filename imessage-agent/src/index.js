@@ -7,6 +7,8 @@ import { imessage } from "spectrum-ts/providers/imessage";
 import { terminal } from "spectrum-ts/providers/terminal";
 import { setRequestHeaders } from "../../core/services.js";
 import { createElevenLabs, voicesFromEnv } from "../../server/src/elevenlabs.js";
+import { createGrok } from "../../server/src/grok.js";
+import { createSquadTts } from "../../server/src/tts.js";
 import { HELP, handleMessage, newSession } from "./bot.js";
 
 // Wikipedia and OpenStreetMap require an identifying User-Agent.
@@ -32,7 +34,9 @@ const app = useTerminal
     });
 
 // Without a key, tts.enabled is false and stories stay text-only.
-const tts = createElevenLabs({ apiKey: process.env.ELEVENLABS_API_KEY, voices: voicesFromEnv(process.env) });
+const grok = createGrok({ apiKey: process.env.XAI_API_KEY || process.env.GROK_API_KEY, baseUrl: process.env.XAI_BASE_URL });
+const elevenlabs = createElevenLabs({ apiKey: process.env.ELEVENLABS_API_KEY, voices: voicesFromEnv(process.env) });
+const tts = createSquadTts({ grok, elevenlabs });
 
 const sessions = new Map(); // space id -> session (in memory; resets when the agent restarts)
 const queues = new Map(); // space id -> promise, so each chat's messages run in order

@@ -1,5 +1,5 @@
-// Server text-to-speech (ElevenLabs on the HuskiesPaws server). The key stays on
-// the server: the app only posts text, caches the returned MP3, and plays it.
+// Server text-to-speech. The key stays on the server. Moss uses ElevenLabs;
+// Pip and Fern use Grok Voice when that key is set. The app posts text and plays MP3.
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { File, Paths } from "expo-file-system";
 import { apiAvailable, apiBase } from "./api.js";
@@ -20,7 +20,8 @@ function cacheFile(text, agentId) {
   return new File(Paths.cache, `voice-${agentId}-${hashText(text)}.mp3`);
 }
 
-async function fetchVoiceFile(text, agentId) {
+async function fetchVoiceFile(text, agent) {
+  const agentId = agent.id;
   const file = cacheFile(text, agentId);
   if (file.exists) return file;
   // AbortController + timer: AbortSignal.timeout isn't in every React Native runtime.
@@ -31,7 +32,7 @@ async function fetchVoiceFile(text, agentId) {
     const response = await fetch(`${apiBase()}/api/voice`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, agent: agentId }),
+      body: JSON.stringify({ text, agent: agentId, voice: agent.grokVoice }),
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`/api/voice returned ${response.status}`);
@@ -63,8 +64,8 @@ export function canUseServerVoice(text, agentId) {
 
 // Rejects on any failure so the caller can fall back to on-device speech.
 // isCurrent() lets a newer memo cancel this one while the audio downloads.
-export async function playServerVoice(text, agentId, isCurrent) {
-  const file = await fetchVoiceFile(text, agentId);
+export async function playServerVoice(text, agent, isCurrent) {
+  const file = await fetchVoiceFile(text, agent);
   if (!isCurrent()) return;
   const audio = getPlayer();
   audio.replace({ uri: file.uri });

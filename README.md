@@ -153,6 +153,8 @@ Create a file named **`.env`** in the repo root. It's git-ignored, so keys never
 ```ini
 # Grok Voice + Grok Imagine (console.x.ai -> API Keys)
 XAI_API_KEY=
+# Optional: ElevenLabs TTS for agent memos (elevenlabs.io -> Developers -> API Keys)
+ELEVENLABS_API_KEY=
 # Optional: keeps leaderboards and turf across restarts (Supabase -> Project Settings -> API)
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=

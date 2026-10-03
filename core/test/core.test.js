@@ -127,6 +127,19 @@ test("storyMemo tells up to three extract sentences in Moss's voice", () => {
   assert.ok(!memo.includes("Four"), "stops after three sentences");
 });
 
+test("storyMemo lets Pip and Fern tell the same facts in their own voice", () => {
+  const place = { title: "Sage Chapel" };
+  const summary = { extract: "One. Two!" };
+  const pip = storyMemo(place, summary, "scout");
+  assert.match(pip, /^Ooh, a trail tale!/);
+  assert.match(pip, /Sage Chapel/);
+  assert.match(pip, /One\. Two!/);
+  assert.match(pip, /look around\?$/);
+  const fern = storyMemo(place, summary, "pathfinder");
+  assert.match(fern, /^While we walk/);
+  assert.match(fern, /lead you there\.$/);
+});
+
 test("storyMemo handles a missing extract and stays under the voice limit", () => {
   const place = { title: "Sage Chapel" };
   for (const summary of [{ extract: "" }, { extract: "   " }, {}, null]) {

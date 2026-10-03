@@ -66,10 +66,12 @@ export function validateLeaderboardQuery(params) {
 // voice is a Grok voice (optional, defaults to the first); agent is a squad id
 // used to pick the ElevenLabs voice (optional).
 export function validateSpeech(body, voices, maxChars) {
+  const agent = body.agent == null ? null : oneOf(body.agent, "agent", SQUAD_AGENTS);
+  const defaultVoice = agent === "scout" ? "ara" : agent === "storyteller" ? "rex" : "eve";
   return {
     text: str(body.text, "text", { max: maxChars }),
-    voice: oneOf(body.voice ?? voices[0], "voice", voices),
-    agent: body.agent == null ? null : oneOf(body.agent, "agent", SQUAD_AGENTS),
+    voice: oneOf(body.voice ?? defaultVoice, "voice", voices),
+    agent,
   };
 }
 

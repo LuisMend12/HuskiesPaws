@@ -42,7 +42,7 @@ Type messages like `hi`, `explore` and `take me there` and press Enter.
    SPECTRUM_PROJECT_ID=your-project-id
    SPECTRUM_PROJECT_SECRET=your-project-secret
    DEMO_PHONE_NUMBER=+16075551234
-   ELEVENLABS_API_KEY=your-elevenlabs-key   # optional: Moss's story voice notes
+   ELEVENLABS_API_KEY=your-elevenlabs-key   # optional: Moss's story voice notes (or put this in the repo-root .env)
    ```
 
    `.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, rotate it in the dashboard.

@@ -131,7 +131,7 @@ export function createGame() {
         say(`${agent.name} doesn't know any stories about this spot.`);
         return;
       }
-      const memo = storyMemo(nearest, await getPlaceSummary(nearest.title));
+      const memo = storyMemo(nearest, await getPlaceSummary(nearest.title), agent.id);
       set({ status: memo, ...gainXp(agent.id) });
       speakMemo(memo, agent);
       persist();

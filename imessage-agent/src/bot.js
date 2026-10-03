@@ -1,8 +1,8 @@
 // HuskiesPaws squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
 // Platform-independent: handleMessage() gets the text and a send() callback, so it
 // runs the same under Photon iMessage, the terminal provider, and tests.
-// Optional { tts } (an ElevenLabs client from ../../server/src/elevenlabs.js) lets Moss
-// follow each story with a voice note.
+// Optional { tts } (createSquadTts: ElevenLabs for Moss, Grok Voice for Pip and Fern)
+// lets each story follow with a voice note.
 import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../core/agents.js";
 import { DEFAULT_CENTER } from "../../core/config.js";
 import { distanceMeters, pathLength } from "../../core/geo.js";
@@ -17,7 +17,8 @@ export const HELP = [
   "🐾 HuskiesPaws squad here! Text:",
   "• \"I'm at <place>\" to tell us where you are",
   "• \"explore\": Pip scouts somewhere new",
-  "• \"story\": Moss tells you about what's nearby (with a voice note)",
+  "• \"story\": Moss tells you about what's nearby (ElevenLabs voice note)",
+  "• \"pip story\" / \"fern story\": Pip or Fern tell the same facts in Grok Voice",
   "• \"take me there\": Fern plans the walk",
   "• \"arrived\": log the walk, and the Uber you skipped grows your savings tree",
   "• \"savings\": see your tree",
@@ -43,7 +44,7 @@ export async function handleMessage(rawText, session, send, { tts } = {}) {
       return session;
     }
     if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send);
-    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts);
+    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts, lower);
     if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send);
     if (/\b(arrived|made it|here|i'?m there)\b/.test(lower)) return await arrive(session, send);
     if (/\b(saved|savings|tree)\b/.test(lower)) return await showSavings(session, send);
@@ -85,29 +86,34 @@ async function explore(session, send) {
   return { ...session, discovery: { place, summary } };
 }
 
-async function tellStory(session, send, tts) {
+function storyAgent(lower) {
+  if (/\b(pip|scout)\b/.test(lower)) return pip;
+  if (/\b(fern|pathfinder)\b/.test(lower)) return fern;
+  return moss;
+}
+
+async function tellStory(session, send, tts, lower = "") {
+  const agent = storyAgent(lower);
   const [nearest] = (await findNearbyPlaces(session.position))
     .map((p) => ({ ...p, distance: distanceMeters(session.position, p) }))
     .sort((a, b) => a.distance - b.distance);
   if (!nearest) {
-    await send({ text: `🍇 ${moss.name} doesn't know any stories about this spot yet.` });
+    await send({ text: `${agent.name} doesn't know any stories about this spot yet.` });
     return session;
   }
-  const story = storyMemo(nearest, await getPlaceSummary(nearest.title));
-  await send({ text: `🍇 ${moss.name}: ${story}` });
-  await sendVoiceNote(story, tts, send);
+  const story = storyMemo(nearest, await getPlaceSummary(nearest.title), agent.id);
+  await send({ text: `${agent.name}: ${story}` });
+  await sendVoiceNote(story, tts, send, agent);
   return session;
 }
 
-// Moss reads the story aloud. Best effort: the text is already sent, so a TTS or
-// upload failure is logged and the conversation carries on.
-async function sendVoiceNote(story, tts, send) {
+async function sendVoiceNote(story, tts, send, agent) {
   if (!tts?.enabled) return;
   try {
-    const { audio, contentType } = await tts.speak(story, moss.id);
-    await send({ audio, mimeType: contentType, name: VOICE_NOTE_NAME });
+    const { audio, contentType } = await tts.speak(story, agent.id, agent.grokVoice);
+    await send({ audio, mimeType: contentType, name: agent.id === "storyteller" ? VOICE_NOTE_NAME : `${agent.id}-story.mp3` });
   } catch (error) {
-    console.error("Moss's voice note failed:", error);
+    console.error(`${agent.name}'s voice note failed:`, error);
   }
 }
 

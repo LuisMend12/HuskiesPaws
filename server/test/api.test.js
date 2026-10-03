@@ -10,6 +10,7 @@ import { createApp } from "../src/app.js";
 import { ELEVEN_VOICES, createElevenLabs } from "../src/elevenlabs.js";
 import { createGrok } from "../src/grok.js";
 import { createFileStore } from "../src/store/fileStore.js";
+import { createSquadTts } from "../src/tts.js";
 
 const PNG = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex"); // PNG signature + header start
 const MP3 = Buffer.from("ID3fake-mp3-bytes");
@@ -58,11 +59,14 @@ async function startApp({ apiKey, xaiUrl, elevenKey = "", elevenUrl, dataDir, li
     dataDir,
     limits: limits ?? { voice: { perMinute: 100, perDay: 1000 }, image: { perMinute: 100, perDay: 1000 } },
   };
+  const grok = createGrok({ apiKey, baseUrl: xaiUrl });
+  const elevenlabs = createElevenLabs({ apiKey: elevenKey, baseUrl: elevenUrl });
   const server = createApp({
     config,
     store: createFileStore(dataDir),
-    grok: createGrok({ apiKey, baseUrl: xaiUrl }),
-    elevenlabs: createElevenLabs({ apiKey: elevenKey, baseUrl: elevenUrl }),
+    grok,
+    elevenlabs,
+    tts: createSquadTts({ grok, elevenlabs }),
   });
   await new Promise((resolve) => server.listen(0, resolve));
   return { server, base: `http://localhost:${server.address().port}` };
@@ -109,7 +113,7 @@ describe("HuskiesPaws API", () => {
 
   test("health reports features without leaking secrets", async () => {
     const health = await json(await fetch(`${app.base}/api/health`));
-    assert.deepEqual(health.data, { grok: true, tts: "grok", storage: "file" });
+    assert.deepEqual(health.data, { grok: true, tts: "grok", ttsByAgent: { scout: "grok", storyteller: "grok", pathfinder: "grok" }, storage: "file" });
     assert.doesNotMatch(JSON.stringify(health), /test-key/);
   });
 
@@ -242,30 +246,40 @@ describe("ElevenLabs voice", () => {
     await rm(dataDir, { recursive: true, force: true });
   });
 
-  test("health reports ElevenLabs as the TTS provider without leaking keys", async () => {
+  test("health reports mixed TTS without leaking keys", async () => {
     const health = await json(await fetch(`${app.base}/api/health`));
-    assert.deepEqual(health.data, { grok: true, tts: "elevenlabs", storage: "file" });
+    assert.deepEqual(health.data, {
+      grok: true,
+      tts: "mixed",
+      ttsByAgent: { scout: "grok", storyteller: "elevenlabs", pathfinder: "grok" },
+      storage: "file",
+    });
     assert.doesNotMatch(JSON.stringify(health), /eleven-key|xai-key/);
   });
 
-  test("sends the documented request with the storyteller's voice, preferred over Grok", async () => {
+  test("Moss's stories use ElevenLabs; Pip uses Grok Voice", async () => {
     const grokBefore = xai.calls.length;
-    const response = await post(app.base, "/api/voice", { text: "Once upon a trail...", agent: "storyteller" });
-    assert.equal(response.status, 200);
-    assert.equal(response.headers.get("content-type"), "audio/mpeg");
-    assert.deepEqual(Buffer.from(await response.arrayBuffer()), ELEVEN_MP3);
-    const call = eleven.calls.at(-1);
-    assert.equal(call.path, `/v1/text-to-speech/${ELEVEN_VOICES.storyteller}?output_format=mp3_44100_128`);
-    assert.equal(call.key, "eleven-key");
-    assert.deepEqual(Object.keys(call.body).sort(), ["model_id", "text"]);
-    assert.equal(call.body.text, "Once upon a trail...");
-    assert.equal(typeof call.body.model_id, "string");
-    assert.equal(xai.calls.length, grokBefore, "Grok is not called");
+    const moss = await post(app.base, "/api/voice", { text: "Once upon a trail...", agent: "storyteller" });
+    assert.equal(moss.status, 200);
+    assert.deepEqual(Buffer.from(await moss.arrayBuffer()), ELEVEN_MP3);
+    const elevenCall = eleven.calls.at(-1);
+    assert.equal(elevenCall.path, `/v1/text-to-speech/${ELEVEN_VOICES.storyteller}?output_format=mp3_44100_128`);
+    assert.equal(elevenCall.body.text, "Once upon a trail...");
+    assert.equal(xai.calls.length, grokBefore, "Moss does not call Grok");
+
+    const pip = await post(app.base, "/api/voice", { text: "I found a place!", agent: "scout" });
+    assert.equal(pip.status, 200);
+    assert.deepEqual(Buffer.from(await pip.arrayBuffer()), MP3);
+    const grokCall = xai.calls.findLast((c) => c.path === "/v1/tts");
+    assert.deepEqual(grokCall.body, { text: "I found a place!", voice_id: "ara", language: "en" });
   });
 
-  test("no agent uses the default voice; a Grok voice name is still accepted", async () => {
+  test("without an agent, Grok Voice is used when it is on", async () => {
+    const elevenBefore = eleven.calls.length;
     assert.equal((await post(app.base, "/api/voice", { text: "Hello", voice: "rex" })).status, 200);
-    assert.equal(eleven.calls.at(-1).path, `/v1/text-to-speech/${ELEVEN_VOICES.default}?output_format=mp3_44100_128`);
+    const grokCall = xai.calls.findLast((c) => c.path === "/v1/tts");
+    assert.deepEqual(grokCall.body, { text: "Hello", voice_id: "rex", language: "en" });
+    assert.equal(eleven.calls.length, elevenBefore);
   });
 
   test("bad agent gets 400 without calling out", async () => {

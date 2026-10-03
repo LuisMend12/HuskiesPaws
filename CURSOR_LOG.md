@@ -2,6 +2,13 @@
 
 Key prompts and implementation decisions for the SpaceX / Cursor track.
 
+## 2026-10-03 — Story TTS: ElevenLabs + Grok Voice (`story-voice`)
+
+Prompt: set up ElevenLabs, then use TTS for storytelling and Grok so some agents tell those stories.
+
+Decision: facts still come only from Wikipedia. **Moss** narrates with **ElevenLabs**. **Pip and Fern** tell the same nearby-place story in their own framing, spoken with **Grok Voice** (`ara` / `eve`) via `POST /v1/tts`. If only one key is set, every agent uses that provider. Phone sends `{ text, agent, voice }` to `/api/voice`. iMessage: `"story"` is Moss; `"pip story"` / `"fern story"` use Grok.
+
+
 ## 2026-10-03 — Stylized iOS 3D garden map (`3d-map`)
 
 **Prompt (summary).** Build a tilted, playful geographic 3D map for the iOS Expo app, inspired by location-based games like Pikmin Bloom, without copying Niantic assets. Prefer OSM vector tiles + MapLibre if Expo SDK 57 allows it. Keep Android and Expo Go on the existing map. Do not add a web app. Do not edit `mobile/src/core/`.

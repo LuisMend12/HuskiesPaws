@@ -76,6 +76,16 @@ test("a failed voice note upload doesn't trigger the error reply", async () => {
   assert.match(replies[0].text, /McGraw Tower/);
 });
 
+test("pip story uses Pip's framing and asks for a voice note in the scout voice", async () => {
+  const tts = fakeTts();
+  const replies = [];
+  await handleMessage("pip story", newSession(), async (reply) => replies.push(reply), { tts });
+  assert.match(replies[0].text, /Pip:/);
+  assert.match(replies[0].text, /trail tale/);
+  assert.equal(tts.calls[0].agent, "scout");
+  assert.equal(replies[1].name, "scout-story.mp3");
+});
+
 test("without an ElevenLabs key, stories stay text-only", async () => {
   const tts = { ...fakeTts(), enabled: false };
   const replies = await story(tts);
