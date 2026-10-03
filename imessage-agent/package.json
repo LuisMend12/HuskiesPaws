@@ -1,7 +1,7 @@
 {
-  "name": "wanderlings-imessage-agent",
+  "name": "huskiespaws-imessage-agent",
   "version": "1.0.0",
-  "description": "Wanderlings agent squad on iMessage via Photon Spectrum",
+  "description": "HuskiesPaws agent squad on iMessage via Photon Spectrum",
   "main": "src/index.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",

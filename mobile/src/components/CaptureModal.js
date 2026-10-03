@@ -70,7 +70,7 @@ export function CaptureModal({ visible, place, agent, level, onSave, onClose }) 
               <SvgXml xml={creature} width={90} height={90} />
             </View>
             <Text style={styles.cardTitle} numberOfLines={1}>{place.title}</Text>
-            <Text style={styles.cardCaption}>{`Captured with ${agent.name} · ${new Date().toLocaleDateString()} · 🌸 Wanderlings`}</Text>
+            <Text style={styles.cardCaption}>{`Captured with ${agent.name} · ${new Date().toLocaleDateString()} · 🐾 HuskiesPaws`}</Text>
           </View>
         ) : permission?.granted ? (
           <View style={styles.viewfinder}>

@@ -1,4 +1,6 @@
-# Wanderlings: notes for AI coding agents (Cursor, Claude Code, Codex)
+# HuskiesPaws: notes for AI coding agents (Cursor, Claude Code, Codex)
+
+The app was called **Wanderlings** while brainstorming; the `wanderlings:` storage prefix keeps that name on purpose (renaming them would wipe saved progress).
 
 BigRed//Hacks 2026 project. Theme: **Navigation**. **Deadline: Sunday Oct 4, 8:30 AM** (Devpost).
 Read [PLAN.md](PLAN.md) for scope and priorities, and [README.md](README.md) for the idea.
@@ -20,7 +22,7 @@ The product is the **phone app** (`mobile/`). The web app was dropped on Oct 3; 
 
 ## Rules that bite
 - **Secrets:** keys go in `.env` (git-ignored at the root and per folder). Never hardcode them or put them in the app bundle. Grok and real bank keys belong on a backend.
-- **User-Agent:** Wikipedia and OpenStreetMap return 403 to generic clients. Node and React Native must call `setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (...)" })` from `services.js`.
+- **User-Agent:** Wikipedia and OpenStreetMap return 403 to generic clients. Node and React Native must call `setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (...)" })` from `services.js`.
 - **Facts come from tools:** agent memos only use data returned by Wikipedia or routing. Don't let an LLM invent place facts.
 - **Immutable state updates** (spread, map, filter). Keep files under about 400 lines.
 - After changing shared logic, run `npm test` in `core/`, then `npm run sync-core` and `npx expo lint` in `mobile/`, and run `npm test` in `imessage-agent/`.

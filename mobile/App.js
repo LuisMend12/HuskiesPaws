@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { AgentList } from "./src/components/AgentList.js";
@@ -41,7 +41,12 @@ export default function App() {
       <SafeAreaView style={styles.screen} edges={["top"]}>
         <StatusBar style="light" />
         <View style={styles.topbar}>
-          <Text style={styles.brand}>🌱 Wanderlings</Text>
+          <View style={styles.brandRow} accessibilityRole="header">
+            <Image source={require("./assets/logo-badge.png")} style={styles.logo} accessibilityIgnoresInvertColors />
+            <Text style={styles.brand}>
+              Huskies<Text style={styles.brandAccent}>Paws</Text>
+            </Text>
+          </View>
           <Pressable style={styles.badge} onPress={() => game.set({ tab: "ranks" })} accessibilityRole="button" accessibilityLabel="Your rank">
             <Text style={styles.badgeText}>{`${current.emoji} ${current.name} · ${score} pts`}</Text>
           </Pressable>
@@ -112,9 +117,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.leafDark },
+  screen: { flex: 1, backgroundColor: colors.brandNavy },
   topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  logo: { width: 32, height: 32 },
   brand: { color: "#fff", fontSize: 19, fontWeight: "800" },
+  brandAccent: { color: colors.brandGreen },
   badge: { backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12 },
   badgeText: { color: "#fff", fontSize: 13 },
   map: { flex: 1, minHeight: 260 },

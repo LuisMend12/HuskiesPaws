@@ -10,6 +10,9 @@ export const colors = Object.freeze({
   soft: "#eef3ea",
   stripe: "#f8f6ee",
   you: "#fff1e6",
+  // HuskiesPaws logo colors (docs/logo/README.md)
+  brandNavy: "#0b1f3a",
+  brandGreen: "#6fd38a", // the logo's green for dark backgrounds
 });
 
 export const radius = Object.freeze({ pill: 999, card: 16, small: 8 });
