@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { treeSvg } from "../core/art.js";
 import { MIN_TRIP_M, formatDollars, totalSaved, treeStage } from "../core/savings.js";
-import { colors, radius } from "../theme.js";
+import { colors, fonts, radius } from "../theme.js";
 import { Button, Hint, SectionTitle } from "./ui.js";
 
 const RECENT_TRIPS = 8;
@@ -76,13 +76,13 @@ export function SavingsPanel({ state, game }) {
 const styles = StyleSheet.create({
   hero: { flexDirection: "row", gap: 14, alignItems: "center" },
   heroText: { flex: 1, gap: 4 },
-  total: { fontSize: 22, fontWeight: "800", color: colors.leafDark },
-  stage: { fontSize: 14, color: colors.ink },
+  total: { fontSize: 22, fontFamily: fonts.extrabold, color: colors.leafDark },
+  stage: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink },
   trip: { flexDirection: "row", alignItems: "center", paddingVertical: 6, paddingHorizontal: 8, borderRadius: radius.small },
   stripe: { backgroundColor: colors.stripe },
   tripInfo: { flex: 1 },
-  tripPlace: { fontWeight: "600", color: colors.ink },
-  amount: { fontWeight: "800", color: colors.leafDark },
+  tripPlace: { fontFamily: fonts.semibold, color: colors.ink },
+  amount: { fontFamily: fonts.extrabold, color: colors.leafDark },
   form: { flexDirection: "row", gap: 8, marginTop: 8, alignItems: "center" },
   input: {
     flex: 1,
@@ -92,5 +92,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     backgroundColor: colors.card,
+    fontFamily: fonts.semibold,
   },
 });

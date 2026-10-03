@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { AGENTS, levelFor } from "../core/agents.js";
 import { creatureSvg } from "../core/art.js";
-import { colors, radius } from "../theme.js";
+import { colors, fonts, radius } from "../theme.js";
 import { Button } from "./ui.js";
 
 export function AgentList({ state, onAction }) {
@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
   },
   away: { opacity: 0.35 },
   info: { flex: 1 },
-  name: { fontWeight: "700", color: colors.ink },
-  role: { fontSize: 13, color: colors.muted },
+  name: { fontFamily: fonts.bold, color: colors.ink },
+  role: { fontFamily: fonts.semibold, fontSize: 13, color: colors.muted },
 });

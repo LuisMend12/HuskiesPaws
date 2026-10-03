@@ -1,6 +1,6 @@
 // Album of captured landmark postcards.
 import { Image, StyleSheet, Text, View } from "react-native";
-import { colors, radius } from "../theme.js";
+import { colors, fonts, radius } from "../theme.js";
 import { Hint } from "./ui.js";
 
 export function AlbumPanel({ album }) {
@@ -33,5 +33,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
   image: { width: "100%", aspectRatio: 0.8 },
-  caption: { fontSize: 12, padding: 6, color: colors.ink },
+  caption: { fontFamily: fonts.bold, fontSize: 12, padding: 6, color: colors.ink },
 });

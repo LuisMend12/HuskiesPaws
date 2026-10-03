@@ -7,7 +7,7 @@ import { Image, Modal, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { captureRef } from "react-native-view-shot";
 import { creatureSvg } from "../core/art.js";
-import { colors } from "../theme.js";
+import { colors, fonts } from "../theme.js";
 import { Button, Hint } from "./ui.js";
 
 const CARD_PIXELS = Object.freeze({ width: 480, height: 600 }); // keeps saved cards small
@@ -112,19 +112,19 @@ export function CaptureModal({ visible, place, agent, level, onSave, onClose }) 
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#111", paddingTop: 56, paddingHorizontal: 16, gap: 12 },
-  heading: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  heading: { color: "#fff", fontSize: 18, fontFamily: fonts.bold },
   viewfinder: { width: "100%", aspectRatio: 1, borderRadius: 16, overflow: "hidden", backgroundColor: "#333" },
   center: { alignItems: "center", justifyContent: "center", padding: 16 },
-  light: { color: "#ddd", textAlign: "center" },
+  light: { fontFamily: fonts.semibold, color: "#ddd", textAlign: "center" },
   gap: { marginTop: 12 },
   frame: { position: "absolute", top: "15%", left: "15%", right: "15%", bottom: "15%", borderWidth: 3, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.7)", borderRadius: 16 },
   creature: { position: "absolute", left: 10, bottom: 6 },
   card: { width: "100%", aspectRatio: 0.8, backgroundColor: "#fffdf6", padding: 12, borderRadius: 4 },
   cardPhoto: { width: "100%", flex: 1, backgroundColor: "#bde0fe" },
   cardCreature: { position: "absolute", left: 18, bottom: 70 },
-  cardTitle: { fontSize: 18, fontWeight: "800", color: colors.ink, marginTop: 8 },
-  cardCaption: { fontSize: 11, color: colors.muted },
+  cardTitle: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink, marginTop: 8 },
+  cardCaption: { fontFamily: fonts.semibold, fontSize: 11, color: colors.muted },
   hintDark: { color: "#bbb" },
-  error: { color: "#ff8a80" },
+  error: { fontFamily: fonts.bold, color: "#ff8a80" },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 });

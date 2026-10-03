@@ -37,6 +37,15 @@
         {
           "cameraPermission": "HuskiesPaws uses the camera to capture landmarks as postcards."
         }
+      ],
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#0B1F3A"
+        }
       ]
     ]
   }
