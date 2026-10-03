@@ -141,10 +141,30 @@ export function createGame() {
     }
   }
 
+  // One walk at a time. `planning` covers the route lookup before walking starts,
+  // so double taps (or Demo walk during Take me there) can't start a second walk
+  // that fights the first over your position.
+  async function oneWalk(run) {
+    if (get().planning || get().walking) {
+      say("Already on a walk. Wait until it finishes.");
+      return;
+    }
+    set({ planning: true });
+    try {
+      await run();
+    } finally {
+      set({ planning: false });
+    }
+  }
+
   async function guideToDiscovery() {
-    const agent = agentById("pathfinder");
     const target = get().discovery?.place;
     if (!target) return;
+    await oneWalk(() => guideWalk(target));
+  }
+
+  async function guideWalk(target) {
+    const agent = agentById("pathfinder");
     set({ postcardOpen: false, status: `${agent.name} is planning a route…` });
     const route = await getWalkingRoute(get().position, target);
     const meters = route.distance ?? pathLength(route.points);
@@ -171,7 +191,9 @@ export function createGame() {
     online.pushScore();
   }
 
-  async function demoWalk() {
+  const demoWalk = () => oneWalk(demoWalkNow);
+
+  async function demoWalkNow() {
     say("Going for a little walk…");
     try {
       const state = get();

@@ -105,10 +105,10 @@ export function MapControls({ state, game }) {
           active={state.liveLocation}
         />
         <RoundButton
-          icon={state.walking ? "🚶 Walking…" : "🚶 Demo walk"}
+          icon={state.walking || state.planning ? "🚶 Walking…" : "🚶 Demo walk"}
           label="Demo walk"
           onPress={game.demoWalk}
-          disabled={state.walking}
+          disabled={state.walking || state.planning}
         />
       </View>
       <View style={styles.column}>

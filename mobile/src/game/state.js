@@ -43,6 +43,7 @@ export const INITIAL_STATE = Object.freeze({
   mapFocus: null, // { lat, lon, key } to recenter the map
   followCamera: true, // garden map: stop following after a manual pan
   walking: false,
+  planning: false, // a walk's route is being looked up (see oneWalk in game.js)
   away: [], // agent ids on an expedition
   expedition: null, // { agentId, from, to: { lat, lon }, startedAt, durationMs } while a pet walks to a place
   visited: [], // place ids you've walked to

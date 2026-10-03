@@ -40,7 +40,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
   const look = STATUS[status] ?? STATUS["with-you"];
   const rarity = rarityOf(pet);
   const guarding = status === "defending" ? state.turf?.find((t) => t.pet?.id === pet.id) : null;
-  const busy = status !== "with-you" || state.walking;
+  const busy = status !== "with-you" || state.walking || state.planning;
   const needsDiscovery = pet.petClass === "Pathfinder" && !state.discovery;
   const trip = status === "exploring" && state.expedition?.agentId === agentId ? state.expedition : null;
   const secondsLeft = useSecondsLeft(trip);
