@@ -36,9 +36,7 @@ function startFakeXai() {
 
 async function startApp({ apiKey, xaiUrl, dataDir, limits }) {
   const config = {
-    webRoot: join(import.meta.dirname, "..", "..", "prototype"),
     dataDir,
-    mapboxToken: "pk.test-token",
     limits: limits ?? { voice: { perMinute: 100, perDay: 1000 }, image: { perMinute: 100, perDay: 1000 } },
   };
   const server = createApp({ config, store: createFileStore(dataDir), grok: createGrok({ apiKey, baseUrl: xaiUrl }) });
@@ -83,21 +81,18 @@ describe("HuskiesPaws API", () => {
     await rm(dataDir, { recursive: true, force: true });
   });
 
-  test("health and env.js report features without leaking secrets", async () => {
+  test("health reports features without leaking secrets", async () => {
     const health = await json(await fetch(`${app.base}/api/health`));
     assert.deepEqual(health.data, { grok: true, storage: "file" });
-    const env = await (await fetch(`${app.base}/env.js`)).text();
-    assert.match(env, /"MAPBOX_TOKEN":"pk.test-token"/);
-    assert.match(env, /"GROK":true/);
-    assert.doesNotMatch(env, /test-key/);
+    assert.doesNotMatch(JSON.stringify(health), /test-key/);
   });
 
-  test("serves the web app but blocks path traversal", async () => {
-    assert.equal((await fetch(`${app.base}/`)).status, 200);
-    assert.equal((await fetch(`${app.base}/js/agents.js`)).status, 200);
-    assert.equal((await fetch(`${app.base}/..%2fserver%2fpackage.json`)).status, 404);
+  test("serves no web pages and blocks path traversal out of /images", async () => {
+    assert.equal((await fetch(`${app.base}/`)).status, 404);
+    assert.equal((await fetch(`${app.base}/env.js`)).status, 404);
+    assert.equal((await fetch(`${app.base}/images/..%2f..%2fpackage.json`)).status, 404);
     // fetch() cleans up "../" itself, so send a raw request to really try escaping.
-    for (const path of ["/../server/package.json", "/..\\server\\package.json", "/%2e%2e%2fserver%2fpackage.json"]) {
+    for (const path of ["/images/../../package.json", "/images/..\\..\\package.json", "/images/%2e%2e%2f%2e%2e%2fpackage.json"]) {
       assert.equal(await rawGetStatus(app.base, path), 404, path);
     }
   });

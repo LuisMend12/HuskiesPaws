@@ -1,4 +1,4 @@
-# Render Blueprint: deploys the HuskiesPaws server (web app + API) with HTTPS.
+# Render Blueprint: deploys the HuskiesPaws server (API for the phone app) with HTTPS.
 # Render dashboard -> New -> Blueprint -> pick this repo. Then fill in the secret
 # values it asks for. See server/README.md.
 services:
@@ -13,8 +13,6 @@ services:
       - key: NODE_VERSION
         value: "22"
       - key: XAI_API_KEY # Grok Voice + Imagine (required for the Cursor track)
-        sync: false
-      - key: MAPBOXKEY # public Mapbox token (pk....)
         sync: false
       - key: SUPABASE_URL # optional: keeps leaderboards and turf across redeploys
         sync: false

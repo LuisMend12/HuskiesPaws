@@ -72,7 +72,7 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 4. **Ranks:** see your points, the trail picker and the leaderboards. **Savings:** see your tree and the rides you skipped.
 5. **📍 Live location:** turns on real GPS and the phone's **step counter**, so your actual walk blooms and real steps count toward your rank.
 
-## What's native here (vs. the web prototype)
+## What's native here (vs. the old web prototype, now removed)
 
 | Feature | Web prototype | This app |
 |---|---|---|
@@ -87,7 +87,7 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 
 ```
 App.js                  main screen: map, controls, tabs, modals
-src/core/               shared game logic, GENERATED from ../prototype/js (don't edit here)
+src/core/               shared game logic, GENERATED from ../core (don't edit here)
 src/game/state.js       initial state, saved fields, derived values
 src/game/store.js       tiny state store (getState / setState / useStore)
 src/game/game.js        game actions: agents, guided walks, capture, savings, Nessie
@@ -97,7 +97,7 @@ src/storage.js          AsyncStorage
 src/voice.js            speech (placeholder for Grok Voice)
 ```
 
-**Shared logic:** the agents, ranks, trails, leaderboards, savings, Nessie client and art live in `prototype/js/`. After changing them, run `npm run sync-core` to copy them into `src/core/`.
+**Shared logic:** the agents, ranks, trails, leaderboards, savings, Nessie client and art live in [`../core/`](../core/). After changing them, run `npm run sync-core` to copy them into `src/core/`.
 
 ## Checks
 

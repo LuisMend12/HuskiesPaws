@@ -2,7 +2,7 @@
 // (needs internet, not Photon credentials).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { setRequestHeaders } from "../../prototype/js/services.js";
+import { setRequestHeaders } from "../../core/services.js";
 import { handleMessage, newSession } from "../src/bot.js";
 
 setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (BigRed//Hacks 2026 agent tests)" });

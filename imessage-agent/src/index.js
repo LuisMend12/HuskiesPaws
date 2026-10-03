@@ -4,7 +4,7 @@
 import { Spectrum, attachment, text } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { terminal } from "spectrum-ts/providers/terminal";
-import { setRequestHeaders } from "../../prototype/js/services.js";
+import { setRequestHeaders } from "../../core/services.js";
 import { HELP, handleMessage, newSession } from "./bot.js";
 
 // Wikipedia and OpenStreetMap require an identifying User-Agent.

@@ -11,9 +11,7 @@ const env = process.env;
 
 const config = {
   port: Number(env.PORT) || 8765,
-  webRoot: join(here, "..", "..", "prototype"),
   dataDir: env.DATA_DIR || join(here, "..", "data"),
-  mapboxToken: env.MAPBOXKEY || env.MAPBOX_TOKEN || "",
   limits: {
     voice: { perMinute: Number(env.VOICE_PER_MINUTE) || 20, perDay: Number(env.VOICE_PER_DAY) || 1000 },
     image: { perMinute: Number(env.IMAGES_PER_MINUTE) || 6, perDay: Number(env.IMAGES_PER_DAY) || 200 },
@@ -27,5 +25,5 @@ const grok = createGrok({ apiKey: env.XAI_API_KEY, baseUrl: env.XAI_BASE_URL });
 
 createApp({ config, store, grok }).listen(config.port, () => {
   console.log(`HuskiesPaws running at http://localhost:${config.port}`);
-  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · storage: ${store.kind} · map: ${config.mapboxToken ? "Mapbox" : "needs MAPBOXKEY"}`);
+  console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · storage: ${store.kind}`);
 });

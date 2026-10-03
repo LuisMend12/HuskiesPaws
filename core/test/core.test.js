@@ -1,14 +1,14 @@
 // Unit tests for the shared game logic (no network, no DOM).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { choosePlace, firstSentences } from "../js/agents.js";
-import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../js/leaderboard.js";
+import { choosePlace, firstSentences } from "../agents.js";
+import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "../leaderboard.js";
 import {
   EGG_EVERY_STEPS, HATCH_METERS, LEVEL_EVERY_M, MAX_LEVEL, RARITIES,
   eggProgress, eggsEarned, hatchEgg, maybeNewEgg, metersToHatch, petLevel, petPower, rollRarity, stepsToNextEgg,
-} from "../js/pets.js";
-import { TRAILS, activeTrail, rankFor, scoreFor } from "../js/rank.js";
-import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../js/savings.js";
+} from "../pets.js";
+import { TRAILS, activeTrail, rankFor, scoreFor } from "../rank.js";
+import { MIN_TRIP_M, estimateRideFare, totalSaved, treeStage } from "../savings.js";
 
 // Deterministic "random" that walks through a list of values.
 const sequence = (...values) => {
@@ -91,8 +91,8 @@ test("leaderboard sample data is stable and includes you", () => {
 });
 
 test("ISS overhead triples the odds of non-common pets", async () => {
-  const { ISS_RARITY_BOOST, issIsOverhead } = await import("../js/pets.js");
-  const { distanceMeters } = await import("../js/geo.js");
+  const { ISS_RARITY_BOOST, issIsOverhead } = await import("../pets.js");
+  const { distanceMeters } = await import("../geo.js");
   // Normal weights: common 60 / 100. Boosted: 60 / (60 + 40 * 3) = 1/3 common.
   assert.equal(rollRarity(() => 0.5).id, "common");
   assert.equal(rollRarity(() => 0.5, { issOverhead: true }).id, "rare", "0.5 lands past common when boosted");

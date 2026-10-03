@@ -1,11 +1,11 @@
 // Wanderlings squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
 // Platform-independent: handleMessage() gets the text and a send() callback, so it
 // runs the same under Photon iMessage, the terminal provider, and tests.
-import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../prototype/js/agents.js";
-import { DEFAULT_CENTER } from "../../prototype/js/config.js";
-import { distanceMeters, pathLength } from "../../prototype/js/geo.js";
-import { MIN_TRIP_M, estimateRideFare, formatDollars, totalSaved, treeStage } from "../../prototype/js/savings.js";
-import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from "../../prototype/js/services.js";
+import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../core/agents.js";
+import { DEFAULT_CENTER } from "../../core/config.js";
+import { distanceMeters, pathLength } from "../../core/geo.js";
+import { MIN_TRIP_M, estimateRideFare, formatDollars, totalSaved, treeStage } from "../../core/savings.js";
+import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from "../../core/services.js";
 
 const [pip, moss, fern] = ["scout", "storyteller", "pathfinder"].map((id) => AGENTS.find((a) => a.id === id));
 const DEFAULT_PLACE_NAME = "the Physical Sciences Building at Cornell";

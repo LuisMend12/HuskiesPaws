@@ -1,0 +1,9 @@
+{
+  "name": "wanderlings-core",
+  "private": true,
+  "description": "Shared game logic (plain JS, no DOM). Copied into mobile/src/core by `npm run sync-core`, imported directly by the iMessage agent.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
