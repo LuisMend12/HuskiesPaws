@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Circle, Path } from "react-native-svg";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { Button } from "./ui.js";
 
@@ -25,7 +26,7 @@ export function MapTopBar({ rank, score, onRankPress }) {
   );
 }
 
-function RoundButton({ label, icon, onPress, disabled, active }) {
+function RoundButton({ label, icon, onPress, disabled, active, round }) {
   return (
     <Pressable
       onPress={onPress}
@@ -33,10 +34,20 @@ function RoundButton({ label, icon, onPress, disabled, active }) {
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
-      style={({ pressed }) => [styles.pill, styles.action, active && styles.actionActive, disabled && !active && styles.dim, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.pill, styles.action, round && styles.round, active && styles.actionActive, disabled && !active && styles.dim, pressed && styles.pressed]}
     >
-      <Text style={[styles.pillText, active && styles.actionActiveText]}>{icon}</Text>
+      {typeof icon === "string" ? <Text style={[styles.pillText, active && styles.actionActiveText]}>{icon}</Text> : icon}
     </Pressable>
+  );
+}
+
+function Crosshair() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.navy} strokeWidth={2.2} strokeLinecap="round">
+      <Circle cx={12} cy={12} r={6.5} />
+      <Circle cx={12} cy={12} r={2} fill={colors.navy} />
+      <Path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22" />
+    </Svg>
   );
 }
 
@@ -86,7 +97,7 @@ export function MapControls({ state, game }) {
           disabled={state.walking}
         />
       </View>
-      <RoundButton icon="◎" label="Center the map on me" onPress={recenter} />
+      <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
       {canCapture && (
         <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
           <Button
@@ -120,6 +131,7 @@ const styles = StyleSheet.create({
   bottomBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   row: { flexDirection: "row", gap: space.sm },
   action: { minHeight: 40 },
+  round: { width: 44, height: 44, paddingHorizontal: 0, paddingVertical: 0, justifyContent: "center" },
   actionActive: { backgroundColor: colors.greenSoft },
   actionActiveText: { color: colors.greenDark },
   dim: { opacity: 0.6 },

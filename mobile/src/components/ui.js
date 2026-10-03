@@ -68,6 +68,7 @@ export function PillTabs({ tabs, active, onChange }) {
       ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.tabsScroll}
       contentContainerStyle={styles.tabs}
       accessibilityRole="tablist"
     >
@@ -120,7 +121,8 @@ const styles = StyleSheet.create({
   chipOutlined: { borderWidth: 2, borderColor: colors.green },
   chipText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
   chipTextActive: { color: colors.white },
-  tabs: { gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  tabsScroll: { flexGrow: 0 }, // a ScrollView grows to fill by default; the tab row shouldn't
+  tabs: { alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
   tab: { borderRadius: radius.pill, paddingVertical: 7, paddingHorizontal: 18 },
   tabActive: { backgroundColor: colors.green },
   tabText: { fontFamily: fonts.bold, fontSize: 15, color: colors.muted },
