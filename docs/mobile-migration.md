@@ -60,14 +60,15 @@ A minimal Supabase design:
 
 Native AR and background tracking are risky with less than a day left. Do it in phases:
 
-**Phase 1: demo-ready (build this weekend in Cursor)**
-1. `npx create-expo-app wanderlings` and run it in Expo Go on everyone's phone.
-2. Map screen with the blooming trail (`react-native-maps`) and foreground location.
-3. Copy the logic files and wire up the agent squad, expeditions and postcards.
-4. Real step count from `Pedometer` feeding the rank system and trails.
-5. Camera capture to the album, using the same overlay approach as the web prototype.
-6. Leaderboards on Supabase. If time runs out, keep the sample players and say so.
-7. Grok Voice and Imagine through one small backend function. **This is required for the track.**
+**Phase 1: demo-ready.** Steps 1 to 5 are scaffolded in [`mobile/`](../mobile/), but not yet tested on a real phone. Keep building in Cursor.
+1. ✅ Expo app (SDK 57) that runs in Expo Go.
+2. ✅ Map screen with the blooming trail (`react-native-maps`) and foreground location.
+3. ✅ Shared logic files (synced with `npm run sync-core`), agent squad, expeditions and postcards.
+4. ✅ Real step count from `Pedometer` feeding the rank system and trails.
+5. ✅ Camera capture to the album, plus the walk-instead-of-ride savings tree and the Nessie client.
+6. ⬜ Leaderboards on Supabase. If time runs out, keep the sample players and say so.
+7. ⬜ Grok Voice and Imagine through one small backend function. **This is required for the track.**
+8. ⬜ Test the full loop on real iPhone and Android phones.
 
 **Phase 2: after the hackathon**
 - Background walk tracking (development build)

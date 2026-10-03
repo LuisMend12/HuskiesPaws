@@ -123,7 +123,7 @@ The hard requirements are only **Cursor** and **Grok Imagine or Voice**. Space d
 
 - **Try it:** a working prototype of everything above is in [`prototype/`](prototype/). See [prototype/README.md](prototype/README.md) to run it. It's a throwaway prototype; the submission must be built in Cursor.
 - **Idea sheet:** [docs/ideas/12-wanderlings.tex](docs/ideas/12-wanderlings.tex)
-- **Going mobile:** real step counting, background GPS and true AR need a native app. See [docs/mobile-migration.md](docs/mobile-migration.md).
+- **Mobile app:** started in [`mobile/`](mobile/) (Expo), with real step counting. For what's left (Grok, a backend for leaderboards, background GPS, true AR), see [docs/mobile-migration.md](docs/mobile-migration.md).
 
 ## Other ideas that fit the Navigation theme
 
@@ -186,9 +186,17 @@ python -m http.server 8765
 
 For full steps, demo instructions, phone setup and troubleshooting, see [prototype/README.md](prototype/README.md).
 
-### The real project
+### Wanderlings mobile app (Expo)
 
-_To be filled in once we pick an idea._
+The phone version is in [`mobile/`](mobile/). It has a real step counter, a native map, the camera and saved progress, and it runs in **Expo Go** without app store setup.
+
+```bash
+cd big-red-hacks2026/mobile
+npm install
+npx expo start      # scan the QR code with Expo Go
+```
+
+See [mobile/README.md](mobile/README.md) for the full guide and known limits. It was built outside Cursor, so keep building it in Cursor for the track.
 
 ```bash
 git clone <repo-url>

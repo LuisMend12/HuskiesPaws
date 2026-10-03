@@ -6,7 +6,7 @@ import { distanceMeters, pathLength } from "../core/geo.js";
 import { setupBank, transferToSavings } from "../core/nessie.js";
 import { rankFor } from "../core/rank.js";
 import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../core/savings.js";
-import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute } from "../core/services.js";
+import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute, setRequestHeaders } from "../core/services.js";
 import { clearKeys, loadAll, saveAll } from "../storage.js";
 import { speakMemo } from "../voice.js";
 import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, savedFields, scoreOf } from "./state.js";
@@ -14,6 +14,8 @@ import { createStore } from "./store.js";
 import { createWalking } from "./walking.js";
 
 const agentById = (id) => AGENTS.find((a) => a.id === id);
+// Without this, Wikipedia and OpenStreetMap answer 403 to the app's default User-Agent.
+setRequestHeaders({ "User-Agent": "Wanderlings/1.0 (BigRed//Hacks 2026 demo app)" });
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createGame() {

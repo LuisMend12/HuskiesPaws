@@ -2,11 +2,19 @@
 // Tools the agents may use. Everything an agent says comes from these results.
 import { FETCH_TIMEOUT_MS, SCOUT_RADIUS_M } from "./config.js";
 
+// Wikipedia and OpenStreetMap reject generic app User-Agents (React Native sends
+// "okhttp" and gets 403). The mobile app sets an identifying one here; browsers
+// must not, since a custom header would break CORS.
+let requestHeaders = {};
+export function setRequestHeaders(headers) {
+  requestHeaders = { ...headers };
+}
+
 async function fetchJson(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { signal: controller.signal, headers: requestHeaders });
     if (!response.ok) throw new Error(`Request failed (${response.status})`);
     return await response.json();
   } finally {
