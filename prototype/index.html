@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wanderlings</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>🌱 Wanderlings</h1>
+    <div class="stats">
+      <span id="stat-distance">0 m walked</span>
+      <span id="stat-blooms">0 blooms</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="map" aria-label="Map of your walk"></div>
+
+    <section class="sheet">
+      <div class="walk-controls">
+        <button id="btn-locate" class="secondary">📍 Use my location</button>
+        <button id="btn-demo-walk" class="secondary">🚶 Demo walk</button>
+      </div>
+
+      <h2>Your squad</h2>
+      <ul id="agents" class="agents"></ul>
+
+      <p id="status" class="status" role="status" aria-live="polite">Send an agent on an expedition.</p>
+    </section>
+  </main>
+
+  <dialog id="postcard" class="postcard">
+    <div id="postcard-art" class="postcard-art" aria-hidden="true"></div>
+    <div class="postcard-body">
+      <p class="postcard-from" id="postcard-from"></p>
+      <h3 id="postcard-title"></h3>
+      <img id="postcard-photo" alt="" hidden>
+      <p id="postcard-fact"></p>
+      <p class="postcard-meta" id="postcard-meta"></p>
+      <a id="postcard-source" target="_blank" rel="noopener noreferrer">Source: Wikipedia</a>
+    </div>
+    <div class="postcard-actions">
+      <button id="btn-replay-memo" class="secondary">🔊 Replay memo</button>
+      <button id="btn-go">Take me there</button>
+      <button id="btn-close" class="secondary">Later</button>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
