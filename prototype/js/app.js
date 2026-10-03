@@ -1,23 +1,26 @@
 import { AGENTS, choosePlace, expeditionDuration, levelFor, routeMemo, scoutMemo, storyMemo } from "./agents.js";
-import { postcardSvg, creatureSvg } from "./art.js";
+import { postcardSvg, creatureSvg, treeSvg } from "./art.js";
+import { setupBank, transferToSavings } from "./nessie.js";
+import { estimateRideFare, formatDollars, totalSaved, treeStage } from "./savings.js";
 import { composePostcard, startCamera, stopCamera } from "./capture.js";
 import {
   ALBUM_MAX_CARDS, CAPTURE_RADIUS_M, DEFAULT_CENTER, DEFAULT_REGION, DEMO_WALK_SPEED_MPS, LEADERBOARD_TOP,
 } from "./config.js";
-import { distanceMeters, interpolate } from "./geo.js";
+import { distanceMeters, interpolate, pathLength } from "./geo.js";
 import { SCOPES, buildLeaderboard, demoPlayers, topWithYou } from "./leaderboard.js";
 import { createMap } from "./map.js";
 import { TRAILS, activeTrail, rankFor, scoreFor, stepsFromMeters } from "./rank.js";
 import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute } from "./services.js";
 import { clearAll, load, save } from "./storage.js";
 import {
-  agentCard, renderAlbum, renderLeaderboard, renderRankBadge, renderRankCard, renderTrailPicker,
+  agentCard, renderAlbum, renderLeaderboard, renderRankBadge, renderRankCard, renderSavings, renderTrailPicker,
 } from "./views.js";
 import { speakMemo } from "./voice.js";
 
 const $ = (id) => document.getElementById(id);
 const agentById = (id) => AGENTS.find((a) => a.id === id);
-const SAVED_KEYS = ["progress", "found", "album", "xp", "trail"];
+// The Nessie connection ("bank", "nessieKey") is kept separately so a reset doesn't disconnect it.
+const SAVED_KEYS = ["progress", "found", "album", "xp", "trail", "trips"];
 const EMPTY_PROGRESS = Object.freeze({ walked: 0, landmarksFound: 0, landmarksCaptured: 0 });
 const RANK_START = rankFor(0).current.name;
 
@@ -37,6 +40,11 @@ let state = {
   album: load("album", []), // [{ id, title, image, date, agentId }]
   xp: load("xp", Object.fromEntries(AGENTS.map((a) => [a.id, 0]))),
   trailChoice: load("trail", "auto"), // "auto" or a trail id
+  trips: load("trips", []), // walks that replaced a ride: [{ id, title, meters, amount, date, nessieId }]
+  bank: load("bank", null), // Nessie ids: { customerId, checkingId, savingsId }
+  // Nessie is a mock-data sandbox, so its key lives in the browser for this demo only.
+  // A real app keeps bank keys on a server.
+  nessieKey: load("nessieKey", ""),
 };
 state = { ...state, rankName: rankFor(scoreFor(stats())).current.name };
 
@@ -59,6 +67,9 @@ function persist() {
   save("album", state.album);
   save("xp", state.xp);
   save("trail", state.trailChoice);
+  save("trips", state.trips);
+  save("bank", state.bank);
+  save("nessieKey", state.nessieKey);
 }
 
 function setState(patch) {
@@ -144,10 +155,30 @@ function renderRanks() {
   });
 }
 
+function renderSavingsTab() {
+  const saved = totalSaved(state.trips);
+  const stage = treeStage(saved);
+  renderSavings(
+    { tree: $("tree"), total: $("savings-total"), stage: $("savings-stage"), bank: $("bank-status"), trips: $("trips") },
+    {
+      saved,
+      stage,
+      trips: state.trips,
+      treeMarkup: treeSvg(stage.index),
+      format: formatDollars,
+      bankStatus: state.bank
+        ? `Connected to Capital One Nessie · savings account …${state.bank.savingsId.slice(-4)}`
+        : "Not connected. Savings are tracked in the app (demo mode).",
+    },
+  );
+  $("bank-form").hidden = Boolean(state.bank);
+}
+
 function render() {
   renderStats();
   renderAgents();
   renderRanks();
+  renderSavingsTab();
   renderAlbum($("album"), $("album-empty"), state.album);
 }
 
@@ -264,11 +295,62 @@ async function guideToDiscovery(agent) {
   // Routes end on the nearest path, which can be a bit away from the landmark itself.
   const arrived = state.found.find((p) => p.id === target.id) ?? null;
   setState({ visited: new Set([...state.visited, target.id]), discovery: null, capturable: arrived });
-  setStatus(`You made it to ${target.title}! 🌸 Tap 📸 Capture to add it to your album.`);
+  const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
+  setStatus(`You made it to ${target.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
   speakMemo(`We made it to ${target.title}! Quick, take a picture!`, agent);
 }
 
 const ACTIONS = { scout: runExpedition, storyteller: tellStory, pathfinder: guideToDiscovery };
+
+// ---------- Walk instead of ride: savings ----------
+
+// Records the fare you avoided by walking. Returns a short message, or "" if the
+// walk was too short to replace a ride.
+function recordWalkSavings(title, meters) {
+  const amount = estimateRideFare(meters);
+  if (amount === null) return "";
+  const stageBefore = treeStage(totalSaved(state.trips)).current;
+  const trip = { id: `${Date.now()}`, title, meters, amount, date: new Date().toISOString(), nessieId: null };
+  state = { ...state, trips: [trip, ...state.trips] };
+  persist();
+  render();
+  syncTripToNessie(trip);
+  const stageAfter = treeStage(totalSaved(state.trips)).current;
+  const grew = stageAfter.name !== stageBefore.name ? ` Your tree grew into a ${stageAfter.emoji} ${stageAfter.name}!` : "";
+  return `You skipped a ~${formatDollars(amount)} ride, and it went into savings 🌳.${grew}`;
+}
+
+async function syncTripToNessie(trip) {
+  if (!state.bank || !state.nessieKey) return;
+  try {
+    const nessieId = await transferToSavings(state.nessieKey, state.bank, trip.amount, `Walked to ${trip.title} instead of riding`);
+    setState({ trips: state.trips.map((t) => (t.id === trip.id ? { ...t, nessieId } : t)) });
+    persist();
+  } catch (error) {
+    console.warn("Nessie transfer failed; kept in the local ledger:", error);
+    setStatus(`Saved ${formatDollars(trip.amount)} locally. Nessie didn't respond, so the transfer wasn't sent.`);
+  }
+}
+
+async function connectBank(event) {
+  event.preventDefault();
+  const key = $("nessie-key").value.trim();
+  if (!key) {
+    setStatus("Paste your Nessie API key first.");
+    return;
+  }
+  setStatus("Connecting to Capital One Nessie…");
+  try {
+    const bank = await setupBank(key, "Wanderlings");
+    $("nessie-key").value = "";
+    setState({ bank, nessieKey: key });
+    persist();
+    setStatus("Connected! New walks will move their savings into your Nessie savings account.");
+  } catch (error) {
+    console.error("Nessie setup failed:", error);
+    setStatus(`Couldn't connect to Nessie (${error.message}). Savings still work in demo mode.`);
+  }
+}
 
 // ---------- Capture ----------
 
@@ -387,7 +469,8 @@ async function demoWalk() {
     const route = await getWalkingRoute(state.position, target);
     const rankBefore = state.rankName;
     await walkAlong(route.points);
-    if (state.rankName === rankBefore) setStatus(`Walked to ${target.title}. Send Pip to explore from here!`);
+    const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
+    if (state.rankName === rankBefore) setStatus(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);
   } catch (error) {
     console.error("Demo walk failed:", error);
     setStatus("Couldn't plan a walk (network problem).");
@@ -422,7 +505,7 @@ function useMyLocation() {
 }
 
 function resetProgress() {
-  if (!window.confirm("Reset your steps, landmarks, album, and agent levels?")) return;
+  if (!window.confirm("Reset your steps, landmarks, album, savings, and agent levels?")) return;
   clearAll(SAVED_KEYS);
   setState({
     progress: EMPTY_PROGRESS,
@@ -430,6 +513,7 @@ function resetProgress() {
     album: [],
     xp: Object.fromEntries(AGENTS.map((a) => [a.id, 0])),
     trailChoice: "auto",
+    trips: [],
     rankName: RANK_START,
     capturable: null,
     discovery: null,
@@ -446,6 +530,7 @@ $("btn-snap").addEventListener("click", snap);
 $("btn-capture-cancel").addEventListener("click", closeCapture);
 $("capture").addEventListener("cancel", closeCapture); // Esc key
 $("btn-reset").addEventListener("click", resetProgress);
+$("bank-form").addEventListener("submit", connectBank);
 $("rank-badge").addEventListener("click", () => showTab("ranks"));
 $("btn-close").addEventListener("click", () => $("postcard").close());
 $("btn-go").addEventListener("click", () => guideToDiscovery(agentById("pathfinder")));

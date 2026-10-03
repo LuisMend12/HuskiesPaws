@@ -86,6 +86,28 @@ export function renderTrailPicker(node, trails, { score, chosenId, activeId, onP
   node.replaceChildren(auto, ...chips);
 }
 
+// Savings tab: tree, totals, recent trips, and Nessie connection status.
+export function renderSavings(nodes, { saved, stage, trips, bankStatus, treeMarkup, format }) {
+  nodes.tree.innerHTML = treeMarkup; // generated from numbers only, no user text
+  nodes.total.textContent = `${format(saved)} saved by walking`;
+  nodes.stage.textContent = stage.next
+    ? `${stage.current.emoji} ${stage.current.name} · ${format(stage.next.min - saved)} to ${stage.next.emoji} ${stage.next.name}`
+    : `${stage.current.emoji} ${stage.current.name} · fully grown!`;
+  nodes.bank.textContent = bankStatus;
+  nodes.trips.replaceChildren(
+    ...trips.slice(0, 8).map((trip) => {
+      const li = el("li");
+      const synced = trip.nessieId ? "✓ Nessie" : "local";
+      li.append(
+        el("span", "trip-place", trip.title),
+        el("span", "trip-meta", `${Math.round(trip.meters)} m · ${synced}`),
+        el("span", "trip-amount", `+${format(trip.amount)}`),
+      );
+      return li;
+    }),
+  );
+}
+
 export function renderAlbum(node, emptyNode, cards) {
   emptyNode.hidden = cards.length > 0;
   node.replaceChildren(

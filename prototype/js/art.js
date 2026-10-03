@@ -53,3 +53,38 @@ export function postcardSvg(placeTitle, agent) {
       <g transform="translate(36 70) scale(1.3)">${creatureSvg(agent)}</g>
     </svg>`;
 }
+
+// Savings tree: grows through TREE_STAGES (0 = seed ... 5 = fruit tree).
+export function treeSvg(stageIndex) {
+  const ground = `<ellipse cx="100" cy="182" rx="80" ry="12" fill="#8d6e63"/>
+    <ellipse cx="100" cy="178" rx="70" ry="8" fill="#a1887f"/>`;
+  if (stageIndex === 0) {
+    return svgFrame(`${ground}<ellipse cx="100" cy="172" rx="9" ry="7" fill="#795548"/>
+      <path d="M100 166 q3 -6 0 -10" stroke="#66bb6a" stroke-width="2" fill="none"/>`);
+  }
+  if (stageIndex === 1) {
+    return svgFrame(`${ground}<path d="M100 178 V150" stroke="#558b2f" stroke-width="4"/>
+      <ellipse cx="90" cy="148" rx="11" ry="6" fill="#7cb342" transform="rotate(-25 90 148)"/>
+      <ellipse cx="110" cy="148" rx="11" ry="6" fill="#8bc34a" transform="rotate(25 110 148)"/>`);
+  }
+  const trunkTop = 178 - 40 - stageIndex * 8;
+  const canopy = 22 + stageIndex * 6;
+  const cy = trunkTop - canopy * 0.4;
+  const leaves = [
+    [100, cy, canopy], [100 - canopy * 0.7, cy + canopy * 0.35, canopy * 0.7],
+    [100 + canopy * 0.7, cy + canopy * 0.35, canopy * 0.7], [100, cy - canopy * 0.55, canopy * 0.65],
+  ].map(([x, y, r], i) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 2 ? "#66bb6a" : "#4caf50"}"/>`).join("");
+  const spots = [[-0.5, -0.1], [0.35, -0.35], [0.1, 0.25], [-0.2, -0.6], [0.6, 0.2], [-0.65, 0.35]];
+  const decorate = (fill, r) => spots
+    .map(([dx, dy]) => `<circle cx="${100 + dx * canopy}" cy="${cy + dy * canopy}" r="${r}" fill="${fill}"/>`).join("");
+  const blossoms = stageIndex >= 4 ? decorate("#f8bbd0", 5) : "";
+  const apples = stageIndex >= 5 ? decorate("#e53935", 6) : "";
+  return svgFrame(`${ground}
+    <path d="M94 178 L97 ${trunkTop} H103 L106 178 Z" fill="#795548"/>
+    ${leaves}${blossoms}${apples}`);
+}
+
+function svgFrame(content) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Your savings tree">
+    <rect width="200" height="200" rx="16" fill="#e8f5e9"/>${content}</svg>`;
+}

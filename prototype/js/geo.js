@@ -10,6 +10,10 @@ export function distanceMeters(a, b) {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
 }
 
+export function pathLength(points) {
+  return points.slice(1).reduce((total, point, i) => total + distanceMeters(points[i], point), 0);
+}
+
 export function interpolate(a, b, t) {
   return { lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t };
 }

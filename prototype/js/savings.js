@@ -1,0 +1,48 @@
+// Walk instead of ride: estimate the rideshare fare you avoided, and grow a
+// savings tree from the total. Pure logic, shared with the mobile app.
+
+// Rough UberX-style pricing. Not real Uber prices (there is no public pricing
+// API); tune these to local estimates and always label the result an estimate.
+export const FARE_MODEL = Object.freeze({
+  base: 2.5,
+  bookingFee: 2.75,
+  perMile: 1.6,
+  perMinute: 0.35,
+  minimumFare: 8.0,
+  driveSpeedMph: 20,
+});
+
+// Walks shorter than this wouldn't realistically replace a ride.
+export const MIN_TRIP_M = 300;
+const METERS_PER_MILE = 1609.34;
+
+const roundCents = (dollars) => Math.round(dollars * 100) / 100;
+
+export function estimateRideFare(meters, model = FARE_MODEL) {
+  if (!(meters >= MIN_TRIP_M)) return null;
+  const miles = meters / METERS_PER_MILE;
+  const minutes = (miles / model.driveSpeedMph) * 60;
+  const fare = model.base + model.bookingFee + model.perMile * miles + model.perMinute * minutes;
+  return roundCents(Math.max(model.minimumFare, fare));
+}
+
+export const totalSaved = (trips) => roundCents(trips.reduce((sum, trip) => sum + trip.amount, 0));
+
+export const TREE_STAGES = Object.freeze([
+  { name: "Seed", emoji: "🌰", min: 0 },
+  { name: "Sprout", emoji: "🌱", min: 5 },
+  { name: "Sapling", emoji: "🌿", min: 20 },
+  { name: "Young tree", emoji: "🌳", min: 50 },
+  { name: "Blooming tree", emoji: "🌸", min: 100 },
+  { name: "Fruit tree", emoji: "🍎", min: 250 },
+]);
+
+export function treeStage(saved) {
+  const index = TREE_STAGES.findLastIndex((stage) => saved >= stage.min);
+  const current = TREE_STAGES[Math.max(0, index)];
+  const next = TREE_STAGES[index + 1] ?? null;
+  const progress = next ? (saved - current.min) / (next.min - current.min) : 1;
+  return { index: Math.max(0, index), current, next, progress };
+}
+
+export const formatDollars = (amount) => `$${amount.toFixed(2)}`;
