@@ -1,0 +1,337 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in,headheight=14pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=bigred,urlcolor=bigred]{hyperref}
+
+\definecolor{bigred}{HTML}{B31B1B}
+
+\titleformat{\section}{\Large\bfseries\color{bigred}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{BigRed//Hacks 2026}
+\rhead{General Information}
+\cfoot{\thepage}
+
+\setlist{nosep}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\newcommand{\important}[1]{\textbf{\color{bigred}#1}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{2in}
+  {\Huge\bfseries\color{bigred} BigRed//Hacks 2026\par}
+  \vspace{0.5em}
+  {\Large General Information\par}
+  \vspace{1.5em}
+  {\large October 2--4, 2026\par}
+  {\large Klarman Hall \textbar{} Physical Sciences Building\par}
+  \vspace{1.5em}
+  {\large Theme: \textbf{Navigation}\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------------
+\section{General Information}
+
+\subsection*{Check-In}
+Check-in starts at \textbf{6:00 PM on October 2nd} at Klarman Atrium,
+232 Feeney Wy, Ithaca, NY 14850. If you are registered for the event and
+cannot make it to the check-in time, please let us know in advance so we can
+schedule a late check-in.
+
+\subsection*{Food}
+If you would like to get food during breakfast, lunch, or dinner, please wear
+your shirt (provided at check-in) so we can have food for all the hackers!
+
+\subsection*{Team Information}
+\begin{itemize}
+  \item Teams can consist of anywhere from 1--4 people.
+  \item All projects \important{MUST be submitted by 8:30 AM on Sunday, October 4th}.
+        Please note the unusual time. This allows us to prepare for preliminary
+        judging to begin at exactly 9:00 AM. \important{We will not allow late submissions.}
+\end{itemize}
+
+\subsection*{Socials}
+\begin{itemize}
+  \item Instagram: \textbf{@bigredhacks}
+  \item Event Discord: \url{https://discord.gg/5SRr3pm7N} --- if you can't find
+        an organizer in person, ask questions here and we'll answer as fast as we can!
+\end{itemize}
+
+\subsection*{Available Hardware}
+Thanks to our sponsors at MLH, hardware is available for your projects this
+weekend. Stop by the MLH table to see what's available and check items out with
+an organizer. The following can be rented for the weekend:
+
+\begin{minipage}[t]{0.48\textwidth}
+\begin{itemize}
+  \item Raspberry Pi Kits
+  \item Arduinos and Base Shields
+  \item Logitech Webcams
+  \item Google Home Mini
+  \item SenseCAP Indicator
+  \item Echo Show
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\begin{itemize}
+  \item Echo Dot
+  \item Assorted Bread Boards
+  \item Wire cutters
+  \item Multimeter
+  \item Assorted cables
+  \item Assorted Grove Components
+\end{itemize}
+\end{minipage}
+
+\medskip
+All returnable hardware must be returned by the end of the final judging round.
+
+% ---------------------------------------------------------------------------
+\section{Team Formation}
+Teams can consist of 1--4 people. If you already have a team, fill out the team
+signup form by \important{Friday 10/2 at 11:59 PM}:
+\url{https://forms.gle/AA9s7pa7BAV7VE2i9}.
+
+If you don't have a team yet, don't worry! You can find teammates through our
+Discord or fill out the form. We'll also have a team matching session Friday
+to help you find partners.
+
+% ---------------------------------------------------------------------------
+\section{Emergency Contacts}
+Please reach out to any of the organizers (@BigRed//Hacks) on Discord if you
+have any questions prior to the event.
+
+\begin{itemize}
+  \item \textbf{CUPD: (607) 255-1111}
+  \item Calling 911 will result in delays as they transfer you from Tompkins
+        County to Ithaca \& Cornell emergency services.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section{Schedule}
+\emph{All times are in EST.}
+
+\subsection{Friday, Oct 2, 2026 --- Day 1}
+\begin{longtable}{@{}p{0.13\textwidth}p{0.24\textwidth}p{0.55\textwidth}@{}}
+\toprule
+\textbf{Time} & \textbf{Location} & \textbf{Information} \\
+\midrule
+\endhead
+6:00 PM  & Klarman Atrium & \textbf{Check-In Starts.} Check in at the organizer booth to confirm your attendance. \\
+7:00 PM  & Goldwin Smith GSH 132 & \textbf{Opening Ceremony / Kick-Off.} \important{Mandatory}: theme revealed. Speaker: Jon Kleinberg. \\
+7:45 PM  & Goldwin Smith GSH 132 & \textbf{Team Matching.} Find teammates with similar project goals and interests. \\
+8:00 PM  & Klarman Atrium & \textbf{Initial Check-In Ends.} Spots open to the waitlist; first come, first served for Cornell students until capacity. \\
+8:00 PM  & Klarman Atrium & \textbf{Dinner:} Domino's Pizza \\
+8:30 PM  & Goldwin Smith GSH 132 & \textbf{Workshop:} Figma \\
+9:30 PM  & Goldwin Smith GSH 132 & \textbf{Workshop:} SpaceX Cursor \\
+11:30 PM & PSB 120 & \textbf{GeoGuessr Competition} \\
+11:59 PM & --- & \important{Team Registration Deadline (mandatory):} \url{https://forms.gle/AA9s7pa7BAV7VE2i9} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Saturday, Oct 3, 2026 --- Day 2}
+\begin{longtable}{@{}p{0.17\textwidth}p{0.24\textwidth}p{0.51\textwidth}@{}}
+\toprule
+\textbf{Time} & \textbf{Location} & \textbf{Information} \\
+\midrule
+\endhead
+9:00 AM  & PSB Main Floor / Clark Atrium & \textbf{Breakfast:} bagels, donuts, coffee \\
+10:30 AM & PSB Main Floor / Clark Atrium & \textbf{Raffle Draw!} \\
+11:30 AM & PSB 120 & \textbf{Sponsored Workshop} by MLH \\
+12:00 PM & PSB Main Floor / Clark Atrium & \textbf{Lunch:} Chipotle \\
+12:00--2:00 PM & PSB Main Floor / Clark Atrium & \textbf{Career Fair} --- talk to our sponsors! \\
+1:00--1:20 PM & PSB 120 & \textbf{Workshop:} Photon Demo \\
+2:00 PM  & PSB 120 & \textbf{Workshop:} Computer-Aided Design (CAD) by Assistive Tech \\
+3:00 PM  & PSB 120 & \textbf{Sponsored Workshop:} A Data Science and Machine Learning Solution for a Hardware Problem by ASML \\
+4:00 PM  & PSB 120 & \textbf{Workshop:} DTI \\
+5:00 PM  & PSB 120 & \textbf{Workshop:} AppDev \\
+6:00 PM  & PSB Main Floor / Clark Atrium & \textbf{Dinner:} Taste of Thai \\
+7:30 PM  & PSB Main Floor / Clark Atrium & \textbf{Raffle Draw!} \\
+9:30 PM  & PSB Main Floor / Clark Atrium & \textbf{Cup Stacking Competition} \\
+11:30 PM & PSB Main Floor / Clark Atrium & \textbf{Spicy Ramen Competition} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Sunday, Oct 4, 2026 --- Day 3}
+\begin{longtable}{@{}p{0.13\textwidth}p{0.24\textwidth}p{0.55\textwidth}@{}}
+\toprule
+\textbf{Time} & \textbf{Location} & \textbf{Information} \\
+\midrule
+\endhead
+8:00 AM  & PSB Main Floor / Clark Atrium & \textbf{Breakfast:} bagels, donuts, coffee \\
+8:30 AM  & Devpost & \important{Submit Projects.} Allow at least 5 minutes --- Devpost asks for a project description and tracks. \url{https://bigredhacks2026.devpost.com/} \\
+8:45 AM  & PSB & \textbf{Team Numbers Posted.} Go to the Physical Sciences Building, find your designated number, and prepare to present to judges. \\
+9:00 AM  & PSB Main Floor / Clark Atrium & \textbf{Judging Begins} \\
+10:30 AM & --- & \textbf{Lunch:} Sandwiches \\
+11:30 AM & Baker 200 & \textbf{Finalist Demos} \\
+12:30 PM & --- & \textbf{Judging Finalized} \\
+1:00 PM  & Baker 200 & \textbf{Awards and Closing Ceremony} \\
+2:00 PM  & --- & \textbf{Hackathon Ends!} \\
+\bottomrule
+\end{longtable}
+
+% ---------------------------------------------------------------------------
+\section{Workshops}
+If you're interested in learning more about hardware development, software
+development, or entrepreneurship, check out our workshops.
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Day} & \textbf{Time} & \textbf{Location} & \textbf{Workshop} \\
+\midrule
+Friday   & 8:30 PM  & PSB 120 & Figma Make Workshop \\
+Friday   & 9:30 PM  & PSB 120 & Grok/Cursor Workshop \\
+\midrule
+Saturday & 11:30 AM & PSB 120 & MLH \\
+Saturday & 1:00 PM  & PSB 120 & Google Maps API \\
+Saturday & 2:00 PM  & PSB 120 & ASML \\
+Saturday & 3:00 PM  & PSB 120 & Assistive Tech \\
+Saturday & 4:00 PM  & PSB 120 & DTI Workshop \\
+Saturday & 5:00 PM  & PSB 120 & AppDev Workshop \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\emph{Note: this table differs from the schedule above (Friday
+workshops listed in GSH 132 there; Saturday 1--3 PM order differs). Confirm
+with organizers or Discord.}
+
+% ---------------------------------------------------------------------------
+\section{Fun Activities!}
+\textbf{Raffles:} We will have raffles throughout the event and will hand out
+tickets randomly during workshops (\important{don't lose it!}). We'll announce
+when a raffle is about to happen, but there may be random ones throughout the
+weekend. The last raffle happens during the closing ceremony.
+
+% ---------------------------------------------------------------------------
+\section{Theme: Navigation}
+\begin{itemize}
+  \item Theme information:
+        \href{https://docs.google.com/document/d/1NHrE-zrTy1DDI-0d1FkQAStY7yizpfoao3BqESUHHM0/edit?usp=sharing}{Theme Doc}
+  \item \href{https://docs.google.com/presentation/d/1HytL8PP48KtWOhP_aJ7BdhmIkyhY8bUU2go4iSU_tO0/edit?usp=sharing}{Opening Ceremony Slides}
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section{Our Sponsors}
+We will have a \textbf{Career Fair} where you can talk to our sponsors on
+\textbf{Saturday 12:00--2:00 PM}.
+
+% ---------------------------------------------------------------------------
+\section{Tracks and \$7{,}000+ in Prizes}
+
+\subsection{Main Track}
+\paragraph{BigRed Track (3 winners).}
+Every team is automatically entered. Projects are judged on all criteria,
+including technical, design, creativity, overall impact, and theme adherence.
+
+\subsection{Side Tracks}
+\paragraph{Software Track (1 winner).}
+Evaluates the overall software and technical skill used in the project.
+
+\paragraph{Hardware Track (1 winner).}
+Evaluates the overall hardware, functionality, and technical skill used in the project.
+
+\paragraph{Design Track (2 winners).}
+Evaluates the overall visual presentation and UI/UX skills used in the project.
+
+\paragraph{Beginner Track (2 winners).}
+Rewards the best overall project created by first-time hackathon participants.
+
+\paragraph{People's Choice Track (1 winner).}
+Rewards the best overall project voted on by hackers on Devpost during the event.
+
+\subsection{Sponsor Tracks}
+\paragraph{Capital One Track: Best Use of Nessie.}
+Capital One challenges you to reimagine the banking experience by building an
+innovative application that leverages Capital One's Hackathon API, Nessie
+(\url{http://api.nessieisreal.com}). Featuring access to mock financial data
+including accounts, merchants, bills, and peer-to-peer transactions, Nessie is
+your sandbox for solving real-world financial problems. We want to see projects
+that creatively integrate Nessie's endpoints to empower users and improve their
+financial lives.
+
+\paragraph{SpaceX Track: Make it Legendary.}
+Space gives you more to work with than almost any other field. You have access
+to enormous public datasets, decades of missions, and a literature no human can
+read all of. Real space data goes in and a legendary project comes out.
+\begin{itemize}
+  \item \important{Your project must be built with Cursor.} The more you use
+        Cursor, the more likely you are to win.
+  \item \important{You must use the Grok Imagine or Voice API.}
+  \item Bonus points if you use Grok Bot for project planning and team collaboration.
+\end{itemize}
+Anyone who submits will be entered into a raffle for a Cursor Owala water
+bottle. Every member of the winning team receives a branded Cursor mechanical
+keyboard.
+
+\paragraph{Photon Track: Agents in iMessage using Photon.}
+Guidelines:
+\href{https://somethingreat.notion.site/Hackathon-Guidelines-for-Photon-3dce443f36bb803696daf4135f063cd1}{Hackathon Guidelines for Photon}
+
+% ---------------------------------------------------------------------------
+\section{Submission Process and Judging}
+\important{Sunday 10/4 8:30 AM --- all projects must be submitted, no exceptions.}
+
+\noindent Devpost: \url{https://bigredhacks2026.devpost.com/}
+
+\medskip
+Review the Devpost before submitting and set aside at least 5 minutes. You need:
+\begin{enumerate}
+  \item A GitHub or Google Drive link to your entire project.
+  \item Your team's deck for presenting to judges, as a \textbf{Google Drive link to a PDF}.
+        It can include: project name and team members, problem statement and why
+        it matters, your solution and demo screenshots, tech stack / how you built
+        it, and impact and future potential.
+\end{enumerate}
+
+Devpost will ask which tracks you are submitting to and for project details:
+Inspiration, What it does, How we built it, Challenges we ran into,
+Accomplishments that we're proud of, What we learned, and What's next.
+
+At \textbf{8:45 AM} you will receive a team number; set up at that numbered
+table for judging.
+
+\subsection*{Preliminary Judging --- 9:00 AM, PSB Atrium}
+Science-fair style, \textbf{4 minutes per team}: 2-minute presentation and
+2-minute Q\&A. Your team will be visited by 2--4 judges at your table.
+
+\subsection*{People's Choice}
+All projects are live on Devpost for public voting after 8:30 AM. Every
+participant may upvote their favorites; the project with the most upvotes wins.
+
+\subsection*{Finalist Demos --- 11:30 AM, Baker 200 Auditorium}
+\begin{itemize}
+  \item The top 5 teams in the BigRed Track present again.
+  \item Each finalist has 4 minutes to present/demo and 2 minutes for questions.
+  \item If you aren't called to present again, \textbf{that does not mean you
+        didn't win a track}. Side-track winners are decided in preliminary
+        judging and announced at the Closing Ceremony.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section{PSB Map}
+Map of the Physical Sciences Building. \textbf{Zone 6: Check-In Area.}
+
+\noindent\emph{(Floor plan image \texttt{BRH2016\_PSB\_floorplan.png} not
+included --- see the original General Info doc.)}
+
+\end{document}
