@@ -1,6 +1,7 @@
 // League badge: a wooden shield that gets greener with each league (grass,
 // leaves, flowers, vines, crystals), the league's gem in the middle, and one to
-// three pips for the division (III = 1 pip, I = 3).
+// three pips for the division (III = 1 pip, I = 3). Small badges (leaderboard
+// rows) drop the planks and pips and enlarge the gem so leagues stay tellable apart.
 import Svg, { Circle, ClipPath, Defs, G, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { LEAGUES, leagueOf } from "../core/rank.js";
 
@@ -59,10 +60,14 @@ function Crystals({ gem, metal }) {
   );
 }
 
+const COMPACT_BELOW = 32;
+
 export function RankBadge({ rank, size = 48 }) {
   const league = leagueOf(rank) ?? LEAGUES[0];
   const tier = LEAGUES.indexOf(league); // 0 = Bronze ... 4 = Crystal
-  const pips = 4 - rank.division;
+  const compact = size < COMPACT_BELOW;
+  const pips = compact ? 0 : 4 - rank.division;
+  const gemScale = compact ? 1.45 : 1;
   return (
     <Svg width={size} height={size * 1.125} viewBox="-2 -4 68 76" accessibilityLabel={`${rank.name} badge`}>
       <Defs>
@@ -80,7 +85,7 @@ export function RankBadge({ rank, size = 48 }) {
       {tier >= 4 && <Crystals gem={league.gem} metal={league.metal} />}
 
       <Path d={SHIELD} fill={WOOD.light} stroke={WOOD.dark} strokeWidth={3} strokeLinejoin="round" />
-      <G clipPath="url(#shield)">
+      <G clipPath="url(#shield)" opacity={compact ? 0 : 1}>
         {[22, 32, 42].map((x) => (
           <Rect key={x} x={x - 0.75} y={0} width={1.5} height={72} fill={WOOD.grain} />
         ))}
@@ -89,8 +94,10 @@ export function RankBadge({ rank, size = 48 }) {
       {tier >= 3 && <Vines />}
 
       {/* The league's gem, with a shine */}
-      <Path d="M32 20 L42 32 L32 44 L22 32 Z" fill={league.gem} stroke={league.metal} strokeWidth={2.5} strokeLinejoin="round" />
-      <Path d="M32 23 L37 30 L32 30 Z" fill="#ffffff" opacity={0.7} />
+      <G transform={`translate(32 32) scale(${gemScale}) translate(-32 -32)`}>
+        <Path d="M32 20 L42 32 L32 44 L22 32 Z" fill={league.gem} stroke={league.metal} strokeWidth={2.5} strokeLinejoin="round" />
+        <Path d="M32 23 L37 30 L32 30 Z" fill="#ffffff" opacity={0.7} />
+      </G>
 
       <Grass />
       {tier >= 2 && <Flowers />}

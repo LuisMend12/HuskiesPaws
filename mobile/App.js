@@ -37,6 +37,7 @@ const TABS = [
   { id: "album", label: "Album" },
 ];
 const scout = AGENTS.find((a) => a.id === "scout");
+const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -87,7 +88,11 @@ function Main() {
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
           <Text style={styles.stats}>
-            {`${state.progress.steps.toLocaleString()} steps · ${state.blooms.length} blooms · ${state.progress.landmarksFound} landmarks`}
+            {[
+              plural(state.progress.steps, "step"),
+              plural(state.blooms.length, "bloom"),
+              plural(state.progress.landmarksFound, "landmark"),
+            ].join(" · ")}
           </Text>
           <View style={styles.demoRow}>
             <Hint style={styles.flex}>{state.demoMode ? "Demo mode: walks are simulated" : "Real walks: go to the place"}</Hint>

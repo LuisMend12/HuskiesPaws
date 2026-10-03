@@ -71,7 +71,7 @@ export function RanksPanel({ state, game }) {
       {rows.map((row, i) => (
         <View key={row.id} style={[styles.row, i % 2 === 0 && styles.rowStripe, row.isYou && styles.rowYou]}>
           <Text style={styles.pos}>{`#${row.position}`}</Text>
-          <RankBadge rank={rankFor(row.score).current} size={20} />
+          <RankBadge rank={rankFor(row.score).current} size={26} />
           <Text style={[styles.player, row.isYou && styles.bold]}>{row.isYou ? "You" : row.name}</Text>
           <Text style={[styles.score, row.isYou && styles.bold]}>{row.score.toLocaleString()}</Text>
         </View>
