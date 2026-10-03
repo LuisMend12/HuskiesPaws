@@ -20,7 +20,7 @@ npx expo start --clear    # once, to drop Metro's old cache
   - a **Pets** tab and **hatch reveal**, on sample data until 4.1 lands
   - a **Squad** tab (replaces `AgentList`): squad pets with statuses and class actions; Pip, Moss and Fern show as starter pets
   - a **tilted map** with pets standing on it: the squad follows you, the exploring pet **walks to its place and back**, guards stand on landmarks with HP bars (three **sample rival guards** near PSB until 4.3 lands)
-  - a dev-only **3D test** button in the Pets tab (React Three Fiber). It loads three.js only when pressed; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` (three 0.186 crashes on React Native without it)
+  - a **🐾 3D** button on the map: your squad hops in 3D over the camera (React Three Fiber). It loads three.js only when opened; `mobile/src/components/threePolyfill.js` must stay the first import in `Pet3D.js` (three 0.186 crashes on React Native without it)
 - **How sample data switches off:** every screen reads through `petsView(state)` in `mobile/src/components/fakeData.js`. When `state.pets`, `state.egg`, `state.squad` or `state.turf` is defined (even `[]` / `null`), the real value is used instead of the sample.
 
 ## 2. What presentation changed in backend-owned files
@@ -28,7 +28,8 @@ npx expo start --clear    # once, to drop Metro's old cache
 | File | Change | Why |
 |---|---|---|
 | `core/rank.js` | `RANKS` is now **5 leagues × 3 divisions**: Bronze III → Crystal I (thresholds 0, 100, 200 / 300, 450, 600 / 800, 1100, 1400 / 1800, 2300, 2800 / 3500, 4200, 5000 XP). New exports `LEAGUES`, `leagueOf`. Each rank has `id`, `name`, `emoji`, `league`, `division` (3 = III … 1 = I), `min`, `trail`. One trail per league, so `TRAILS.length === 5`. | Agreed with Abdullah: Clash of Clans-style leagues |
-| `core/test/core.test.js` | Rank assertions updated | Matches the leagues |
+| `core/test/core.test.js` | Rank assertions updated; egg-tier test added | Matches the leagues and egg tiers |
+| `core/pets.js` | `PET_SPECIES`, `EGG_TIERS`, `rollEggTier`, `eggTierOf`, `hatchMetersOf`; `maybeNewEgg` adds `tier`; `hatchEgg` uses tier odds and adds `species` | Agreed with Abdullah: rarer long eggs, more animals |
 | `mobile/src/core/rank.js` | Re-synced (`npm run sync-core`) | Generated copy |
 | `mobile/src/game/game.js`, `state.js` | `runExpedition` sets `expedition: { agentId, from, to: { lat, lon }, startedAt, durationMs }` while a pet is out, and clears it in `finally` (new `expedition: null` in `INITIAL_STATE`) | The map walks the exploring pet to the place and back. If you rework expeditions as `game.runPet`, keep setting `expedition` |
 | `mobile/src/game/game.js` | `checkRankUp`: only a league change (`rank.division === 3`) says "League up! New trail unlocked"; division changes say "Rank up!" | The old message claimed a new trail on every rank-up |
@@ -55,7 +56,7 @@ The Pets tab, Squad tab, map and hatch modal already read these through `petsVie
 ```js
 pets: [],           // saved. [{ id, name, species, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
                     //   what core/pets.js hatchEgg() returns, plus species; art = FULL image URL or null
-eggs: [],           // saved. [{ id, startWalked, hatchMeters? }] eggs you carry; all fill up as you walk
+eggs: [],           // saved. [{ id, startWalked, tier }] eggs you carry (from maybeNewEgg); all fill up as you walk
 eggsReceived: 0,    // saved. eggs handed out so far
 squad: [],          // saved. see 4.4
 hatching: null,     // NOT saved. the pet that just hatched; while set, the hatch animation shows
@@ -64,9 +65,10 @@ issOverhead: false, // NOT saved. true while the ISS is overhead (shows a banner
 
 Also add `pets`, `eggs`, `eggsReceived` and `squad` to `RESETTABLE_KEYS` (and give back the starter pets after a reset, see 4.4).
 
-**`core/pets.js` changes:**
-- `PET_SPECIES = ["husky", "shiba", "cat", "bunny", "fox", "bear"]`; `hatchEgg()` picks one at random. The starter pets are huskies. (The app draws all six; a pet without `species` gets one picked from its id.)
-- **Eggs:** carry up to **5**; a new egg every `EGG_EVERY_STEPS` (400) steps while you have room; **every carried egg fills up at once** as you walk; each hatches after `hatchMeters` (default `HATCH_METERS`, 300 m). `maybeNewEgg` needs to work with the list.
+**`core/pets.js` (already done by presentation, tested):**
+- `PET_SPECIES` (husky, shiba, cat, bunny, fox, bear); `hatchEgg()` now sets `species`. Starter pets are huskies.
+- **Egg tiers** `EGG_TIERS`: Meadow egg 300 m (60% of eggs), Forest egg 600 m (30%), Crystal egg 1 km (10%); longer eggs use better rarity odds (Crystal: 12% legendary). `maybeNewEgg()` gives a `tier`, `hatchEgg()` uses the tier's odds, `hatchMetersOf(egg)` / `eggProgress` / `metersToHatch` use the tier's distance. Eggs without a tier work as before.
+- **Still yours:** carry up to **5** eggs and let **every carried egg fill up at once** as you walk (`maybeNewEgg` still checks for a single `egg`; give it the list).
 
 **Add to the object `createGame()` returns (`mobile/src/game/game.js`):**
 
@@ -79,7 +81,7 @@ The screens call these when they exist and fall back to `game.set(...)` until th
 
 **Logic** (port from the web version in git history: `git show bfe74e7^:prototype/js/pets-ui.js`, function `tick`):
 - After walking (`walking.stepTo`, or after `walkAlong` finishes), call a `tickPets()`:
-  - For the first egg with `walked - egg.startWalked >= (egg.hatchMeters ?? HATCH_METERS)`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, remove the egg, set `hatching: pet`, add it to `squad` if there's a free slot, persist, speak "Your egg hatched! Meet …". One hatch at a time: skip while `hatching` is set.
+  - For the first egg with `eggProgress(egg, walked) >= 1`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, remove the egg, set `hatching: pet`, add it to `squad` if there's a free slot, persist, speak "Your egg hatched! Meet …". One hatch at a time: skip while `hatching` is set.
   - Then hand out a new egg if earned and fewer than 5 are carried: `eggsReceived + 1`, status "🥚 You found an egg!".
 - ISS: `getIssPosition()` from `core/services.js` every 60 s; `issOverhead = issIsOverhead(iss, position, distanceMeters)`.
 - **Never** let Nessie money buy eggs (see PLAN.md: it would look like gambling).
