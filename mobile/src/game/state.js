@@ -70,7 +70,7 @@ export function migrateSaved(saved) {
   const player = saved.player?.id ? saved.player : newPlayer();
   return {
     ...saved,
-    progress: { walkXp: 0, ...progress, walkXp },
+    progress: { ...progress, walkXp },
     pets: saved.pets ?? [],
     egg: saved.egg ?? null,
     eggsReceived: saved.eggsReceived ?? 0,
