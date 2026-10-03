@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
+import { RankBadge } from "./RankBadge.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { Button } from "./ui.js";
 
@@ -19,8 +20,9 @@ export function MapTopBar({ rank, score, onRankPress }) {
           Huskies<Text style={styles.brandAccent}>Paws</Text>
         </Text>
       </View>
-      <Pressable style={styles.pill} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP`}>
-        <Text style={styles.pillText}>{`${rank.emoji} ${rank.name} · ${score.toLocaleString()} XP`}</Text>
+      <Pressable style={[styles.pill, styles.rankPill]} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP`}>
+        <RankBadge rank={rank} size={22} />
+        <Text style={styles.pillText}>{`${rank.name} · ${score.toLocaleString()} XP`}</Text>
       </Pressable>
     </View>
   );
@@ -123,6 +125,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     ...shadow.soft,
   },
+  rankPill: { gap: 6, paddingLeft: 8 },
   brand: { backgroundColor: colors.navy, paddingLeft: 4, gap: 6 },
   logo: { width: 30, height: 30 },
   brandText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },

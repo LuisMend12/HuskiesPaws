@@ -1,17 +1,44 @@
 // Rank system: steps walked + landmarks found + landmarks captured = points.
 import { POINTS, STEP_LENGTH_M } from "./config.js";
 
-// Each rank unlocks a trail: the flowers that bloom behind you and the path color.
-export const RANKS = Object.freeze([
-  { name: "Seedling", emoji: "🌱", min: 0, trail: { id: "sprouts", name: "Sprout Path", flowers: ["🌱", "🌿", "☘️"], color: "#81c784" } },
-  { name: "Sprout", emoji: "🌿", min: 100, trail: { id: "meadow", name: "Meadow", flowers: ["🌼", "🌸", "🌷", "🌻"], color: "#aed581" } },
-  { name: "Bud", emoji: "🌷", min: 300, trail: { id: "roses", name: "Rose Garden", flowers: ["🌹", "🌷", "🥀"], color: "#f48fb1" } },
-  { name: "Blossom", emoji: "🌸", min: 700, trail: { id: "cherry", name: "Cherry Blossom", flowers: ["🌸", "💮", "🌸"], color: "#f8bbd0" } },
-  { name: "Grove", emoji: "🌳", min: 1500, trail: { id: "forest", name: "Forest Floor", flowers: ["🍄", "🍀", "🌰", "🍂"], color: "#a1887f" } },
-  { name: "Ancient Oak", emoji: "🌲", min: 3000, trail: { id: "starlight", name: "Starlight", flowers: ["✨", "🌟", "💫"], color: "#ffd54f" } },
+// Leagues, like Clash of Clans: Bronze -> Silver -> Gold -> Diamond -> Crystal,
+// each split into divisions III, II, I. Each league unlocks a flower trail;
+// `metal` and `gem` color the league's wood-and-grass badge in the app.
+export const LEAGUES = Object.freeze([
+  { id: "bronze", name: "Bronze", emoji: "🥉", metal: "#cd7f32", gem: "#f6c79a", mins: [0, 100, 200],
+    trail: { id: "sprouts", name: "Sprout Path", flowers: ["🌱", "🌿", "☘️"], color: "#81c784" } },
+  { id: "silver", name: "Silver", emoji: "🥈", metal: "#aab4bf", gem: "#dfe7ef", mins: [300, 450, 600],
+    trail: { id: "meadow", name: "Meadow", flowers: ["🌼", "🌸", "🌷", "🌻"], color: "#aed581" } },
+  { id: "gold", name: "Gold", emoji: "🥇", metal: "#e8a317", gem: "#ffd54f", mins: [800, 1100, 1400],
+    trail: { id: "roses", name: "Rose Garden", flowers: ["🌹", "🌷", "🥀"], color: "#f48fb1" } },
+  { id: "diamond", name: "Diamond", emoji: "💎", metal: "#3f8fd2", gem: "#6ec6ff", mins: [1800, 2300, 2800],
+    trail: { id: "cherry", name: "Cherry Blossom", flowers: ["🌸", "💮", "🌸"], color: "#f8bbd0" } },
+  { id: "crystal", name: "Crystal", emoji: "🔮", metal: "#8e5bd0", gem: "#d6b4ff", mins: [3500, 4200, 5000],
+    trail: { id: "starlight", name: "Starlight", flowers: ["✨", "🌟", "💫"], color: "#ffd54f" } },
 ]);
 
-export const TRAILS = Object.freeze(RANKS.map((rank) => ({ ...rank.trail, rank })));
+const DIVISIONS = ["III", "II", "I"];
+
+export const RANKS = Object.freeze(
+  LEAGUES.flatMap((league) =>
+    league.mins.map((min, i) => ({
+      id: `${league.id}-${3 - i}`,
+      name: `${league.name} ${DIVISIONS[i]}`,
+      emoji: league.emoji,
+      league: league.id,
+      division: 3 - i,
+      min,
+      trail: league.trail,
+    })),
+  ),
+);
+
+// One trail per league, unlocked at the league's first division.
+export const TRAILS = Object.freeze(
+  LEAGUES.map((league) => ({ ...league.trail, rank: RANKS.find((rank) => rank.league === league.id) })),
+);
+
+export const leagueOf = (rank) => LEAGUES.find((league) => league.id === rank.league);
 
 // The trail actually drawn: your chosen trail if it's unlocked, otherwise your rank's trail.
 export function activeTrail(score, chosenId) {

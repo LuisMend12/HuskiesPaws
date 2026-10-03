@@ -41,7 +41,10 @@ export function createGame() {
   function checkRankUp(agent) {
     const rank = rankFor(scoreOf(get())).current;
     if (rank.name === get().rankName) return;
-    const message = `Rank up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`;
+    const newLeague = rank.division === 3; // the first division of a league unlocks its trail
+    const message = newLeague
+      ? `League up! You're now ${rank.emoji} ${rank.name}. New trail unlocked: ${rank.trail.flowers[0]} ${rank.trail.name}!`
+      : `Rank up! You're now ${rank.emoji} ${rank.name}.`;
     set({ rankName: rank.name, status: message });
     speakMemo(message, agent ?? agentById("scout"));
   }

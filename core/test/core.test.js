@@ -57,9 +57,14 @@ test("hatched pets get power in their rarity's range and level up by walking", (
 test("score counts steps, landmarks, captures and turf bonus", () => {
   assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1 }), 160);
   assert.equal(scoreFor({ steps: 100, landmarksFound: 1, landmarksCaptured: 1, bonusPoints: 40 }), 200);
-  assert.equal(rankFor(100).current.name, "Sprout");
-  assert.equal(activeTrail(150, "starlight").id, "meadow", "locked trail falls back");
-  assert.equal(TRAILS.length, 6);
+  assert.equal(rankFor(0).current.name, "Bronze III");
+  assert.equal(rankFor(100).current.name, "Bronze II");
+  assert.equal(rankFor(300).current.name, "Silver III");
+  assert.equal(rankFor(5000).current.name, "Crystal I");
+  assert.equal(rankFor(5000).next, null);
+  assert.equal(activeTrail(150, "starlight").id, "sprouts", "locked trail falls back");
+  assert.equal(activeTrail(900, "meadow").id, "meadow", "an unlocked trail can be chosen");
+  assert.equal(TRAILS.length, 5);
 });
 
 test("savings: fares, totals and tree stages", () => {
