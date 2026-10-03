@@ -43,41 +43,48 @@ Please pull before editing these.
 
 ### 4.1 Pets and eggs (the screens are waiting on this)
 
-The Pets tab and hatch modal already read these. While `state.pets` is `undefined` they show sample pets; as soon as it exists (even `[]`), the real data shows.
+The Pets tab, Squad tab, map and hatch modal already read these through `petsView()` in `mobile/src/components/fakeData.js`. While `state.pets` is `undefined` they show sample data; as soon as it exists (even `[]`), the real data shows.
+
+**Changed since the first version of this file (agreed with Abdullah):**
+- **Several eggs at once** (`eggs` list) instead of one `egg`. The Pets tab lists every egg with its own progress bar.
+- **No "active pet".** You tap pets in the Pets tab to put them in or take them out of your **squad** (`squad`, see 4.4). Drop `activePetId` / `setActivePet`.
+- **Species:** pets aren't all huskies. Add `species` to each pet.
 
 **Add to `INITIAL_STATE` / `SAVED_DEFAULTS` in `mobile/src/game/state.js`:**
 
 ```js
-pets: [],           // saved. [{ id, name, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
-                    //   exactly what core/pets.js hatchEgg() returns; art = FULL image URL or null
-egg: null,          // saved. { id, startWalked } or null (from maybeNewEgg)
-eggsReceived: 0,    // saved. for maybeNewEgg
-activePetId: null,  // saved. selected pet id; screens fall back to pets[0]
+pets: [],           // saved. [{ id, name, species, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
+                    //   what core/pets.js hatchEgg() returns, plus species; art = FULL image URL or null
+eggs: [],           // saved. [{ id, startWalked, hatchMeters? }] eggs you carry; all fill up as you walk
+eggsReceived: 0,    // saved. eggs handed out so far
+squad: [],          // saved. see 4.4
 hatching: null,     // NOT saved. the pet that just hatched; while set, the hatch animation shows
 issOverhead: false, // NOT saved. true while the ISS is overhead (shows a banner)
 ```
 
-Also add `pets`, `egg`, `eggsReceived` and `activePetId` to `RESETTABLE_KEYS`.
+Also add `pets`, `eggs`, `eggsReceived` and `squad` to `RESETTABLE_KEYS` (and give back the starter pets after a reset, see 4.4).
+
+**`core/pets.js` changes:**
+- `PET_SPECIES = ["husky", "shiba", "cat", "bunny", "fox", "bear"]`; `hatchEgg()` picks one at random. The starter pets are huskies. (The app draws all six; a pet without `species` gets one picked from its id.)
+- **Eggs:** carry up to **5**; a new egg every `EGG_EVERY_STEPS` (400) steps while you have room; **every carried egg fills up at once** as you walk; each hatches after `hatchMeters` (default `HATCH_METERS`, 300 m). `maybeNewEgg` needs to work with the list.
 
 **Add to the object `createGame()` returns (`mobile/src/game/game.js`):**
 
 | Action | Does |
 |---|---|
-| `game.setActivePet(id)` | sets `activePetId`, persists |
+| `game.setSquad(ids)` | sets `squad` (the screens already enforce the size), persists |
 | `game.closeHatch()` | sets `hatching: null` |
-| `game.hatchEgg()` | if the egg is ready, hatch it now (manual trigger; optional if hatching is automatic) |
 
 The screens call these when they exist and fall back to `game.set(...)` until then.
 
 **Logic** (port from the web version in git history: `git show bfe74e7^:prototype/js/pets-ui.js`, function `tick`):
 - After walking (`walking.stepTo`, or after `walkAlong` finishes), call a `tickPets()`:
-  - If `egg` and `eggProgress(egg, walked) >= 1`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, set `egg: null`, `hatching: pet`, `activePetId ??= pet.id`, persist, speak "Your egg hatched! Meet …".
-  - Else `maybeNewEgg({ egg, eggsReceived, steps, walked })`: if it returns an egg, set it, `eggsReceived + 1`, status "🥚 You found an egg!".
+  - For the first egg with `walked - egg.startWalked >= (egg.hatchMeters ?? HATCH_METERS)`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, remove the egg, set `hatching: pet`, add it to `squad` if there's a free slot, persist, speak "Your egg hatched! Meet …". One hatch at a time: skip while `hatching` is set.
+  - Then hand out a new egg if earned and fewer than 5 are carried: `eggsReceived + 1`, status "🥚 You found an egg!".
 - ISS: `getIssPosition()` from `core/services.js` every 60 s; `issOverhead = issIsOverhead(iss, position, distanceMeters)`.
-- Only call `tickPets()` once a walk tick is done; don't hatch mid-modal (skip while `hatching` is set).
 - **Never** let Nessie money buy eggs (see PLAN.md: it would look like gambling).
 
-**Grok portraits:** after hatching, ask the server for a portrait and set `pet.art` to the **absolute** URL (`${EXPO_PUBLIC_API_URL}/images/x.png`). The screens show the image as is. Please update `petPrompt` in `server/src/grok.js` to match the in-app look: *"a chunky rounded-cube husky pup in the style of a Roblox simulator pet, big glossy ice-blue eyes, white face mask, {color} fur, {class accessory}, soft studio lighting, plain light background"*. Accessories: Scout = leaf sprout on the head, Storyteller = red scarf, Pathfinder = explorer hat, Guardian = small shield.
+**Grok portraits:** after hatching, ask the server for a portrait and set `pet.art` to the **absolute** URL (`${EXPO_PUBLIC_API_URL}/images/x.png`). The screens show the image as is. Please update `petPrompt` in `server/src/grok.js` to match the in-app look: *"a chunky rounded-cube {species} in the style of a Roblox simulator pet, big glossy ice-blue eyes, {color} fur, {class accessory}, soft studio lighting, plain light background"*. Accessories: Scout = leaf sprout on the head, Storyteller = red scarf, Pathfinder = explorer hat, Guardian = small shield. Add `species` to the `/api/imagine` pet request and its validation.
 
 ### 4.2 XP rules (agreed with Abdullah)
 
@@ -92,17 +99,17 @@ The screens call these when they exist and fall back to `game.set(...)` until th
 Server (`server/src/turf.js`, `routes.js`, `validate.js`, both stores):
 - **Replace `heldXp` / `XP_PER_HOUR_HELD`** with **pet HP**: a guard starts at `maxHp`, loses HP over time, and refills when its owner walks back to the landmark (claims it again within `CAPTURE_RADIUS_M`). Compute HP when read (no timers or background jobs). At 0 HP the landmark is free and the boost ends. A stronger pet capturing it also ends the boost.
 - Return `hp` and `maxHp` per turf entry.
-- **Store and return `pet.color` and `pet.spaceBorn`** (validate `color` against `PET_COLORS`). Presentation draws each guard pet on the map and needs them.
+- **Store and return `pet.color`, `pet.species` and `pet.spaceBorn`** (validate `color` against `PET_COLORS`, `species` against `PET_SPECIES`). Presentation draws each guard pet on the map and needs them.
 
 App state:
 
 ```js
 turf: [{ landmarkId, title, lat, lon, ownerName, mine, claimedAt, hp, maxHp,
-         pet: { id, name, rarity, petClass, color, spaceBorn, power, art } }],
+         pet: { id, name, species, rarity, petClass, color, spaceBorn, power, art } }],
 xpBoost: 1,         // 1 + 0.1 × turf.filter((t) => t.mine).length
 ```
 
-Action: `game.claimTurf(landmarkId)` (use the active pet with `petPower(pet, walked)`; set `status` to the server's message). Ship a plain component that proves it works; presentation will restyle it.
+Action: `game.claimTurf(landmarkId, petId)` (a squad pet chooses to guard, with `petPower(pet, walked)`; it becomes `"defending"`; set `status` to the server's message). Ship a plain component that proves it works; presentation will restyle it.
 
 ### 4.4 Squad, statuses and starter pets (agreed with Abdullah)
 
@@ -141,7 +148,7 @@ restMeters: 0,                       // while resting: meters still to walk
 squadSize: 3,                        // derived from the league
 ```
 
-Actions: `game.setSquad(ids)` (presentation builds the picker), `game.runPet(petId)` (the class action). Until these exist, the screens use the first 3 pets as the squad and treat every pet as `"with-you"`.
+Actions: `game.setSquad(ids)` (the Pets tab is the picker), `game.runPet(petId)` (the class action). Until these exist, the screens use the first 3 pets as the squad and treat every pet as `"with-you"`.
 
 ### 4.5 Live leaderboards
 
