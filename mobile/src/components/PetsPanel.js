@@ -1,7 +1,7 @@
 // Pets tab: the egg you're carrying, your active pet, and your collection.
 // Reads pets / egg / activePetId / issOverhead from the state (see SPLIT.md);
 // until the backend adds them, it shows sample pets.
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
@@ -10,8 +10,11 @@ import {
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
-import { Pet3DTest } from "./Pet3D.js";
 import { Button, Card, Hint } from "./ui.js";
+
+// The 3D test loads three.js only when opened: React Three Fiber patches React
+// Native internals as soon as it's imported, which must not happen at app start.
+const Pet3DTest = lazy(() => import("./Pet3D.js").then((m) => ({ default: m.Pet3DTest })));
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
 const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked }, walked);
@@ -196,7 +199,11 @@ export function PetsPanel({ state, game }) {
       {sample && <Hint>Sample pets for now. Your real pets appear here once hatching is connected.</Hint>}
       {__DEV__ && <Button title="🥚 Preview hatch (dev only)" variant="secondary" onPress={previewHatch} />}
       {__DEV__ && active && <Button title="🧊 3D test (dev only)" variant="secondary" onPress={() => setTest3d(active)} />}
-      <Pet3DTest pet={test3d} onClose={() => setTest3d(null)} />
+      {test3d && (
+        <Suspense fallback={null}>
+          <Pet3DTest pet={test3d} onClose={() => setTest3d(null)} />
+        </Suspense>
+      )}
     </View>
   );
 }
