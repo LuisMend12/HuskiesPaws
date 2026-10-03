@@ -19,16 +19,25 @@ function imageExtension(buffer) {
   throw new Error("Unrecognized image format");
 }
 
-export function createRoutes({ store, grok, imagesDir, limits }) {
+const TTS_OFF = { enabled: false };
+
+export function createRoutes({ store, grok, elevenlabs = TTS_OFF, imagesDir, limits }) {
   const voiceLimit = createRateLimiter(limits.voice);
   const imageLimit = createRateLimiter(limits.image);
   const inFlight = new Map(); // image key -> promise, so one picture is never drawn twice at once
 
-  function requireGrok(req, limiter) {
-    if (!grok.enabled) throw new HttpError(503, "Grok isn't configured on this server (set XAI_API_KEY).");
+  function checkLimit(req, limiter) {
     const check = limiter(clientIp(req));
     if (!check.ok) throw new HttpError(429, check.reason);
   }
+
+  function requireGrok(req, limiter) {
+    if (!grok.enabled) throw new HttpError(503, "Grok isn't configured on this server (set XAI_API_KEY).");
+    checkLimit(req, limiter);
+  }
+
+  // ElevenLabs first, then Grok. Returns the provider name or null.
+  const ttsProvider = () => (elevenlabs.enabled ? "elevenlabs" : grok.enabled ? "grok" : null);
 
   async function fileExists(path) {
     try {
@@ -62,13 +71,19 @@ export function createRoutes({ store, grok, imagesDir, limits }) {
 
   return {
     async health(req, res) {
-      sendJson(res, 200, { grok: grok.enabled, storage: store.kind });
+      sendJson(res, 200, { grok: grok.enabled, tts: ttsProvider(), storage: store.kind });
     },
 
     async voice(req, res) {
-      const { text, voice } = validateSpeech(await readJson(req), VOICES, MAX_SPEECH_CHARS);
-      requireGrok(req, voiceLimit);
-      const { audio, contentType } = await grok.speak(text, voice);
+      const { text, voice, agent } = validateSpeech(await readJson(req), VOICES, MAX_SPEECH_CHARS);
+      const provider = ttsProvider();
+      if (!provider) {
+        throw new HttpError(503, "Text-to-speech isn't configured on this server (set ELEVENLABS_API_KEY or XAI_API_KEY).");
+      }
+      checkLimit(req, voiceLimit);
+      const { audio, contentType } = provider === "elevenlabs"
+        ? await elevenlabs.speak(text, agent)
+        : await grok.speak(text, voice);
       res.writeHead(200, { "Content-Type": contentType, "Content-Length": audio.length, "Cache-Control": "no-store" });
       res.end(audio);
     },

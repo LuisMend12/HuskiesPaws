@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { HttpError, sendError, serveStatic } from "./http.js";
 import { createRoutes } from "./routes.js";
 
-export function createApp({ config, store, grok }) {
-  const routes = createRoutes({ store, grok, imagesDir: join(config.dataDir, "images"), limits: config.limits });
+export function createApp({ config, store, grok, elevenlabs }) {
+  const routes = createRoutes({ store, grok, elevenlabs, imagesDir: join(config.dataDir, "images"), limits: config.limits });
 
   const table = {
     "GET /api/health": routes.health,

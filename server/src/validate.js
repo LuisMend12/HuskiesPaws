@@ -7,6 +7,7 @@ const RARITIES = ["common", "rare", "epic", "legendary"];
 const PET_CLASSES = ["Scout", "Storyteller", "Pathfinder", "Guardian"];
 const PET_COLOR_NAMES = PET_COLORS.map((c) => c.name);
 const SCOPES = ["local", "state", "national"];
+const SQUAD_AGENTS = ["scout", "storyteller", "pathfinder"];
 const ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
 const fail = (message) => {
@@ -62,10 +63,13 @@ export function validateLeaderboardQuery(params) {
   };
 }
 
+// voice is a Grok voice (optional, defaults to the first); agent is a squad id
+// used to pick the ElevenLabs voice (optional).
 export function validateSpeech(body, voices, maxChars) {
   return {
     text: str(body.text, "text", { max: maxChars }),
     voice: oneOf(body.voice ?? voices[0], "voice", voices),
+    agent: body.agent == null ? null : oneOf(body.agent, "agent", SQUAD_AGENTS),
   };
 }
 

@@ -9,6 +9,7 @@
     "@react-three/fiber": "^9.8.1",
     "expo": "~57.0.26",
     "expo-asset": "~57.0.18",
+    "expo-audio": "~57.0.5",
     "expo-camera": "~57.0.6",
     "expo-constants": "~57.0.20",
     "expo-dev-client": "~57.0.19",

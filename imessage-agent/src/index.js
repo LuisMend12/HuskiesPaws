@@ -1,10 +1,12 @@
 // Starts the HuskiesPaws iMessage agent on Photon Spectrum.
 //   npm start          -> iMessage via Photon Cloud (needs SPECTRUM_PROJECT_ID / SPECTRUM_PROJECT_SECRET)
 //   npm run terminal   -> chat in this terminal, no credentials needed
-import { Spectrum, attachment, text } from "spectrum-ts";
+// ELEVENLABS_API_KEY (optional) turns on Moss's story voice notes.
+import { Spectrum, attachment, text, voice } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { terminal } from "spectrum-ts/providers/terminal";
 import { setRequestHeaders } from "../../core/services.js";
+import { createElevenLabs, voicesFromEnv } from "../../server/src/elevenlabs.js";
 import { HELP, handleMessage, newSession } from "./bot.js";
 
 // Wikipedia and OpenStreetMap require an identifying User-Agent.
@@ -29,17 +31,32 @@ const app = useTerminal
       providers: [imessage.config()],
     });
 
+// Without a key, tts.enabled is false and stories stay text-only.
+const tts = createElevenLabs({ apiKey: process.env.ELEVENLABS_API_KEY, voices: voicesFromEnv(process.env) });
+
 const sessions = new Map(); // space id -> session (in memory; resets when the agent restarts)
 const queues = new Map(); // space id -> promise, so each chat's messages run in order
 
 const toContent = (reply) =>
   reply.imageUrl ? attachment(new URL(reply.imageUrl), { mimeType: "image/jpeg" }) : text(reply.text);
 
+// A native iMessage voice bubble must be m4a; spectrum-ts converts MP3 with ffmpeg
+// (on PATH or the ffmpeg-static package). Without it, the MP3 goes as a regular file.
+async function sendAudio(space, reply) {
+  if (useTerminal) return space.send(text(`[voice note: ${Math.ceil(reply.audio.length / 1024)} KB]`));
+  try {
+    return await space.send(voice(reply.audio, { mimeType: reply.mimeType }));
+  } catch (error) {
+    console.warn("Voice bubble failed, sending the story as an audio file:", error.message);
+    return space.send(attachment(reply.audio, { mimeType: reply.mimeType, name: reply.name }));
+  }
+}
+
 async function respond(space, incoming) {
-  const send = (reply) => space.send(toContent(reply));
+  const send = (reply) => (reply.audio ? sendAudio(space, reply) : space.send(toContent(reply)));
   const session = sessions.get(space.id) ?? newSession();
   await space.startTyping().catch(() => {}); // typing dots are nice-to-have; ignore unsupported
-  const updated = await handleMessage(incoming, session, send);
+  const updated = await handleMessage(incoming, session, send, { tts });
   await space.stopTyping().catch(() => {});
   sessions.set(space.id, updated);
 }

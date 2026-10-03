@@ -1,5 +1,5 @@
-// End-to-end API tests: real server + file store, with a fake xAI server that
-// records requests and returns canned audio and images.
+// End-to-end API tests: real server + file store, with fake xAI and ElevenLabs
+// servers that record requests and return canned audio and images.
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { createServer, request } from "node:http";
@@ -7,6 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { createApp } from "../src/app.js";
+import { ELEVEN_VOICES, createElevenLabs } from "../src/elevenlabs.js";
 import { createGrok } from "../src/grok.js";
 import { createFileStore } from "../src/store/fileStore.js";
 
@@ -34,12 +35,35 @@ function startFakeXai() {
   return new Promise((resolve) => server.listen(0, () => resolve({ server, calls, url: `http://localhost:${server.address().port}` })));
 }
 
-async function startApp({ apiKey, xaiUrl, dataDir, limits }) {
+const ELEVEN_MP3 = Buffer.from("ID3eleven-mp3-bytes");
+
+function startFakeElevenLabs() {
+  const calls = [];
+  const server = createServer(async (req, res) => {
+    let raw = "";
+    for await (const chunk of req) raw += chunk;
+    calls.push({ path: req.url, key: req.headers["xi-api-key"], body: JSON.parse(raw || "{}") });
+    if (req.method === "POST" && req.url.startsWith("/v1/text-to-speech/")) {
+      res.writeHead(200, { "Content-Type": "audio/mpeg" });
+      res.end(ELEVEN_MP3);
+      return;
+    }
+    res.writeHead(404).end();
+  });
+  return new Promise((resolve) => server.listen(0, () => resolve({ server, calls, url: `http://localhost:${server.address().port}` })));
+}
+
+async function startApp({ apiKey, xaiUrl, elevenKey = "", elevenUrl, dataDir, limits }) {
   const config = {
     dataDir,
     limits: limits ?? { voice: { perMinute: 100, perDay: 1000 }, image: { perMinute: 100, perDay: 1000 } },
   };
-  const server = createApp({ config, store: createFileStore(dataDir), grok: createGrok({ apiKey, baseUrl: xaiUrl }) });
+  const server = createApp({
+    config,
+    store: createFileStore(dataDir),
+    grok: createGrok({ apiKey, baseUrl: xaiUrl }),
+    elevenlabs: createElevenLabs({ apiKey: elevenKey, baseUrl: elevenUrl }),
+  });
   await new Promise((resolve) => server.listen(0, resolve));
   return { server, base: `http://localhost:${server.address().port}` };
 }
@@ -85,7 +109,7 @@ describe("HuskiesPaws API", () => {
 
   test("health reports features without leaking secrets", async () => {
     const health = await json(await fetch(`${app.base}/api/health`));
-    assert.deepEqual(health.data, { grok: true, storage: "file" });
+    assert.deepEqual(health.data, { grok: true, tts: "grok", storage: "file" });
     assert.doesNotMatch(JSON.stringify(health), /test-key/);
   });
 
@@ -198,14 +222,73 @@ describe("HuskiesPaws API", () => {
   });
 });
 
+describe("ElevenLabs voice", () => {
+  let xai;
+  let eleven;
+  let app;
+  let dataDir;
+
+  before(async () => {
+    xai = await startFakeXai();
+    eleven = await startFakeElevenLabs();
+    dataDir = await mkdtemp(join(tmpdir(), "huskiespaws-"));
+    app = await startApp({ apiKey: "xai-key", xaiUrl: xai.url, elevenKey: "eleven-key", elevenUrl: eleven.url, dataDir });
+  });
+
+  after(async () => {
+    app.server.close();
+    xai.server.close();
+    eleven.server.close();
+    await rm(dataDir, { recursive: true, force: true });
+  });
+
+  test("health reports ElevenLabs as the TTS provider without leaking keys", async () => {
+    const health = await json(await fetch(`${app.base}/api/health`));
+    assert.deepEqual(health.data, { grok: true, tts: "elevenlabs", storage: "file" });
+    assert.doesNotMatch(JSON.stringify(health), /eleven-key|xai-key/);
+  });
+
+  test("sends the documented request with the storyteller's voice, preferred over Grok", async () => {
+    const grokBefore = xai.calls.length;
+    const response = await post(app.base, "/api/voice", { text: "Once upon a trail...", agent: "storyteller" });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "audio/mpeg");
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), ELEVEN_MP3);
+    const call = eleven.calls.at(-1);
+    assert.equal(call.path, `/v1/text-to-speech/${ELEVEN_VOICES.storyteller}?output_format=mp3_44100_128`);
+    assert.equal(call.key, "eleven-key");
+    assert.deepEqual(Object.keys(call.body).sort(), ["model_id", "text"]);
+    assert.equal(call.body.text, "Once upon a trail...");
+    assert.equal(typeof call.body.model_id, "string");
+    assert.equal(xai.calls.length, grokBefore, "Grok is not called");
+  });
+
+  test("no agent uses the default voice; a Grok voice name is still accepted", async () => {
+    assert.equal((await post(app.base, "/api/voice", { text: "Hello", voice: "rex" })).status, 200);
+    assert.equal(eleven.calls.at(-1).path, `/v1/text-to-speech/${ELEVEN_VOICES.default}?output_format=mp3_44100_128`);
+  });
+
+  test("bad agent gets 400 without calling out", async () => {
+    const before = eleven.calls.length + xai.calls.length;
+    const bad = await json(await post(app.base, "/api/voice", { text: "hi", agent: "wizard" }));
+    assert.equal(bad.status, 400);
+    assert.match(bad.error, /agent/);
+    assert.equal((await post(app.base, "/api/voice", { text: "hi", agent: 7 })).status, 400);
+    assert.equal(eleven.calls.length + xai.calls.length, before);
+  });
+});
+
 describe("without a Grok key", () => {
   test("Grok endpoints say they're not configured", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "huskiespaws-"));
     const app = await startApp({ apiKey: "", xaiUrl: "http://localhost:1", dataDir });
     try {
-      assert.deepEqual((await json(await fetch(`${app.base}/api/health`))).data.grok, false);
+      const health = (await json(await fetch(`${app.base}/api/health`))).data;
+      assert.equal(health.grok, false);
+      assert.equal(health.tts, null);
       const voice = await json(await post(app.base, "/api/voice", { text: "hi" }));
       assert.equal(voice.status, 503);
+      assert.match(voice.error, /ELEVENLABS_API_KEY/);
       assert.match(voice.error, /XAI_API_KEY/);
     } finally {
       app.server.close();

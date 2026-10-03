@@ -1,6 +1,8 @@
 // HuskiesPaws squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
 // Platform-independent: handleMessage() gets the text and a send() callback, so it
 // runs the same under Photon iMessage, the terminal provider, and tests.
+// Optional { tts } (an ElevenLabs client from ../../server/src/elevenlabs.js) lets Moss
+// follow each story with a voice note.
 import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../core/agents.js";
 import { DEFAULT_CENTER } from "../../core/config.js";
 import { distanceMeters, pathLength } from "../../core/geo.js";
@@ -9,12 +11,13 @@ import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from 
 
 const [pip, moss, fern] = ["scout", "storyteller", "pathfinder"].map((id) => AGENTS.find((a) => a.id === id));
 const DEFAULT_PLACE_NAME = "the Physical Sciences Building at Cornell";
+export const VOICE_NOTE_NAME = "moss-story.mp3";
 
 export const HELP = [
   "🐾 HuskiesPaws squad here! Text:",
   "• \"I'm at <place>\" to tell us where you are",
   "• \"explore\": Pip scouts somewhere new",
-  "• \"story\": Moss tells you about what's nearby",
+  "• \"story\": Moss tells you about what's nearby (with a voice note)",
   "• \"take me there\": Fern plans the walk",
   "• \"arrived\": log the walk, and the Uber you skipped grows your savings tree",
   "• \"savings\": see your tree",
@@ -27,8 +30,9 @@ export function newSession() {
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const walkingLink = (p) => `https://maps.apple.com/?daddr=${p.lat},${p.lon}&dirflg=w`;
 
-// Returns the updated session. send({ text }) or send({ imageUrl }) delivers replies.
-export async function handleMessage(rawText, session, send) {
+// Returns the updated session. send({ text }), send({ imageUrl }) or
+// send({ audio: Buffer, mimeType, name }) delivers replies.
+export async function handleMessage(rawText, session, send, { tts } = {}) {
   const text = rawText.trim();
   const lower = text.toLowerCase();
   try {
@@ -39,7 +43,7 @@ export async function handleMessage(rawText, session, send) {
       return session;
     }
     if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send);
-    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send);
+    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts);
     if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send);
     if (/\b(arrived|made it|here|i'?m there)\b/.test(lower)) return await arrive(session, send);
     if (/\b(saved|savings|tree)\b/.test(lower)) return await showSavings(session, send);
@@ -81,7 +85,7 @@ async function explore(session, send) {
   return { ...session, discovery: { place, summary } };
 }
 
-async function tellStory(session, send) {
+async function tellStory(session, send, tts) {
   const [nearest] = (await findNearbyPlaces(session.position))
     .map((p) => ({ ...p, distance: distanceMeters(session.position, p) }))
     .sort((a, b) => a.distance - b.distance);
@@ -89,8 +93,22 @@ async function tellStory(session, send) {
     await send({ text: `🍇 ${moss.name} doesn't know any stories about this spot yet.` });
     return session;
   }
-  await send({ text: `🍇 ${moss.name}: ${storyMemo(nearest, await getPlaceSummary(nearest.title))}` });
+  const story = storyMemo(nearest, await getPlaceSummary(nearest.title));
+  await send({ text: `🍇 ${moss.name}: ${story}` });
+  await sendVoiceNote(story, tts, send);
   return session;
+}
+
+// Moss reads the story aloud. Best effort: the text is already sent, so a TTS or
+// upload failure is logged and the conversation carries on.
+async function sendVoiceNote(story, tts, send) {
+  if (!tts?.enabled) return;
+  try {
+    const { audio, contentType } = await tts.speak(story, moss.id);
+    await send({ audio, mimeType: contentType, name: VOICE_NOTE_NAME });
+  } catch (error) {
+    console.error("Moss's voice note failed:", error);
+  }
 }
 
 async function guide(session, send) {

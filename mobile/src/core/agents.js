@@ -75,9 +75,32 @@ export function scoutMemo(place, summary) {
   return `I'm back! I found ${place.title}, about ${meters} meters away as the crow flies. ${fact} Want me to lead you there?`;
 }
 
+// Moss's story: opening, place name, up to STORY_SENTENCES sentences from the
+// Wikipedia extract (the only source of facts), and a closing invitation.
+// Stays within STORY_MAX_CHARS so the server's text-to-speech accepts it.
+export const STORY_MAX_CHARS = 600;
+const STORY_SENTENCES = 3;
+const STORY_CLOSING = "Shall we wander over and see it for ourselves?";
+const STORY_NO_EXTRACT = "The old books are quiet about this one, so its story is still waiting to be found.";
+
+function clipWords(text, maxChars) {
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, Math.max(0, maxChars - 3));
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim()}...`;
+}
+
 export function storyMemo(place, summary) {
-  const story = firstSentences(summary.extract, 2);
-  return `Gather round! The closest story is ${place.title}. ${story}`;
+  const opening = `Gather round, sprouts! Let me tell you about ${place.title}.`;
+  const extract = (summary?.extract ?? "").trim();
+  const build = (story) => [opening, story, STORY_CLOSING].join(" ");
+  if (!extract) return build(STORY_NO_EXTRACT);
+  for (let count = STORY_SENTENCES; count > 0; count -= 1) {
+    const memo = build(firstSentences(extract, count));
+    if (memo.length <= STORY_MAX_CHARS) return memo;
+  }
+  const room = STORY_MAX_CHARS - build("").length;
+  return build(clipWords(firstSentences(extract, 1), room));
 }
 
 export function routeMemo(place, route) {

@@ -4,11 +4,11 @@ One small Node server (no dependencies) that backs the phone app (`../mobile/`).
 
 | Endpoint | What it does |
 |---|---|
-| `POST /api/voice` | **Grok Voice:** text-to-speech for agent memos. Returns audio. |
+| `POST /api/voice` | Text-to-speech for agent memos. Body `{ text, agent?, voice? }` (text up to 600 characters). Uses **ElevenLabs** when `ELEVENLABS_API_KEY` is set, picking the voice from `agent` (`scout`, `storyteller`, `pathfinder`); otherwise **Grok Voice** with `voice` (`eve`, `ara`, `rex`; default `eve`). Returns raw audio; 503 if neither key is set. |
 | `POST /api/imagine` | **Grok Imagine:** postcard illustrations and pet portraits. Prompts are built here from fixed templates (the app can't send its own), and each image is generated once and cached. |
 | `POST /api/score`, `GET /api/leaderboard` | Live **local / statewide / national** leaderboards |
 | `GET /api/turf`, `POST /api/turf/claim` | **Turf:** guard landmarks with pets. A stronger pet takes over; holding earns XP per hour. |
-| `GET /api/health` | Shows whether Grok is on and which storage is in use |
+| `GET /api/health` | Shows whether Grok is on, the voice provider (`tts`: `"elevenlabs"`, `"grok"` or `null`) and which storage is in use |
 
 Without the server, the phone app still works: it uses on-device speech, SVG art and sample leaderboards, and turf is off.
 
@@ -25,14 +25,16 @@ Check **http://localhost:8765/api/health**. The startup line shows what's on:
 
 ```
 HuskiesPaws running at http://localhost:8765
-  Grok: on · storage: file
+  Grok: on · voice: ElevenLabs · storage: file
 ```
 
 Settings come from the **repo-root `.env`** or `server/.env`. See [.env.example](.env.example):
 
 | Setting | Needed for |
 |---|---|
-| `XAI_API_KEY` | Grok Voice and Grok Imagine. Get it at console.x.ai. |
+| `XAI_API_KEY` | Grok Imagine, and Grok Voice when ElevenLabs is off. Get it at console.x.ai. `GROK_API_KEY` works as another name for it. |
+| `ELEVENLABS_API_KEY` | Optional. Voices memos with ElevenLabs instead of Grok. Get it at elevenlabs.io → Developers → API Keys. |
+| `ELEVENLABS_VOICE_SCOUT`, `ELEVENLABS_VOICE_STORYTELLER`, `ELEVENLABS_VOICE_PATHFINDER` | Optional. ElevenLabs voice IDs to use instead of the built-in premade voices (see `src/elevenlabs.js`). |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Optional. Without them, data is saved in `server/data/db.json`. |
 
 ## Deploy with HTTPS (Render, free)
@@ -41,7 +43,7 @@ Phones on other networks can't reach your laptop, so deploy before testing turf,
 
 1. Push the repo to GitHub.
 2. In [Render](https://render.com): **New → Blueprint**, then pick this repo. It reads [`render.yaml`](../render.yaml).
-3. Fill in `XAI_API_KEY` when asked. Add the Supabase values too if you set it up.
+3. Fill in `XAI_API_KEY` (and `ELEVENLABS_API_KEY` for ElevenLabs voices) when asked. Add the Supabase values too if you set it up.
 4. Open `https://huskiespaws-….onrender.com/api/health` to check it's up. That base URL is what the phone app calls.
 
 Notes on the free plan:
@@ -68,9 +70,9 @@ The service-role key is a full-access key. It stays on the server; row-level sec
 npm test
 ```
 
-These run the real server against a **fake xAI service**. They check that the Grok requests match xAI's documented format, plus caching, rate limits, validation, leaderboards (player IDs are never exposed), the turf rules, and path-traversal protection.
+These run the real server against **fake xAI and ElevenLabs services**. They check that the Grok and ElevenLabs requests match the documented formats (ElevenLabs is preferred when both are on), plus caching, rate limits, validation, leaderboards (player IDs are never exposed), the turf rules, and path-traversal protection.
 
-**Not verified:** calls to the real xAI API (no key was available), and Supabase.
+**Not verified:** calls to the real xAI API (no key was available), live ElevenLabs calls (tested only against a fake), and Supabase.
 
 ## Files
 
@@ -79,6 +81,7 @@ src/index.js            settings from env, picks storage, starts the server
 src/app.js              routing, /env.js, static files, errors
 src/routes.js           the API handlers
 src/grok.js             xAI client and prompt templates
+src/elevenlabs.js       ElevenLabs text-to-speech client and squad voices
 src/turf.js             turf rules (claim, defend, capture, cap of 3, XP per hour)
 src/validate.js         input validation for every endpoint
 src/rateLimit.js        per-IP and daily limits
