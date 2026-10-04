@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Landmark / 3D freeze
+
+**Prompt (summary).** The app freezes when opening a landmark or the AR/3D squad view.
+
+**Decisions.** Unmount the garden map before creating an expo-gl canvas (two GL views at once). Defer the 3D canvas ~80ms, start 3D on the field (AR is opt-in), drop 3D to 12 fps, and slow device-motion updates.
+
 ## 2026-10-03 — README and repository cleanup (Codex)
 
 Prompt: create a README and ignore irrelevant files. Rewrote the root README

@@ -4,7 +4,7 @@
 // Loaded lazily (it pulls in three.js), so it only costs anything when opened.
 /* eslint-disable react/no-unknown-property -- three.js elements (lights, positions) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
-import { Canvas, useThree } from "@react-three/fiber/native";
+import { useThree } from "@react-three/fiber/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -13,6 +13,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { rarityOf } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { ArSquad } from "./ArSquad.js";
+import { GlCanvas } from "./GlCanvas.js";
 import { FrameTicker, Pup } from "./Pet3D.js";
 import { diag } from "../diag.js";
 
@@ -76,7 +77,7 @@ export default function SquadView({ visible, squad, onClose }) {
   }, []);
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
-  const [ar, setAr] = useState(true);
+  const [ar, setAr] = useState(false);
   const pets = squad.slice(0, 5);
   const showCamera = ar && permission?.granted;
 
@@ -94,12 +95,11 @@ export default function SquadView({ visible, squad, onClose }) {
       <View style={styles.screen}>
         {showCamera ? <CameraView style={StyleSheet.absoluteFill} facing="back" /> : <Field />}
 
-        <Canvas
+        <GlCanvas
           style={StyleSheet.absoluteFill}
-          gl={{ alpha: true }}
+          gl={{ alpha: true, antialias: false }}
           camera={{ fov: 42 }}
-          frameloop="demand"
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)} // see-through: the camera or field shows behind
+          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
         >
           <FrameTicker />
           <ambientLight intensity={1.1} />
@@ -117,7 +117,7 @@ export default function SquadView({ visible, squad, onClose }) {
               </group>
             </>
           )}
-        </Canvas>
+        </GlCanvas>
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
           <Button label="✕ Close" onPress={onClose} />

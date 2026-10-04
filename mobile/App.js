@@ -8,7 +8,7 @@ import {
 } from "@expo-google-fonts/nunito";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { Suspense, lazy, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
@@ -37,7 +37,6 @@ SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts 
 
 // The landmark screen pulls in three.js, so it loads only when opened.
 const loadLandmarkView = () => import("./src/components/LandmarkView.js");
-const LandmarkView = lazy(loadLandmarkView);
 const REOPEN_GUARD_MS = 1500; // see openLandmark below
 const PRELOAD_3D_MS = 4000; // after start-up, fetch the 3D screens' code so their first open is quick
 
@@ -75,6 +74,10 @@ function Main() {
   const game = useMemo(() => createGame(), []);
   const state = useStore(game.store);
   const insets = useSafeAreaInsets();
+  const [squadOpen, setSquadOpen] = useState(false);
+  const [LandmarkScreen, setLandmarkScreen] = useState(null);
+  const [SquadScreen, setSquadScreen] = useState(null);
+  const hideMap = Boolean(state.landmarkOpen) || squadOpen;
 
   // Closing a landmark resets the map's bag markers, and iOS re-selects the bag
   // that was tapped, which fired a new "open": the screen reopened by itself
@@ -95,19 +98,38 @@ function Main() {
     startHeartbeat();
     // Best effort: if this fails, tapping a 3D button loads the code then.
     const timer = setTimeout(() => {
-      loadSquadView().catch(() => {});
-      loadLandmarkView().catch(() => {});
+      loadSquadView().then((mod) => setSquadScreen(() => mod.default)).catch(() => {});
+      loadLandmarkView().then((mod) => setLandmarkScreen(() => mod.default)).catch(() => {});
     }, PRELOAD_3D_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!state.landmarkOpen || LandmarkScreen) return undefined;
+    const timer = setTimeout(() => {
+      loadLandmarkView().then((mod) => setLandmarkScreen(() => mod.default)).catch(() => {});
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [state.landmarkOpen, LandmarkScreen]);
+
+  useEffect(() => {
+    if (!squadOpen || SquadScreen) return undefined;
+    const timer = setTimeout(() => {
+      loadSquadView().then((mod) => setSquadScreen(() => mod.default)).catch(() => {});
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [squadOpen, SquadScreen]);
 
   useEffect(() => {
     game.load().catch(() => game.set({ status: "Couldn't load progress. Restart the app to try again." }));
     const timer = setInterval(() => {
       if (AppState.currentState === "active") game.refreshOnline();
     }, 15_000);
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") game.refreshOnline();
+    const subscription = AppState.addEventListener("change", (next) => {
+      if (next === "active") {
+        game.resumeTracking?.();
+        game.refreshOnline();
+      }
     });
     return () => {
       clearInterval(timer);
@@ -125,14 +147,16 @@ function Main() {
       <StatusBar style="dark" />
 
       <View style={styles.map}>
-        <TrailMap
-          state={state}
-          onOpenLandmark={openLandmark}
-          onUserExplore={() => game.set({ followCamera: false })}
-        />
+        {hideMap ? <View style={styles.mapPaused} /> : (
+          <TrailMap
+            state={state}
+            onOpenLandmark={openLandmark}
+            onUserExplore={() => game.set({ followCamera: false })}
+          />
+        )}
         <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} onRankPress={() => game.set({ tab: "ranks" })} />
         <StatusToast message={state.status} />
-        <MapControls state={state} game={game} />
+        <MapControls state={state} game={game} onSquadOpen={setSquadOpen} />
       </View>
 
       <View style={styles.sheet}>
@@ -173,11 +197,16 @@ function Main() {
         onGo={game.guideToDiscovery}
         onReplay={game.replayMemo}
       />
-      {state.landmarkOpen && (
-        <Suspense fallback={<Loading3D label="Opening landmark…" />}>
-          <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={closeLandmark} />
-        </Suspense>
-      )}
+      {state.landmarkOpen ? (
+        LandmarkScreen
+          ? <LandmarkScreen state={state} game={game} landmarkId={state.landmarkOpen} onClose={closeLandmark} />
+          : <Loading3D label="Opening landmark…" />
+      ) : null}
+      {squadOpen ? (
+        SquadScreen
+          ? <SquadScreen visible squad={squad} onClose={() => setSquadOpen(false)} />
+          : <Loading3D label="Loading your squad…" />
+      ) : null}
       <HatchModal
         pet={state.hatching}
         walked={state.progress.walked}
@@ -197,6 +226,7 @@ function Main() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   map: { flex: 45 },
+  mapPaused: { flex: 1, backgroundColor: "#cfe8b8" },
   sheet: {
     flex: 55,
     marginTop: -SHEET_OVERLAP,

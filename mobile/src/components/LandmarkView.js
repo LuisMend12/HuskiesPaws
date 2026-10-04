@@ -6,7 +6,6 @@
 // Loaded lazily (it pulls in three.js).
 /* eslint-disable react/no-unknown-property -- three.js elements (lights) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
-import { Canvas } from "@react-three/fiber/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -19,6 +18,7 @@ import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
 import { FrameTicker } from "./Pet3D.js";
+import { GlCanvas } from "./GlCanvas.js";
 import { diag } from "../diag.js";
 import {
   FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
@@ -240,7 +240,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
         ) : (
           <Field />
         )}
-        <Canvas style={styles.canvas} gl={{ alpha: true }} camera={{ fov: 40 }} frameloop="demand" onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
+        <GlCanvas style={styles.canvas} gl={{ alpha: true, antialias: false }} camera={{ fov: 40 }} onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
           <FrameTicker />
           <FitCamera width={battle ? BATTLE_WIDTH : SCENE_WIDTH} />
           <ambientLight intensity={1.1} />
@@ -258,7 +258,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
           ) : (
             <LandmarkScene guard={guard?.pet ?? null} ring={ring} food={landmark.food} />
           )}
-        </Canvas>
+        </GlCanvas>
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
           <Button title="✕ Close" variant="secondary" onPress={onClose} disabled={Boolean(battle)} />
