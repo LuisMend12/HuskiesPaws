@@ -265,11 +265,16 @@ export function createGame() {
     const arrived = get().found.find((p) => p.id === place.id) ?? null;
     set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
     notePlace(place);
-    say(`You made it to ${place.title}! 🌸 Tap 📸 Capture to add it to your album.`);
+    say(`You made it to ${place.title}! Capture it to add a postcard.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
     checkRankUp(null);
     pets.tickPets();
     online.pushScore();
+  }
+
+  async function walkTo(place) {
+    if (!place) return;
+    await oneWalk((token) => guideWalk(place, token));
   }
 
   const demoWalk = () => oneWalk(demoWalkNow);
@@ -366,6 +371,7 @@ export function createGame() {
     runAgent: (agent) => actions[agent.id](agent),
     guideToDiscovery,
     demoWalk,
+    walkTo,
     startLiveLocation: walking.startLiveLocation,
     saveCapture,
     resetProgress,

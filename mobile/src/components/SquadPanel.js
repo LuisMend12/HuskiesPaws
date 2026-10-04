@@ -185,12 +185,6 @@ export function SquadPanel({ state, game }) {
         <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
         <Hint>Guards still use their slot</Hint>
       </View>
-      {state.progress.landmarksFound === 0 && state.away.length === 0 && (
-        <Card style={styles.coach}>
-          <Text style={type.label}>Start here</Text>
-          <Hint>Tap Explore on your Scout to find a real place nearby. Then Take me there to bloom the trail.</Hint>
-        </Card>
-      )}
       {members.map(({ pet, status, agentId, hp }) => (
         <SquadCard key={pet.id} pet={pet} status={status} agentId={agentId} hp={hp} state={state} game={game} />
       ))}
@@ -220,8 +214,7 @@ const styles = StyleSheet.create({
   guardHint: { maxWidth: 70, textAlign: "center" },
   action: { alignItems: "flex-end", maxWidth: 128, gap: 4 },
   why: { textAlign: "right" },
-  coach: { backgroundColor: colors.greenSoft, gap: 4 },
-  empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center" },
+  empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center", minHeight: 44, justifyContent: "center" },
   locked: { backgroundColor: colors.stripe },
   emptyText: { ...type.label, color: colors.muted },
   landmark: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm, paddingHorizontal: space.sm, borderRadius: radius.card, backgroundColor: colors.stripe },

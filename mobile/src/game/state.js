@@ -58,12 +58,13 @@ export const INITIAL_STATE = Object.freeze({
   guide: null, // real-walk navigation: { place, meters }
   demoMode: true, // judging is indoors: guided walks are simulated
   liveLocation: false,
+  locationIssue: null, // "denied" | "unavailable" | null; not saved
   pedometer: false,
   region: DEFAULT_REGION,
   scope: "local",
   tab: "squad",
   rankName: rankFor(0).current.name,
-  status: "Send an agent on an expedition.",
+  status: "Open Squad and tap Explore to find a place nearby.",
   hatching: null, // the pet that just hatched; not saved
   issOverhead: false, // not saved
   // turf: not set until the server answers, so the map shows sample rivals offline.

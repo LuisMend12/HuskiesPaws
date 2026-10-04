@@ -34,7 +34,7 @@ export function StatusToast({ message }) {
 
   useEffect(() => {
     if (!message) return undefined;
-    AccessibilityInfo.announceForAccessibility(message);
+    AccessibilityInfo.announceForAccessibility(message.length > 120 ? message.slice(0, 80) : message);
     Animated.spring(anim, { toValue: 1, speed: 14, bounciness: 6, useNativeDriver: true }).start();
     clearTimeout(timer.current);
     timer.current = setTimeout(hide, Math.min(MAX_MS, MIN_MS + message.length * MS_PER_CHAR));

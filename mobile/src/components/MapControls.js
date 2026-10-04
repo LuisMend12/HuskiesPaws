@@ -1,5 +1,5 @@
-// Buttons that float over the map: brand and rank on top; live location, demo
-// walk, recenter, and the Capture button (only at a landmark) along the bottom.
+// Buttons that float over the map: brand and rank on top; one primary walk
+// control, compact tools, and Capture when you're at a landmark.
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,12 +9,9 @@ import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { CaptureIcon, GardenIcon, LiveIcon, MapGlyphIcon, PawIcon, RecenterIcon, WalkIcon } from "./GameIcons.js";
 import { Button } from "./ui.js";
 
-// The 3D squad view pulls in three.js, so it loads only when opened.
 export const loadSquadView = () => import("./SquadView.js");
+export const SHEET_OVERLAP = 24;
 
-export const SHEET_OVERLAP = 24; // how far the sheet's rounded top covers the map
-
-// boost: the XP multiplier from landmarks you hold (1 = none).
 export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
   const insets = useSafeAreaInsets();
   return (
@@ -27,8 +24,8 @@ export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
       </View>
       <Pressable style={[styles.pill, styles.rankPill]} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP${boost > 1 ? `, XP boost times ${boost.toFixed(1)}` : ""}`}>
         <RankBadge rank={rank} size={22} />
-        <Text style={styles.pillText}>
-          {`${rank.name} · ${score.toLocaleString()} XP`}
+        <Text style={styles.pillText} numberOfLines={1}>
+          {`${rank.name.split(" ")[0]} · ${score.toLocaleString()}`}
           {boost > 1 && <Text style={styles.boost}>{` ×${boost.toFixed(1)}`}</Text>}
         </Text>
       </Pressable>
@@ -36,31 +33,28 @@ export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
   );
 }
 
-function RoundButton({ label, icon, onPress, disabled, active, round }) {
+function IconButton({ label, children, onPress, disabled, active, emphasis }) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
-      style={({ pressed }) => [styles.pill, styles.action, round && styles.round, active && styles.actionActive, disabled && !active && styles.dim, pressed && styles.pressed]}
+      accessibilityState={{ disabled, selected: Boolean(active) }}
+      hitSlop={6}
+      style={({ pressed }) => [
+        styles.iconBtn,
+        emphasis && styles.iconBtnEmphasis,
+        active && styles.iconBtnActive,
+        disabled && styles.dim,
+        pressed && styles.pressed,
+      ]}
     >
-      {typeof icon === "string" ? <Text style={[styles.pillText, active && styles.actionActiveText]}>{icon}</Text> : icon}
+      {children}
     </Pressable>
   );
 }
 
-function ActionLabel({ icon, text, active }) {
-  return (
-    <View style={styles.actionInner}>
-      {icon}
-      <Text style={[styles.pillText, active && styles.actionActiveText]}>{text}</Text>
-    </View>
-  );
-}
-
-// A slow pulse so the Capture button is hard to miss (off with reduced motion).
 function usePulse(running) {
   const [scale] = useState(() => new Animated.Value(1));
   useEffect(() => {
@@ -70,7 +64,7 @@ function usePulse(running) {
       if (reduced) return;
       loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(scale, { toValue: 1.07, duration: 700, useNativeDriver: true }),
+          Animated.timing(scale, { toValue: 1.05, duration: 700, useNativeDriver: true }),
           Animated.timing(scale, { toValue: 1, duration: 700, useNativeDriver: true }),
         ]),
       );
@@ -90,83 +84,97 @@ export function MapControls({ state, game, onSquadOpen }) {
   const recenter = () => game.set({ followCamera: true, mapFocus: { ...state.position, key: Date.now() } });
   const gardenCapable = canUseNativeMapLibre();
   const gardenOn = gardenCapable && state.mapRenderer === "garden";
+  const busy = state.walking || state.planning;
+  const live = state.liveLocation;
 
   return (
-    <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.md }]} pointerEvents="box-none">
-      <View style={styles.row}>
-        <RoundButton
-          icon={<ActionLabel icon={<LiveIcon size={16} color={state.liveLocation ? colors.greenDark : colors.navy} />} text={state.liveLocation ? "Live" : "Go live"} active={state.liveLocation} />}
-          label={state.liveLocation ? "Live location is on" : "Turn on live location"}
-          onPress={game.startLiveLocation}
-          disabled={state.liveLocation}
-          active={state.liveLocation}
-        />
-        <RoundButton
-          icon={<ActionLabel icon={<WalkIcon size={16} />} text={state.walking || state.planning ? "Walking" : "Demo"} />}
-          label={state.walking || state.planning ? "A demo walk is in progress" : "Start a demo walk nearby"}
-          onPress={game.demoWalk}
-          disabled={state.walking || state.planning}
-        />
-      </View>
-      <View style={styles.column}>
-        <Pressable onPress={() => onSquadOpen(true)} hitSlop={12} accessibilityRole="button" accessibilityLabel="See your squad in 3D" style={({ pressed }) => [styles.paw, pressed && styles.pressed]}>
-          <PawIcon size={22} color={colors.white} />
-          <Text style={styles.pawLabel}>3D</Text>
-        </Pressable>
-        {gardenCapable && (
-          <RoundButton
-            icon={<ActionLabel icon={gardenOn ? <GardenIcon size={16} /> : <MapGlyphIcon size={16} />} text={gardenOn ? "Garden" : "Map"} active={gardenOn} />}
-            label={gardenOn ? "Switch to the standard map" : "Switch to the garden map"}
-            onPress={() => game.setMapRenderer(gardenOn ? "standard" : "garden")}
-            active={gardenOn}
-          />
-        )}
-        <RoundButton icon={<RecenterIcon />} label="Center the map on me" onPress={recenter} round />
-      </View>
+    <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.sm }]} pointerEvents="box-none">
       {canCapture && (
-        <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
+        <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]}>
           <Button
             title={`Capture ${state.capturable.title}`}
             size="large"
             icon={({ color, size }) => <CaptureIcon size={size} color={color} />}
             onPress={() => game.set({ captureOpen: true })}
             style={shadow.raised}
+            accessibilityLabel={`Capture ${state.capturable.title} for your album`}
           />
         </Animated.View>
       )}
+      <View style={styles.tools}>
+        {state.demoMode ? (
+          <Button
+            title={busy ? "Walking…" : "Practice walk"}
+            icon={({ color, size }) => <WalkIcon size={size} color={color} />}
+            onPress={game.demoWalk}
+            disabled={busy}
+            accessibilityLabel={busy ? "A practice walk is in progress" : "Start a practice walk nearby"}
+          />
+        ) : (
+          <Button
+            title={live ? "Walking live" : "Walk live"}
+            icon={({ color, size }) => <LiveIcon size={size} color={live ? colors.white : color} />}
+            onPress={game.startLiveLocation}
+            disabled={live || busy}
+            accessibilityLabel={live ? "Live location is on" : "Turn on live walking"}
+          />
+        )}
+        <View style={styles.iconRow}>
+          <IconButton label="See your squad in 3D" onPress={() => onSquadOpen(true)} emphasis>
+            <PawIcon size={20} color={colors.white} />
+          </IconButton>
+          {gardenCapable && (
+            <IconButton
+              label={gardenOn ? "Switch to the standard map" : "Switch to the garden map"}
+              onPress={() => game.setMapRenderer(gardenOn ? "standard" : "garden")}
+              active={gardenOn}
+            >
+              {gardenOn ? <GardenIcon size={20} /> : <MapGlyphIcon size={20} />}
+            </IconButton>
+          )}
+          <IconButton label="Center the map on me" onPress={recenter}>
+            <RecenterIcon size={20} />
+          </IconButton>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  topBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  topBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.sm },
   pill: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.card,
     borderRadius: radius.pill,
     paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+    minHeight: 44,
     ...shadow.soft,
   },
-  rankPill: { gap: 6, paddingLeft: 8 },
-  boost: { fontFamily: fonts.black, color: "#e8a317" },
-  brand: { backgroundColor: colors.navy, paddingLeft: 4, gap: 6 },
+  rankPill: { gap: 6, paddingLeft: 8, flexShrink: 1, maxWidth: "48%" },
+  boost: { fontFamily: fonts.black, color: colors.gold },
+  brand: { backgroundColor: colors.navy, paddingLeft: 4, gap: 6, flexShrink: 0 },
   logo: { width: 30, height: 30 },
-  brandText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },
+  brandText: { fontFamily: fonts.black, fontSize: 15, color: colors.white },
   brandAccent: { color: colors.greenOnDark },
-  pillText: { fontFamily: fonts.bold, fontSize: 14, color: colors.ink },
-  bottomBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
-  row: { flexDirection: "row", gap: space.sm },
-  column: { alignItems: "center", gap: space.sm },
-  actionInner: { flexDirection: "row", alignItems: "center", gap: 6 },
-  paw: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.green, borderWidth: 3, borderColor: colors.white, alignItems: "center", justifyContent: "center", ...shadow.raised },
-  pawLabel: { fontFamily: fonts.black, fontSize: 10, color: colors.white, marginTop: -2 },
-  action: { minHeight: 40 },
-  round: { width: 44, height: 44, paddingHorizontal: 0, paddingVertical: 0, justifyContent: "center" },
-  actionActive: { backgroundColor: colors.greenSoft },
-  actionActiveText: { color: colors.greenDark },
-  dim: { opacity: 0.6 },
+  pillText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
+  bottomBar: { position: "absolute", left: space.md, right: space.md, gap: space.sm },
+  capture: { alignSelf: "stretch" },
+  tools: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm },
+  iconRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.card,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadow.soft,
+  },
+  iconBtnActive: { backgroundColor: colors.greenSoft },
+  iconBtnEmphasis: { backgroundColor: colors.green },
+  dim: { opacity: 0.55 },
   pressed: { opacity: 0.7 },
-  capture: { position: "absolute", left: 0, right: 64, bottom: 56, alignItems: "center" }, // right: clear of the 3D and recenter buttons
 });

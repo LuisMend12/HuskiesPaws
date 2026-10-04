@@ -231,8 +231,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     setAr(!ar);
   };
 
-  const action = !guard ? "Claim" : guard.mine ? "Swap in" : "Challenge";
-  const icon = !guard ? "🐾" : guard.mine ? "🔁" : "⚔️";
+  const action = !guard ? "Claim" : guard.mine ? "Swap guard" : "Challenge";
+  const away = reach.meters >= 1000 ? `${(reach.meters / 1000).toFixed(1)} km` : `${reach.meters} m`;
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
@@ -265,8 +265,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
         </GlCanvas>
 
         <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
-          <Button title="✕ Close" variant="secondary" onPress={onClose} disabled={Boolean(battle)} />
-          <Button title={showCamera ? (photo ? "🖼️ Photo" : "🌳 Field") : "📷 AR"} variant={showCamera ? "primary" : "secondary"} onPress={toggleAr} />
+          <Button title="Close" variant="secondary" onPress={onClose} disabled={Boolean(battle)} />
+          <Button title={showCamera ? "Photo" : "AR"} variant={showCamera ? "primary" : "secondary"} onPress={toggleAr} />
         </View>
         <View style={[styles.titleWrap, { top: insets.top + 64 }]}>
           <Text style={styles.title} numberOfLines={2}>{landmark.title}</Text>
@@ -294,7 +294,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
           {result ? (
             <>
               <Text style={styles.resultTitle}>
-                {result.won ? (result.result === "captured" ? "🏰 Captured!" : "🐾 It's yours!") : result.result === "unavailable" ? "Claim unconfirmed" : result.result === "capped" ? "✋ Limit reached" : "🛡️ They held on"}
+                {result.won ? (result.result === "captured" ? "Captured!" : "It's yours!") : result.result === "unavailable" ? "Couldn't confirm" : result.result === "capped" ? "Holding limit reached" : "They held on"}
               </Text>
               <Text style={type.body}>{result.message}</Text>
               {!result.won && result.attacker && result.result === "defended" && (
@@ -303,7 +303,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
               <Button title="Done" onPress={onClose} size="large" />
             </>
           ) : battle ? (
-            <Text style={styles.resultTitle}>⚔️ Battle!</Text>
+            <Text style={styles.resultTitle}>Battle</Text>
           ) : fighters.length === 0 ? (
             <Hint>All your squad pets are busy. Pick more pets for your squad in the Pets tab.</Hint>
           ) : (
@@ -316,11 +316,11 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
               {picked && petHpOf(state, picked.id) < MAX_HP && <Hint>{`${picked.name} has ${Math.round(petHpOf(state, picked.id))} HP (healing).`}</Hint>}
               {claimError && <Text style={styles.error}>{claimError}</Text>}
               {reach.inRange ? (
-                <Button title={picked ? `${icon} ${action} with ${picked.name}` : action} size="large" onPress={go} disabled={!picked || busy} />
+                <Button title={picked ? `${action} with ${picked.name}` : action} size="large" onPress={go} disabled={!picked || busy} />
               ) : (
                 <>
-                  <Hint>{`You're ${reach.meters} m away. Walk within ${FIGHT_RANGE_M} m to ${action.toLowerCase()} it.`}</Hint>
-                  <Button title={`🚶 Walk there (${reach.meters} m)`} size="large" onPress={walkThere} />
+                  <Hint>{`${away} away. Get within ${FIGHT_RANGE_M} m to ${action.toLowerCase()} this place.`}</Hint>
+                  <Button title={`Walk there · ${away}`} size="large" onPress={walkThere} />
                 </>
               )}
             </>
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   hpFillRight: { alignSelf: "flex-end" },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, minHeight: 230, backgroundColor: colors.card, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, padding: space.lg, gap: space.sm, ...shadow.raised },
   picker: { gap: space.sm, paddingVertical: 2 },
-  pick: { width: 76, alignItems: "center", padding: 6, borderRadius: radius.card, borderWidth: 2, borderColor: colors.border },
+  pick: { width: 76, minHeight: 44, alignItems: "center", padding: 6, borderRadius: radius.card, borderWidth: 2, borderColor: colors.border },
   pickSelected: { borderColor: colors.green, backgroundColor: colors.greenSoft },
   pickName: { ...type.label, fontSize: 12 },
   pickPower: { fontFamily: fonts.black, fontSize: 12, color: colors.ink },

@@ -26,6 +26,7 @@ import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
+import { NextStepCard } from "./src/components/NextStep.js";
 import { AlbumIcon, PetsIcon, RanksIcon, SquadIcon } from "./src/components/GameIcons.js";
 import { Hint, PillTabs } from "./src/components/ui.js";
 import { rankFor } from "./src/core/rank.js";
@@ -164,29 +165,41 @@ function Main() {
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
+          <NextStepCard state={state} />
           <Text style={styles.stats} accessibilityRole="text">
             {[
               plural(state.progress.steps, "step"),
               plural(state.blooms.length, "bloom"),
-              plural(state.progress.landmarksFound, "landmark"),
+              plural(state.progress.landmarksFound, "place"),
             ].join(" · ")}
           </Text>
+          {!state.demoMode && !state.liveLocation && (
+            <View style={[styles.banner, state.locationIssue === "denied" ? styles.bannerWarn : styles.bannerInfo]}>
+              <Text style={styles.bannerTitle}>{state.locationIssue === "denied" ? "Location is off" : "Walk live to bloom the trail"}</Text>
+              <Text style={styles.bannerBody}>
+                {state.locationIssue === "denied"
+                  ? "Allow location, or switch on Demo walks to practice indoors."
+                  : "Tap Walk live on the map, or use Demo walks if you're judging indoors."}
+              </Text>
+            </View>
+          )}
           <Pressable
             onPress={() => game.set({ demoMode: !state.demoMode })}
             accessibilityRole="switch"
             accessibilityState={{ checked: state.demoMode }}
-            accessibilityLabel="Demo mode"
-            accessibilityHint="When on, Take me there walks are simulated indoors"
-            style={styles.demoRow}
+            accessibilityLabel="Demo walks"
+            accessibilityHint="When on, walks to landmarks are simulated so you can play indoors"
+            style={[styles.demoRow, state.demoMode ? styles.demoOn : styles.demoOff]}
           >
             <View style={styles.flex}>
-              <Text style={styles.demoLabel}>{state.demoMode ? "Demo walks" : "Real walks"}</Text>
-              <Hint>{state.demoMode ? "Indoor judging: the trail blooms for you" : "Walk to the place yourself"}</Hint>
+              <Text style={styles.demoLabel}>{state.demoMode ? "Demo walks on" : "Real walking"}</Text>
+              <Hint>{state.demoMode ? "Routes play themselves — for indoor judging" : "You walk; the trail blooms with you"}</Hint>
             </View>
             <Switch
               value={state.demoMode}
               onValueChange={(demoMode) => game.set({ demoMode })}
-              trackColor={{ true: colors.green, false: colors.border }}
+              trackColor={{ true: colors.gold, false: colors.border }}
+              thumbColor={colors.white}
               pointerEvents="none"
             />
           </Pressable>
@@ -208,6 +221,7 @@ function Main() {
         onClose={() => game.set({ postcardOpen: false })}
         onGo={game.guideToDiscovery}
         onReplay={game.replayMemo}
+        demoMode={state.demoMode}
       />
       {state.landmarkOpen ? (
         LandmarkScreen
@@ -237,10 +251,10 @@ function Main() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  map: { flex: 45 },
+  map: { flex: 48 },
   mapPaused: { flex: 1, backgroundColor: "#cfe8b8" },
   sheet: {
-    flex: 55,
+    flex: 52,
     marginTop: -SHEET_OVERLAP,
     backgroundColor: colors.card,
     borderTopLeftRadius: radius.sheet,
@@ -248,9 +262,16 @@ const styles = StyleSheet.create({
     ...shadow.raised,
   },
   handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginTop: space.sm },
-  sheetHeader: { paddingHorizontal: space.lg, paddingTop: space.sm },
-  stats: { ...type.label, color: colors.muted },
-  demoRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.xs },
+  sheetHeader: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
+  stats: { ...type.caption },
+  banner: { borderRadius: radius.small, paddingVertical: space.sm, paddingHorizontal: space.md, gap: 2 },
+  bannerWarn: { backgroundColor: "#ffe8e0" },
+  bannerInfo: { backgroundColor: colors.iceSoft },
+  bannerTitle: { ...type.label },
+  bannerBody: { ...type.caption },
+  demoRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.small, minHeight: 44 },
+  demoOn: { backgroundColor: "#fff3d6" },
+  demoOff: { backgroundColor: colors.stripe },
   demoLabel: { ...type.label },
   flex: { flex: 1 },
   content: { paddingHorizontal: space.lg, paddingTop: space.xs, gap: space.sm },

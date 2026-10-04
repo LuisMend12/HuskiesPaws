@@ -4,8 +4,10 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
 import { Image, Modal, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
-import { colors, fonts } from "../theme.js";
+import { colors, fonts, space } from "../theme.js";
+import { CaptureIcon } from "./GameIcons.js";
 import { PetSvg } from "./PetArt.js";
 import { Button, Hint } from "./ui.js";
 
@@ -13,6 +15,7 @@ const CARD_PIXELS = Object.freeze({ width: 480, height: 600 }); // keeps saved c
 
 // pet: the squad pet that poses in the photo (see capturePetOf in petStatus.js).
 export function CaptureModal({ visible, place, pet, onSave, onClose }) {
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -59,8 +62,8 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={close}>
-      <View style={styles.screen}>
-        <Text style={styles.heading} numberOfLines={1}>{`📸 ${place.title}`}</Text>
+      <View style={[styles.screen, { paddingTop: insets.top + space.md, paddingBottom: insets.bottom + space.md }]}>
+        <Text style={styles.heading} numberOfLines={1}>{place.title}</Text>
 
         {photo ? (
           <View ref={cardRef} collapsable={false} style={styles.card}>
@@ -87,7 +90,7 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
         )}
 
         {error ? <Text style={styles.error}>{error}</Text> : (
-          <Hint style={styles.hintDark}>{photo ? "Looks good? Save it to your album." : "Line up the landmark in the frame, then capture."}</Hint>
+          <Hint style={styles.hintDark}>{photo ? "Save this postcard to your album to earn progress." : "Line up the landmark, then capture. You can also use the place photo."}</Hint>
         )}
 
         <View style={styles.actions}>
@@ -98,7 +101,7 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
             </>
           ) : (
             <>
-              <Button title="📸 Capture" onPress={snap} disabled={busy || !permission?.granted} />
+              <Button title="Capture" icon={({ color, size }) => <CaptureIcon size={size} color={color} />} onPress={snap} disabled={busy || !permission?.granted} />
               <Button title="Use landmark photo" variant="secondary" onPress={useLandmarkPhoto} disabled={busy} />
             </>
           )}

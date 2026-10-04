@@ -6,7 +6,7 @@ import { TRAILS, activeTrail, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
 import { RankBadge } from "./RankBadge.js";
 import { colors, fonts, radius } from "../theme.js";
-import { Button, Chip, Hint, SectionTitle } from "./ui.js";
+import { Button, Card, Chip, Hint, SectionTitle } from "./ui.js";
 
 export function RanksPanel({ state, game }) {
   const score = scoreOf(state);
@@ -28,10 +28,15 @@ export function RanksPanel({ state, game }) {
 
   return (
     <View>
-      <View style={styles.rankCard}>
+      <Card style={styles.rankCard}>
         <View style={styles.rankHead}>
           <RankBadge rank={current} size={56} />
-          <Text style={styles.rankTitle}>{current.name}</Text>
+          <View style={styles.rankCopy}>
+            <Text style={styles.rankTitle}>{current.name}</Text>
+            <Text style={styles.rankNext}>
+              {next ? `${score.toLocaleString()} XP · ${next.min - score} to ${next.name}` : `${score.toLocaleString()} XP · Top rank`}
+            </Text>
+          </View>
         </View>
         <View style={styles.meter}>
           <View style={[styles.meterFill, { width: `${Math.round(progress * 100)}%` }]} />

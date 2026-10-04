@@ -51,7 +51,7 @@ function Scene({ title, pet }) {
 }
 
 // pet: the pet who found the place (falls back to the old agent's name).
-export function PostcardModal({ visible, discovery, pet, onClose, onGo, onReplay }) {
+export function PostcardModal({ visible, discovery, pet, onClose, onGo, onReplay, demoMode = false }) {
   const [expanded, setExpanded] = useState(false);
   if (!discovery) return null;
   const agent = AGENTS.find((a) => a.id === discovery.agentId);
@@ -86,7 +86,7 @@ export function PostcardModal({ visible, discovery, pet, onClose, onGo, onReplay
             </View>
           </ScrollView>
           <View style={styles.actions}>
-            <Button title="Take me there" size="large" onPress={onGo} />
+            <Button title={demoMode ? "Start the walk" : "I'll walk there"} size="large" onPress={onGo} />
             <View style={styles.row}>
               <Button title="🔊 Replay" variant="secondary" onPress={onReplay} style={styles.half} />
               <Button title="Later" variant="secondary" onPress={onClose} style={styles.half} />

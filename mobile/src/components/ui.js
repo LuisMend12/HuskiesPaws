@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   buttonText: { fontFamily: fonts.bold, fontSize: 15, color: colors.white },
   largeText: { fontFamily: fonts.extrabold, fontSize: 18 },
   secondaryText: { color: colors.ink },
-  chip: { backgroundColor: colors.stripe, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: 14 },
+  chip: { backgroundColor: colors.stripe, borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 14, minHeight: 44, justifyContent: "center" },
   chipActive: { backgroundColor: colors.green, borderColor: colors.green },
   chipOutlined: { borderWidth: 2, borderColor: colors.green },
   chipText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   tabsScroll: { flexGrow: 0 }, // a ScrollView grows to fill by default; the tab row shouldn't
   tabs: { alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
   buttonRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  tab: { borderRadius: radius.pill, paddingVertical: 7, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 6 },
+  tab: { borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
   tabActive: { backgroundColor: colors.green },
   tabText: { fontFamily: fonts.bold, fontSize: 15, color: colors.muted },
   tabTextActive: { color: colors.white },

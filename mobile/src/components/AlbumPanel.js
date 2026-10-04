@@ -10,7 +10,7 @@ export function AlbumPanel({ album }) {
       <EmptyState
         icon={<AlbumIcon size={40} />}
         title="No postcards yet"
-        body="Squad → Explore, then Take me there. When you arrive, tap Capture to save a photo here."
+        body="Explore with a Scout, walk to the place, then tap Capture when you arrive."
       />
     );
   }

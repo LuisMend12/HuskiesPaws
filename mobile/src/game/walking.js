@@ -182,7 +182,10 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     const { granted } = await Location.requestForegroundPermissionsAsync();
     if (epoch !== watchEpoch) return false;
     if (!granted) {
-      store.setState({ status: "Location permission denied. Demo walks still work." });
+      store.setState({
+        locationIssue: "denied",
+        status: "Location is off. Switch on Demo walks to practice indoors, or allow location to bloom as you walk.",
+      });
       return false;
     }
     const hasPedometer = await startPedometer(epoch);
@@ -201,11 +204,15 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
         }
         persist();
       },
-      (error) => { if (epoch === watchEpoch) store.setState({ status: `Location unavailable: ${error}` }); },
+      (error) => {
+        if (epoch === watchEpoch) {
+          store.setState({ locationIssue: "unavailable", status: "Couldn't find you. Check that location is on, then try Walk live again." });
+        }
+      },
     );
     if (epoch !== watchEpoch) { subscription.remove(); return false; }
     locationSubscription = subscription;
-    store.setState({ liveLocation: true, status: "Live walking on. Your path will bloom as you move." });
+    store.setState({ liveLocation: true, locationIssue: null, status: "You're walking live. Flowers grow as you move." });
     return true;
   }
 
@@ -217,7 +224,7 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     const pending = beginLocation(epoch).catch(() => {
       if (epoch === watchEpoch) {
         stop();
-        store.setState({ status: "Location unavailable. Try Go live again." });
+        store.setState({ locationIssue: "unavailable", status: "Couldn't find you. Check that location is on, then try Walk live again." });
       }
       return false;
     }).finally(() => { if (locationStart === pending) locationStart = null; });
