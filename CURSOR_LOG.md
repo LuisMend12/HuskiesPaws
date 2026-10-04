@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Judges demo deck (7 slides)
+
+**Prompt (summary).** Create a polished 7-slide PPTX/PDF for BigRed//Hacks 2026 judges. Team: Luis Mendez, Abdullah Rashid. Theme Navigation. Verify implemented tech. Speaker notes for ~3 minutes. Save under `docs/presentation/`. No app code changes.
+
+**Decisions.** Deck uses HuskiesPaws navy/cream/green branding and existing launcher/badge art. Claims match the phone product: Wikipedia/OSM grounding, shared `core/`, Expo app, Node `/api`, Photon iMessage, ElevenLabs/Grok with fallbacks. Did not pitch Nessie, live Render, or background tracking. ISS rare-hatch boost noted as implemented logic. Slide 4 uses labeled Expo Go capture placeholders (no app screenshots in-repo). PPTX + PDF exported; notes in the file and `SPEAKER-NOTES.md`.
+
 ## 2026-10-03 — Mobile UI/UX of the walk loop
 
 **Prompt (summary).** Improve HuskiesPaws Expo UI/UX: obvious explore → landmark → walk → capture flow, clearer map hierarchy, demo vs live walking, consistent tabs, landmark/capture copy, empty/error/success, small-phone safe areas. Implement, don't just plan.

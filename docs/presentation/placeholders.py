@@ -54,23 +54,32 @@ def font(size, bold=False):
     return ImageFont.load_default()
 
 
+def round_mask(size, radius):
+    w, h = size
+    mask = Image.new("L", size, 0)
+    d = ImageDraw.Draw(mask)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), radius, fill=255)
+    return mask
+
+
 def phone(path, accent, kicker, title, hint):
     w, h = 720, 1280
-    img = Image.new("RGB", (w, h), NAVY)
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((36, 36, w - 36, h - 36), 48, fill=CREAM)
-    d.rounded_rectangle((36, 36, w - 36, 220), 48, fill=accent)
-    d.rectangle((36, 140, w - 36, 220), fill=accent)
-    d.text((70, 70), "PLACEHOLDER", font=font(28, True), fill=WHITE)
-    d.text((70, 118), kicker, font=font(44, True), fill=WHITE)
-    d.text((70, 280), title, font=font(48, True), fill=NAVY)
-    y = 380
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 72, fill=CREAM + (255,))
+    d.rounded_rectangle((0, 0, w - 1, 220), 72, fill=accent + (255,))
+    d.rectangle((0, 110, w, 220), fill=accent + (255,))
+    d.text((48, 36), "PLACEHOLDER", font=font(28, True), fill=WHITE)
+    d.text((48, 84), kicker, font=font(44, True), fill=WHITE)
+    d.text((48, 270), title, font=font(48, True), fill=NAVY)
+    y = 370
     for line in hint.split("\n"):
-        d.text((70, y), line, font=font(36), fill=(70, 90, 80))
+        d.text((48, y), line, font=font(36), fill=(70, 90, 80))
         y += 52
-    d.rounded_rectangle((70, 980, w - 70, 1160), 28, fill=NAVY)
-    d.text((100, 1020), "Not a live screenshot", font=font(32, True), fill=WHITE)
-    d.text((100, 1070), "Swap after device capture", font=font(28), fill=SKY)
+    d.rounded_rectangle((48, 980, w - 48, 1160), 28, fill=NAVY + (255,))
+    d.text((78, 1020), "Not a live screenshot", font=font(32, True), fill=WHITE)
+    d.text((78, 1070), "Swap after device capture", font=font(28), fill=SKY)
+    img.putalpha(round_mask((w, h), 72))
     img.save(path, "PNG")
 
 

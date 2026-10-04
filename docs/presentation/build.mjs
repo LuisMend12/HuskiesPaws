@@ -235,9 +235,9 @@ About 25 seconds. Open on the title. Say: We are HuskiesPaws. Ordinary walks bec
   });
   s.addText("Little reason to look around on the way.", {
     x: 0.85,
-    y: 4.3,
+    y: 4.05,
     w: 5.4,
-    h: 1.6,
+    h: 1.2,
     fontFace: "Calibri",
     fontSize: 18,
     italic: true,
@@ -407,13 +407,20 @@ About 30 seconds. The loop is Explore, Walk, Discover, Collect. Pip scouts with 
   ];
   shots.forEach((shot, i) => {
     const x = 0.55 + i * 4.2;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+      x: x + 0.48,
+      y: 1.12,
+      w: 2.74,
+      h: 4.58,
+      fill: { color: C.navy },
+      rectRadius: 0.22,
+    });
     s.addImage({
       path: shot.img,
-      x: x + 0.55,
-      y: 1.15,
-      w: 2.55,
-      h: 4.53,
-      rounding: true,
+      x: x + 0.58,
+      y: 1.22,
+      w: 2.54,
+      h: 4.38,
     });
     s.addText(shot.cap, {
       x,
@@ -430,7 +437,7 @@ About 30 seconds. The loop is Explore, Walk, Discover, Collect. Pip scouts with 
     });
   });
   s.addText(
-    "Sequence: Send Pip exploring  →  choose a place  →  start a walk  →  capture the landmark.  Demo Walk simulates steps at the judging table.",
+    "Sequence: Send Pip exploring  →  choose a place  →  start a walk  →  capture.  Demo Walk simulates steps at the table.",
     {
       x: 0.55,
       y: 6.15,
@@ -558,7 +565,7 @@ About 25 seconds. Phone talks to our Node API. Secrets never ship in the app. Wi
   const strengths = [
     { img: ASSETS.splash, t: "Navigation becomes play", d: "The map is a blooming trail and a squad, not only a blue line to a pin." },
     { img: ASSETS.gold, t: "Walking earns creatures", d: "Distance fills eggs, ranks, and landmark captures you can actually complete at the table in Demo Walk." },
-    { img: ASSETS.icon, t: "The walk continues in iMessage", d: "The same squad can explore, story, and route over Photon Spectrum — terminal today, iMessage with keys." },
+    { img: ASSETS.badge, t: "The walk continues in iMessage", d: "The same squad can explore, story, and route over Photon Spectrum — terminal today, iMessage with keys." },
   ];
   strengths.forEach((st, i) => {
     const x = 0.55 + i * 4.2;
