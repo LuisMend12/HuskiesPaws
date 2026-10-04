@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Judges README rewrite
+
+**Prompt (summary).** Improve the root README for hackathon judges: logo, tagline, Navigation hook, real demo GIF, accurate screenshots and architecture, Cursor highlights, limitations, verified setup. Docs only.
+
+**Decisions.** Rewrote `README.md`. Used `docs/demo-gif/huskiespaws.gif` (verified it opens; promo motion, not a UI recording). Linked the local pitch PDF/PPTX, GitHub, and the BigRed//Hacks 2026 event Devpost. Did not invent a project Devpost or hosted demo-video URL. Screenshots from `docs/presentation/app_images/`. Dropped Nessie, live Render, autonomous LLM agents, and web-app claims. Grok/ElevenLabs described as credit- and key-dependent with on-device/SVG fallbacks. Cursor section cites `CURSOR_LOG.md`.
+
 ## 2026-10-04 — Remove duplicate capture tip (Codex)
 
 User request: remove the "NEXT — Capture this place" card shown in the screenshot. NextStepCard now hides the capture tip while keeping other next-step tips and the map capture action.

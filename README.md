@@ -1,175 +1,180 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/logo/huskiespaws-logo-dark.png">
-    <img alt="HuskiesPaws logo: a husky with a blooming paw print" src="docs/logo/huskiespaws-logo.png" width="560">
+    <img alt="HuskiesPaws logo: a navy husky with a blooming paw print" src="docs/logo/huskiespaws-logo.png" width="480">
   </picture>
 </p>
 
-# 🐾 HuskiesPaws
+<h1 align="center">HuskiesPaws</h1>
 
-**Walk more, explore more, save more.**
+<p align="center"><strong>Turn everyday walks into a creature-collecting adventure.</strong></p>
 
-HuskiesPaws turns everyday walking into an adventure. Every walk blooms a flower trail on the map. A squad of AI agents scouts real places for you and walks you there. Walking hatches pets that guard the landmarks you discover. And every rideshare you skip by walking moves the fare into a savings account (through Capital One's Nessie banking sandbox) that grows a tree.
+<p align="center">
+  An Expo phone app for <a href="https://bigredhacks2026.devpost.com/">BigRed//Hacks 2026</a> · theme <strong>Navigation</strong><br>
+  <a href="https://github.com/LuisMend12/big-red-hacks2026">Code</a>
+  ·
+  <a href="docs/presentation/HuskiesPaws-BigRedHacks-2026.pdf">Pitch deck (PDF)</a>
+  ·
+  <a href="docs/presentation/HuskiesPaws-BigRedHacks-2026.pptx">Pitch deck (PPTX)</a>
+</p>
 
-Built at **[BigRed//Hacks 2026](https://bigredhacks2026.devpost.com/)**, Cornell University, October 2–4, 2026. Theme: **Navigation**.
+HuskiesPaws is about **where you go**, not only how fast you arrive. Ordinary maps optimize for the pin. This app gives you a reason to look around: a role-based squad scouts real nearby places, walks you there on a blooming trail, and rewards the walk with creatures and landmark postcards.
 
-| | |
-|---|---|
-| 🏆 **Devpost** | _TODO: add the Devpost project link_ |
-| 🎬 **Demo video** | _TODO: add the video link (see [docs/DEMO.md](docs/DEMO.md))_ |
-| 📊 **Pitch deck (PDF)** | _TODO: add the Google Drive link to the deck PDF_ |
-| 🌐 **Live app** | _TODO: add the Render HTTPS link (see [server/README.md](server/README.md#deploy-with-https-render-free))_ |
-| 💻 **Code** | https://github.com/LuisMend12/big-red-hacks2026 |
+<p align="center">
+  <img src="docs/demo-gif/huskiespaws.gif" alt="Animated HuskiesPaws promo: a green paw follows a blooming trail to a labeled landmark, then settles into the HuskiesPaws logo and tagline." width="720">
+</p>
 
-## Team
-
-| Name | Role |
-|---|---|
-| Luis Mendez | _TODO_ |
-| Abdullah Rashid | _TODO_ |
+<p align="center"><em>Promo loop of the walk-and-bloom idea (960×540). It is brand motion, not a screen recording of the app.</em></p>
 
 ---
 
-## The problem, and why it matters
+## The problem
 
-The hackathon asked: *"What do we build next to change how we navigate in the next 100 years?"*
+Navigation today is built for the shortest path. That is useful, and it is incomplete.
 
-Today's navigation is built for one thing: **the shortest path.** It puts us in cars and rideshares for trips we could walk, and keeps our eyes on a blue dot instead of the place around us.
+- **The walk is leftover time.** Once the pin is set, people put the phone away.
+- **Campus already has stories.** Named buildings sit a few minutes off the usual route and go unseen.
+- **Step counters log numbers.** They rarely give a reason to walk *somewhere new*.
 
-- **Short trips add up.** Students take rides for walks of 10–15 minutes, which costs money every week and adds traffic and emissions.
-- **We miss what's around us.** Most people walk the same few routes and never discover the landmarks a few blocks away.
-- **Healthy habits are hard to keep.** Step counters log numbers but don't give people a reason to walk somewhere new.
+Walking already happens between classes. Discovery and progress do not.
 
-## Our solution
+## The loop: Explore → Walk → Discover → Collect
 
-HuskiesPaws makes **where you go** the fun part. Navigation becomes about curiosity, not just speed, and it rewards you for walking instead of riding.
+| Step | What you do | What the app does |
+|---|---|---|
+| **Explore** | Squad → Scout → Explore | Pip looks up real nearby places (Wikipedia geosearch). |
+| **Walk** | Start the walk (Demo Walk indoors, or Walk live outdoors) | Fern requests a walking route. Flowers bloom along the path. |
+| **Discover** | Read the postcard | Moss tells the story from the Wikipedia extract. Every postcard can link to its source. |
+| **Collect** | Capture at the place; keep walking | Album postcard. Walking fills eggs; hatching adds a pet. Stronger pets can hold a landmark. |
 
-| Feature | What it does |
-|---|---|
-| 🤖 **Agent squad** | **Pip (Scout)** finds real places you've never been, **Moss (Storyteller)** tells their history, and **Fern (Pathfinder)** plans the walking route and guides you. Agents only report facts from real data (Wikipedia and OpenStreetMap), and every postcard links to its source. |
-| 🎙️ **Grok Voice and Grok Imagine** | Each agent speaks its memos in its own **Grok Voice**. **Grok Imagine** illustrates every place the agents discover and draws a unique portrait for every pet. |
-| 🌸 **Blooming trails** | Your walk leaves a trail of flowers on the map. Each rank unlocks a new trail, from 🌱 Sprout Path to ✨ Starlight. |
-| 💰 **Walk instead of ride** | Every walk over 300 m counts as a rideshare you skipped. The estimated fare moves into a savings account through **Capital One's Nessie API**, and your savings grow a tree from 🌰 seed to 🍎 fruit tree. |
-| 🥚 **Eggs and pets** | Walking earns eggs, and walking further hatches them into pets with a rarity, from common to legendary. **While the ISS is overhead** (live orbital data), rare pets are 3x as likely. |
-| 🏰 **Turf** | Leave your pet to guard a landmark you walked to and earn XP every hour it holds. A player with a stronger pet can take it over, which gives people a reason to keep walking back. |
-| 🏆 **Ranks and leaderboards** | Points come from steps, discoveries, captures and turf. Live **local, statewide and national** leaderboards. |
-| 📸 **Landmark capture** | At a landmark, open the camera with your agent in the frame and snap a postcard for your album. |
-| 💬 **iMessage** | Text the squad: "explore", "story", "take me there". Built with **Photon Spectrum**. |
+Indoor judging uses **Demo walks**: routes play themselves along real geometry so nobody has to leave the table.
 
-### Screenshots
+## The squad
 
-_TODO: add 3–4 screenshots to `docs/screenshots/` and link them here: the map with a blooming trail, a Grok Imagine postcard, a pet hatch, and the Savings tree._
+Pip, Moss, and Fern are **role-based agents** in shared game logic (`core/`). They are not autonomous LLM teammates. Each role calls tools, then speaks only from those results: **place facts from Wikipedia**, **routes from a walking router** (OSRM / OpenStreetMap). If a tool returns nothing, the memo does not invent a landmark.
+
+<p align="center">
+  <img src="docs/presentation/assets/scout.png" alt="Pip the Scout, an orange round pet with a sprout" width="120">
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/presentation/assets/storyteller.png" alt="Moss the Storyteller, a purple round pet with a red scarf" width="120">
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/presentation/assets/pathfinder.png" alt="Fern the Pathfinder, a blue round pet with an explorer hat" width="120">
+</p>
+
+| Agent | Class | Job |
+|---|---|---|
+| **Pip** | Scout | Finds a nearby place you have not visited yet. |
+| **Moss** | Storyteller | Reads the grounded history of a place. |
+| **Fern** | Pathfinder | Turns that place into a walking route and cheers when you arrive. |
+
+Hatched pets can fill those classes (and a Guardian class for holding turf). The same rules drive the phone app and the optional Photon iMessage agent.
+
+## The app
+
+Real Expo Go captures (not stock UI):
+
+<p align="center">
+  <img src="docs/presentation/app_images/ED702DFD-F3B0-4517-8C60-E4FEB548C8EB.jpg" alt="Map overlay: league-up toast to Gold III, Rose Garden trail unlocked, Practice walk control, Demo walks available." width="280">
+  &nbsp;
+  <img src="docs/presentation/app_images/295D7A3E-924B-40C7-9900-0A4613317A96.jpg" alt="Landmark screen for Bailey Hall in Ithaca: pick Nova, Pip, or Biscuit, then Walk there 161 meters." height="420">
+  &nbsp;
+  <img src="docs/presentation/app_images/D8BE4252-56A8-4B93-B944-9D82B404BB87.jpg" alt="Captured Bailey Hall: Nova holds the landmark after beating the previous guard." height="420">
+</p>
+
+<p align="center">
+  <img src="docs/presentation/app_images/C2EA70B0-0CD6-4D92-AAFE-8EC1C33A2133.jpg" alt="Egg hatching overlay on the map: Something is hatching, Demo walks on." width="280">
+  &nbsp;
+  <img src="docs/presentation/app_images/0B82DD1F-6522-46CD-8774-F7C4336505D4.jpg" alt="Hatch reveal: Meet Mochi, a rare Storyteller with 34 power." width="280">
+</p>
+
+**Also built:** blooming trails by rank, eggs from walking only, rarity (including a 3× rare-hatch boost while the ISS is overhead, using live orbital data), turf with a hold cap and power check, local / statewide / national boards (live through the API, sample data without it), camera or drawn postcards for indoor capture.
 
 ## How we built it
 
 ```mermaid
 flowchart LR
-  subgraph Clients
-    Phone["📱 Phone app<br/>mobile/ (Expo)"]
-    IM["💬 iMessage agent<br/>imessage-agent/ (Photon)"]
-  end
-  Core["Shared game logic<br/>core/<br/>agents · ranks · pets · savings"]
-  Server["HuskiesPaws server<br/>server/ (Node)"]
-  Phone --> Server
-  Phone -.synced copy.-> Core
-  IM -.uses.-> Core
-  Server --> Grok["xAI Grok<br/>Voice + Imagine"]
-  Server --> DB["Supabase or<br/>JSON file storage"]
-  Phone --> Nessie["Capital One Nessie"]
-  Core --> Data["Wikipedia · OpenStreetMap<br/>walking routes · ISS position"]
+  Phone["Phone app<br/>mobile/ · Expo SDK 57"]
+  IM["iMessage agent<br/>imessage-agent/ · Photon"]
+  Core["Shared rules<br/>core/"]
+  API["Node /api<br/>server/ · secrets stay here"]
+  World["Wikipedia · OSM / OSRM<br/>ISS position"]
+  Voice["Optional voice and art<br/>Grok · ElevenLabs"]
+
+  Phone --> API
+  Phone -.sync-core.-> Core
+  IM --> Core
+  API --> Voice
+  Core --> World
+  Phone --> World
 ```
 
-- **One set of game rules, two apps.** The agents, ranks, trails, pets, savings and Nessie client are plain JavaScript in [`core/`](core/), shared by the Expo phone app and the iMessage agent.
-- **A small server holds every secret.** The Grok key never ships inside the app. The app can't send its own image prompts; the server builds them from fixed templates. There are per-IP and daily limits, and each image is generated once and cached.
-- **Real data only.** Places and facts come from Wikipedia, routes and regions from OpenStreetMap, and the ISS position from wheretheiss.at.
+The phone talks to `/api` only through `mobile/src/api.js`. Keys never ship in the app bundle. Image prompts are server templates, not free-form client text.
 
-**Built with:** JavaScript, Node.js, Expo / React Native, react-native-maps, MapLibre Native (iOS garden map, OpenFreeMap), xAI Grok (Voice, Imagine), Capital One Nessie API, Photon Spectrum, Supabase, Wikipedia API, OpenStreetMap (Nominatim, OSRM), wheretheiss.at, Render, **Cursor**.
-
-### Built with Cursor
-
-_TODO (team): describe how you used Cursor (Agent mode, Tab, rules files), with a few example prompts and what they built. Link `CURSOR_LOG.md` and screenshots if you have them, and mention Grok Bot if you used it for planning. Keep it accurate: judges may ask._
-
-## Prize tracks
-
-| Track | How HuskiesPaws meets it |
+| Layer | Stack |
 |---|---|
-| **BigRed Track** (technical, design, creativity, impact, theme) | Navigation by curiosity instead of shortest path. Two working apps (phone and iMessage) sharing one codebase, real data, and an automated test suite. |
-| **SpaceX: Make it Legendary** | **Grok Voice** (agent memos) and **Grok Imagine** (postcards and pet portraits) are core features. **Real space data:** live ISS position and visibility footprint decide when rare eggs hatch. Built with **Cursor** (see above). |
-| **Capital One: Best Use of Nessie** | Each walk that replaces a ride moves the estimated fare from checking into savings with a Nessie **transfer**. The account is set up with Nessie customer and account endpoints. Savings grow a visible tree, and eggs are never bought with that money. |
-| **Photon: Agents in iMessage** | The agent squad runs on iMessage through **Photon Spectrum**: explore, stories, walking directions and savings by text. |
-| **Software** | A backend with validation, rate limits, caching and storage that's swappable between Supabase and a file. 24 automated tests across the game logic, the API and the iMessage agent. |
-| **Design** | A cohesive, cozy visual language: blooming trails, illustrated postcards, rarity reveals and an accessible tab layout. |
-| **People's Choice** | Turf turns other hackers into players: claim landmarks around PSB and Klarman and defend them. |
+| Phone | Expo SDK 57, React Native, Nunito, `react-native-maps` (Expo Go). iOS **development build** can use MapLibre + OpenFreeMap. |
+| Game rules | Plain JS in [`core/`](core/) (agents, ranks, pets, geo, ISS). Copied into `mobile/src/core/` with `npm run sync-core`. |
+| API | Node, no runtime deps. File storage by default; Supabase schema is written but untested in production. |
+| Speech | Stories can use **ElevenLabs** (Moss) or **Grok Voice** (Pip / Fern) when keys and credits exist. Everything else, and any failure, uses **on-device `expo-speech`**. |
+| Images | **Grok Imagine** for postcards and hatch portraits when the key and credits exist. Otherwise original SVG art. |
+| Space | Live ISS position / footprint from wheretheiss.at for hatch rarity. |
+| Chat | Photon Spectrum iMessage agent (sessions in memory). |
 
-## Devpost answers (drafts)
+**Grok and ElevenLabs are wired in `server/` and covered by tests against fakes.** Live speech and Imagine need `XAI_API_KEY` / `ELEVENLABS_API_KEY` **and account credits**. If credits are exhausted, the phone keeps playing with on-device voice and drawn art.
 
-**Inspiration.** Walking games like Pikmin Bloom and Pokémon GO get people outside. We wanted that joy, plus agents that do real work for you and a tangible reward, visible savings, for choosing to walk instead of ride. The Navigation theme pushed us to ask what "getting somewhere" could mean beyond the shortest route.
+[`render.yaml`](render.yaml) is a Render blueprint. **We do not claim a live cloud deploy** unless `/api/health` is actually up.
 
-**What it does.** See [Our solution](#our-solution): agents scout real places and guide you there, your walk blooms on the map, skipped rides become real savings through Nessie, walking hatches Grok-drawn pets that guard landmarks, and everything works on the web, on your phone and over iMessage.
+## Built with Cursor
 
-**How we built it.** See [How we built it](#how-we-built-it): shared JavaScript game logic, a Node server that keeps the Grok key private, an Expo phone app, and a Photon Spectrum iMessage agent.
+The SpaceX track asks for a project **built in Cursor**. This repo was iterated in Cursor Agent mode with [`.cursor/rules/`](.cursor/rules/) and a prompt log in [`CURSOR_LOG.md`](CURSOR_LOG.md). Highlights that landed in code:
 
-**Challenges we ran into.**
-- **The Nessie API kept resetting connections** while we built, so savings are kept in a local ledger first and mirrored to Nessie when it responds. The demo never breaks.
-- **Wikipedia and OpenStreetMap returned 403** to the phone app's default identity, so we added an identifying User-Agent for the phone and the iMessage agent.
-- **Keeping an AI key out of a public phone app:** server-side prompt templates, validation, rate limits and image caching.
-- **Judging is indoors,** so we built a demo mode that simulates walks along real walking routes.
-- **There's no public Uber pricing API,** so fares are a clearly labeled estimate.
+- Walk loop UX: Next coach, Demo vs live walking, capture when you arrive, hatch-ready eggs.
+- Original mascot, tab icons, and collectible pet art (not copied franchise assets).
+- Cloudflare `npm run tunnel` so Expo Go works on guest Wi-Fi after Expo’s shared ngrok filled up.
+- Voice and Imagine behind `/api`, with ElevenLabs for Moss stories and on-device fallback.
+- ISS rare-hatch logic plus in-app cues.
+- Judges deck generated from real Expo captures in [`docs/presentation/`](docs/presentation/).
 
-**Accomplishments that we're proud of.** Two working clients (phone and iMessage) that share one set of game rules. Agents that only say what real data supports. Grok features that fall back gracefully without a key. Rare eggs tied to the real ISS overhead.
+## What works vs what is next
 
-**What we learned.** Designing APIs so secrets stay on the server, building one codebase for web, phone and chat, and how much a small reward changes whether people choose to walk.
-
-**What's next.**
-- Pets, turf and Grok in the phone app.
-- Real AR capture (ARKit / ARCore) and background walk tracking.
-- Accessibility: tagging stairs, ramps and broken elevators.
-- Friends and shared campus gardens.
-- Real accounts, and server-side checks against fake steps.
-
-## Getting started
-
-**Commands run from the folder they belong to.** If your terminal is at the repo root, `cd` into `server`, `core`, `mobile` or `imessage-agent` first. Paths in this repo contain spaces (`New folder`), so put quotes around full paths, for example `cd "C:\...\big-red-hacks2026\mobile"`.
-
-### 1. Install the tools
-
-| Tool | Version | Needed for |
+| Implemented | Fallback | Not this weekend |
 |---|---|---|
-| [Node.js](https://nodejs.org/) | **22.9 or newer** | Server, phone app, iMessage agent, tests |
-| [Git](https://git-scm.com/) | any | Cloning the repo |
-| **Expo Go** app on your phone | latest (SDK 57) | The phone app (App Store or Google Play) |
+| Explore → walk → capture loop on the phone | Demo walks indoors | Background GPS with the phone in a pocket |
+| Wikipedia facts, OSM / OSRM routes | On-device speech, SVG art | A Render host that stays awake all event |
+| Eggs, pets, turf rules, ISS rarity boost | Sample leaderboards / turf without `/api` | Richer social gardens and friend meetings |
+| Photon iMessage in the terminal / with keys | — | Persistent iMessage sessions |
+| iOS garden map in a **dev build** | Apple Maps in Expo Go | True world-locked AR |
 
-Check them with `node --version` and `git --version`.
+Nessie / bank savings were **dropped**. Eggs are earned by walking, not purchased.
 
-### 2. Clone the repo and add your keys
+## Run it
 
-```bash
-git clone https://github.com/LuisMend12/big-red-hacks2026.git
-cd big-red-hacks2026
-```
+**Node.js 22.9+** (server). Expo Go on a phone, SDK 57. Commands are from the folder named in the prompt. Paths with spaces need quotes.
 
-Create a file named **`.env`** in the repo root. It's git-ignored, so keys never get committed. **Every key is optional:** without one, that feature uses a fallback.
+### Keys (optional, never commit)
+
+Root [`.env`](server/.env.example) (git-ignored):
 
 ```ini
-# Grok Voice + Grok Imagine (console.x.ai -> API Keys)
 XAI_API_KEY=
-# Optional: keeps leaderboards and turf across restarts (Supabase -> Project Settings -> API)
+ELEVENLABS_API_KEY=
+# optional
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 ```
 
-The iMessage agent has its own `.env` (step 5). Templates: [server/.env.example](server/.env.example) and [imessage-agent/.env.example](imessage-agent/.env.example).
+Photon keys live only in `imessage-agent/.env` (see that folder’s example). Do not put Grok or ElevenLabs keys in the app.
 
-### 3. 🖥️ Server (Grok, live leaderboards, turf)
+### Server
 
 ```bash
 cd server
 npm start
 ```
 
-Then check **http://localhost:8765/api/health**. The server has no dependencies, so there's no `npm install` step. The startup line shows what's on, for example `Grok: on · storage: file`. Stop it with `Ctrl+C`. Guide: [server/README.md](server/README.md).
+Open http://localhost:8765/api/health. No `npm install`. Startup prints whether Grok and voice are on.
 
-### 4. 📱 Phone app (Expo)
+### Phone
 
 ```bash
 cd mobile
@@ -177,13 +182,11 @@ npm install
 npm run tunnel
 ```
 
-Wait for **"Tunnel ready."**, then scan the QR code: with the **Camera** app on iPhone, or **inside Expo Go** on Android. Tunnel mode works on any network, including the venue's guest Wi-Fi, which blocks the normal mode. On a home network where the phone and laptop share Wi-Fi, `npx expo start --go` is faster. Guide and troubleshooting: [mobile/README.md](mobile/README.md).
+Wait until the terminal says **Metro is up**, then scan **this run’s** QR (Camera on iPhone, Expo Go on Android). Guest Wi-Fi blocks LAN; the tunnel is required there. On a trusted home network, `npx expo start --go` is faster.
 
-The **stylized 3D garden map** is iOS-only and needs a **development build** (MapLibre is not in Expo Go). Expo Go still runs the standard Apple Maps view. Steps: [mobile/README.md](mobile/README.md#ios-garden-map-development-build).
+Point `EXPO_PUBLIC_API_URL` at the server if you want live voice, Imagine, turf, and boards. `npm run tunnel` will tunnel a local API on port 8765 when that server is already running. Details: [mobile/README.md](mobile/README.md).
 
-### 5. 💬 iMessage agent (Photon)
-
-Try it in your terminal first. No keys are needed:
+### iMessage (optional)
 
 ```bash
 cd imessage-agent
@@ -191,88 +194,42 @@ npm install
 npm run terminal
 ```
 
-Type `hi`, `explore`, `take me there`, `arrived` and `savings`.
+Type `hi`, `explore`, `take me there`. Photon keys are only needed for real iMessage (`npm start`). Guide: [imessage-agent/README.md](imessage-agent/README.md).
 
-To use it on real iMessage, add your Photon keys (from [app.photon.codes](https://app.photon.codes/) → your project → **Settings**):
-
-```bash
-cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
-# edit .env: SPECTRUM_PROJECT_ID, SPECTRUM_PROJECT_SECRET, and DEMO_PHONE_NUMBER (your number)
-npm start
-```
-
-Pip texts your `DEMO_PHONE_NUMBER` first, so just reply. Guide: [imessage-agent/README.md](imessage-agent/README.md).
-
-### 6. ✅ Run the tests
+### Tests
 
 ```bash
-cd core && npm test             # game logic: eggs, pets, ranks, savings
-cd ../server && npm test        # API: Grok requests (fake xAI), turf, leaderboards, security
-cd ../imessage-agent && npm test   # a full iMessage conversation (needs internet)
-cd ../mobile && npx expo lint   # phone app lint
+cd core && npm test
+cd ../server && npm test
+cd ../imessage-agent && npm test
+cd ../mobile && npm test && npx expo lint
 ```
 
-### 7. 🚀 Deploy with HTTPS (for phones and judging)
+After changing `core/`, run `npm run sync-core` in `mobile/` and commit the generated `mobile/src/core/` copy.
 
-Push to GitHub. Then in [Render](https://render.com) choose **New → Blueprint**, pick this repo (it reads [render.yaml](render.yaml)), and enter `XAI_API_KEY`. Open the `https://…onrender.com` link and check `/api/health`. Details: [server/README.md](server/README.md#deploy-with-https-render-free).
+## Team
 
-### Quick fixes
-
-| Problem | Fix |
+| Name | |
 |---|---|
-| `npx` / `npm` "running scripts is disabled" (PowerShell) | Use **Command Prompt**, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once |
-| Port 8765 is already in use | Stop the other server (`Ctrl+C`), or run `PORT=8800 npm start` (PowerShell: `$env:PORT=8800; npm start`) |
-| Phone app spins forever | Use `npm run tunnel` (guest Wi-Fi blocks the normal mode) |
-| `/api/health` shows `"grok":false` | Add `XAI_API_KEY` to the root `.env` and restart the server |
+| **Luis Mendez** | Software engineer |
+| **Abdullah Rashid** | Software engineer |
 
-### Pushing changes
+Built at Cornell, October 2–4, 2026.
 
-Everyone works on `main`, so pull before you start and again before you push.
+## License
 
-```bash
-git pull --rebase                 # get teammates' work first
-# ...make your changes...
-git status                        # check what changed; .env must NOT be listed
-git add <the files you changed>   # add files by name, not "git add ." blindly
-git commit -m "Short summary of the change"
-git pull --rebase                 # pick up anything pushed while you worked
-git push
-```
+There is no project-wide license file in the repo root. `mobile/LICENSE` is Expo’s MIT license for Expo’s own files, not a grant for the whole hackathon project.
 
-- **Push rejected** ("fetch first" or "non-fast-forward")? Someone pushed before you. Run `git pull --rebase`, then `git push` again.
-- **Conflict during the rebase?** Open the files git lists, keep the right parts, delete the `<<<<<<<`, `=======` and `>>>>>>>` lines, then `git add <file>` and `git rebase --continue`. To back out instead, run `git rebase --abort`.
-- **Never commit keys.** `.env` files are ignored by git. If `git status` ever shows one, stop and don't commit it.
-- **Before you push, run the checks** for the part you changed:
+## Repository map
 
-| You changed | Run |
+| Path | What |
 |---|---|
-| `core/` (shared game logic) | `npm test` in `core/`, then `npm run sync-core` in `mobile/` and commit the updated `mobile/src/core/` too |
-| `server/` | `npm test` in `server/` |
-| `mobile/` | `npx expo lint` and `npx expo export --platform android --platform ios` in `mobile/` |
-| `imessage-agent/` | `npm test` in `imessage-agent/` |
-
-- **Commit small and often** with clear messages. Judges look at the git history to see steady progress.
-
-## Submission checklist (due Sunday 8:30 AM on Devpost)
-
-- [ ] **GitHub link** to this repo on Devpost, with the repo **public**
-- [ ] **Pitch deck** as a **Google Drive link to a PDF**: name and team, problem and why it matters, solution and screenshots, tech stack, impact and future potential (this README has all of it)
-- [ ] Devpost questions answered (drafts above) and **tracks selected**: BigRed, SpaceX, Capital One, Photon, Software, Design, People's Choice
-- [ ] Demo video linked
-- [ ] Server deployed over HTTPS, with `XAI_API_KEY` set and `/api/health` showing `"grok":true`
-- [ ] TODOs in this README filled in: team, links, screenshots, Cursor section
-- [ ] At least 5 minutes set aside to submit; late submissions aren't accepted
-- [ ] Ready for judging: 9:00 AM, 4 minutes per table (2-minute pitch, 2-minute Q&A). Script: [docs/DEMO.md](docs/DEMO.md)
-
-## Repository
-
-| Path | What's there |
-|---|---|
-| [`server/`](server/) | Backend API: Grok, leaderboards and turf |
-| [`core/`](core/) | Shared game logic (synced into `mobile/src/core/`) |
-| [`mobile/`](mobile/) | Expo phone app |
-| [`imessage-agent/`](imessage-agent/) | Photon Spectrum iMessage agent |
-| [`docs/`](docs/) | [Demo plan](docs/DEMO.md), [mobile plan](docs/mobile-migration.md), [hackathon info](docs/general-info.pdf), [brainstorming archive](docs/brainstorm.md), idea sheets |
-| [PLAN.md](PLAN.md) | Scope and priorities for the weekend |
-| [SPLIT.md](SPLIT.md) | Who works on what, branches and merge workflow |
-| [AGENTS.md](AGENTS.md) | Notes for AI coding agents (Cursor, Claude Code) |
+| [`mobile/`](mobile/) | The product: Expo phone app |
+| [`core/`](core/) | Shared game logic |
+| [`server/`](server/) | `/api` for Grok, ElevenLabs, boards, turf |
+| [`imessage-agent/`](imessage-agent/) | Photon Spectrum agent |
+| [`docs/presentation/`](docs/presentation/) | Judges deck |
+| [`docs/demo-gif/`](docs/demo-gif/) | Promo GIF / MP4 |
+| [`CURSOR_LOG.md`](CURSOR_LOG.md) | Cursor prompt log |
+| [`PLAN.md`](PLAN.md) | Weekend scope |
+| [`docs/DEMO.md`](docs/DEMO.md) | Table-demo script |
