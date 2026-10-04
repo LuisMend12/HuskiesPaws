@@ -151,10 +151,7 @@ export function createOnline({ get, set, persist, say }) {
       return null;
     }
     const me = player();
-    if (!apiAvailable()) {
-      if (!state.demoMode) say("Configure the server to claim territory on real walks.");
-      return null;
-    }
+    if (!apiAvailable()) return null; // no server configured: the landmark screen applies the rules locally
     const data = await claimTurf({
       playerId: me.id,
       playerName: me.name,
