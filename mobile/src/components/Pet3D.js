@@ -10,6 +10,7 @@ import { BackSide, DataTexture, NearestFilter, RGBAFormat } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { colorOf, rarityOf } from "../core/pets.js";
 import { colors } from "../theme.js";
+import { FACE_PLANE, faceTexture } from "./faceTexture.js";
 import { diag } from "../diag.js";
 
 export const INK = colors.navy;
@@ -69,25 +70,6 @@ export function Outlined({ geometry, color, position, rotation, scale = 1, child
   );
 }
 
-// Flat layered discs facing forward: outline, white, ice-blue iris, pupil, shine.
-function Eye({ x }) {
-  const disc = (r, color, z, y = 0) => (
-    <mesh position={[0, y, z]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1, 1.15]}>
-      <cylinderGeometry args={[r, r, 0.02, 20]} />
-      <Flat color={color} />
-    </mesh>
-  );
-  return (
-    <group position={[x, 0.1, 0.64]}>
-      {disc(0.2, INK, 0)}
-      {disc(0.175, "#ffffff", 0.012)}
-      {disc(0.13, colors.ice, 0.024, -0.015)}
-      {disc(0.07, INK, 0.036, -0.015)}
-      {disc(0.045, "#ffffff", 0.048, 0.06)}
-    </group>
-  );
-}
-
 const cone = (r, h, sides = 4) => <coneGeometry args={[r, h, sides]} />;
 const ball = <sphereGeometry args={[1, 16, 12]} />;
 
@@ -134,46 +116,17 @@ function Ears({ species, fur }) {
   }
 }
 
-const MARKINGS = {
-  husky: [{ color: "#ffffff", position: [0, -0.12, 0.5], scale: [0.62, 0.48, 0.2] }],
-  shiba: [{ color: "#fff3e0", position: [0, -0.28, 0.48], scale: [0.6, 0.3, 0.2] }],
-  cat: [{ color: "#ffffff", position: [0, -0.22, 0.56], scale: [0.24, 0.16, 0.12] }],
-  bunny: [{ color: "#ffffff", position: [0, -0.22, 0.56], scale: [0.22, 0.16, 0.12] }],
-  fox: [
-    { color: "#ffffff", position: [-0.36, -0.28, 0.5], scale: [0.3, 0.22, 0.16] },
-    { color: "#ffffff", position: [0.36, -0.28, 0.5], scale: [0.3, 0.22, 0.16] },
-  ],
-  bear: [{ color: "#f1d9b5", position: [0, -0.22, 0.54], scale: [0.32, 0.22, 0.14] }],
-};
+// The whole face is one decal (eyes, nose, mouth, blush) on the body's front;
+// see faceTexture.js. Bunnies get pink eyes, like the classic simulator pets.
+const IRIS = { bunny: "#f06fb0" };
+const FACE_Z = 0.605; // just in front of the body's flat front (half its depth is 0.6)
 
 function Face({ species }) {
   return (
-    <group>
-      {(MARKINGS[species] ?? MARKINGS.husky).map((m, i) => (
-        <mesh key={i} position={m.position} scale={m.scale}>
-          {ball}
-          <Toon color={m.color} />
-        </mesh>
-      ))}
-      <Eye x={-0.3} />
-      <Eye x={0.3} />
-      {[-0.5, 0.5].map((x) => (
-        <mesh key={x} position={[x, -0.2, 0.6]} rotation={[Math.PI / 2, 0, 0]} scale={[1.4, 1, 1]}>
-          <cylinderGeometry args={[0.07, 0.07, 0.02, 16]} />
-          <Flat color={colors.pink} />
-        </mesh>
-      ))}
-      <mesh position={[0, -0.17, 0.71]} scale={[0.084, 0.054, 0.048]}>
-        {ball}
-        <Flat color={INK} />
-      </mesh>
-      {[-0.055, 0.055].map((x) => (
-        <mesh key={x} position={[x, -0.25, 0.69]} rotation={[0, 0, Math.PI]}>
-          <torusGeometry args={[0.05, 0.014, 6, 12, Math.PI]} />
-          <Flat color={INK} />
-        </mesh>
-      ))}
-    </group>
+    <mesh position={[0, FACE_PLANE.y, FACE_Z]}>
+      <planeGeometry args={[FACE_PLANE.width, FACE_PLANE.height]} />
+      <meshBasicMaterial map={faceTexture({ iris: IRIS[species] })} transparent alphaTest={0.02} toneMapped={false} />
+    </mesh>
   );
 }
 
