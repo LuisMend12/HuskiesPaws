@@ -49,7 +49,14 @@ const expoEnv = {
   ...process.env,
   EXPO_PACKAGER_PROXY_URL: proxyUrl,
 };
-if (api?.url) expoEnv.EXPO_PUBLIC_API_URL = api.url.replace(/\/$/, "");
+// A deployed API (Render) in EXPO_PUBLIC_API_URL / mobile/.env wins over the local tunnel.
+const existingApi = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+if (existingApi) {
+  expoEnv.EXPO_PUBLIC_API_URL = existingApi;
+  console.log(`Using existing EXPO_PUBLIC_API_URL (${existingApi})`);
+} else if (api?.url) {
+  expoEnv.EXPO_PUBLIC_API_URL = api.url.replace(/\/$/, "");
+}
 
 const expo = spawn("npx", ["expo", "start", "--port", String(METRO_PORT), ...expoFlags], {
   stdio: "inherit",
