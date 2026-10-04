@@ -62,6 +62,75 @@ Say the fallback \emph{before} they hear on-device TTS.
 Do \textbf{not} pitch Nessie, background tracking, or a live cloud host unless you
 have just checked health.
 
+\section{Cheat sheet --- how we used each technology}
+Glance here if a judge names a library. One job per row. Do not invent extra uses.
+
+{\small
+\begin{tabular}{@{}P{0.26\textwidth}P{0.42\textwidth}P{0.26\textwidth}@{}}
+\toprule
+\textbf{Technology} & \textbf{How we used it} & \textbf{Where / caveat} \\
+\midrule
+Expo / React Native (SDK 57)
+  & The product: map, GPS, camera, steps, sheet UI, Demo Walk.
+  & \texttt{mobile/}. Expo Go on iPhone. \\
+\texttt{react-native-maps}
+  & Campus map in Expo Go (Apple Maps on iOS).
+  & Default judging path. \\
+MapLibre + OpenFreeMap
+  & Garden 3D map on iOS.
+  & Development build only, not Expo Go. \\
+\texttt{expo-speech}
+  & On-device TTS when Grok / ElevenLabs fail or have no credits.
+  & Always the fallback. \\
+\texttt{expo-haptics}, camera, location
+  & Capture feel, indoor postcards, live walks.
+  & Phone permissions. \\
+Plain JS \texttt{core/}
+  & Game truth: agents, eggs, ranks, turf, geo, ISS rarity.
+  & Copied to the app with \texttt{sync-core}. Not an LLM. \\
+Node \texttt{server/}
+  & \texttt{/api} for voice, Imagine, turf, boards. Holds every secret.
+  & No extra runtime deps. \\
+Wikipedia
+  & Nearby places (geosearch) and postcard extracts. Agents may not invent buildings.
+  & Custom User-Agent required. \\
+OSM / OSRM
+  & Walking geometry and remaining distance. Fern only routes from this.
+  & Real paths, including Demo Walk. \\
+wheretheiss.at
+  & Live ISS position; $3\times$ rare-hatch while overhead.
+  & SpaceX-flavored, still a tool. \\
+Grok Voice (xAI)
+  & Spoken memos for Pip and Fern when key + credits work.
+  & Server only. Tests use a fake. \\
+Grok Imagine (xAI)
+  & Postcard / hatch pictures from server-side prompts.
+  & Same: credits or SVG art. \\
+ElevenLabs
+  & Moss's story voice.
+  & Server; otherwise \texttt{expo-speech}. \\
+Original SVG art
+  & Pets, mascot, hatch portraits without Imagine.
+  & Ships in the app. \\
+Photon Spectrum
+  & Same squad roles over iMessage (\texttt{explore}, \texttt{take me there}).
+  & \texttt{imessage-agent/}. Sessions in memory. \\
+Cloudflare tunnel
+  & Expo Go QR on guest Wi-Fi after public ngrok filled up.
+  & \texttt{npm run tunnel} in \texttt{mobile/}. \\
+Cursor
+  & Built the app, deck, and docs in Agent mode (SpaceX track).
+  & Proof: \texttt{CURSOR\_LOG.md}, \texttt{.cursor/rules/}. \\
+Supabase
+  & Revision-checked turf RPCs in schema.
+  & Written; not claimed live. \\
+Render
+  & \texttt{render.yaml} blueprint for the API.
+  & Claim live only if \texttt{/api/health} is green. \\
+\bottomrule
+\end{tabular}
+}
+
 \section{How to present it at the table (about 2 minutes)}
 Keep the pitch deck on \textbf{slide 4} (Demo Walk on). Hand them the phone.
 

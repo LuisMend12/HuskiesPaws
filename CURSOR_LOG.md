@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Tech-use cheat sheet in judges TeX
+
+**Prompt (summary).** On the judges TeX file, only add a cheat sheet of how we used each technology.
+
+**Decisions.** Added one table to `docs/ideas/judges-tech-briefing.tex`: technology, the actual job, folder/caveat. Covers Expo, core, Wikipedia/OSRM/ISS, Grok/ElevenLabs fallbacks, Photon, Cursor, Cloudflare, Supabase/Render. Did not claim live cloud or Nessie.
+
 ## 2026-10-04 — iMessage Explore screenshot on README
 
 **Prompt (summary).** Add the iMessage Explore screenshot (Pip / Risley) to the root README.
