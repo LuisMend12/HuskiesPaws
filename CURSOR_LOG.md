@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Drop Nessie; Grok deploy is for the phone
+
+**Prompt (summary).** Deploy the server for Grok on the mobile app. Do not use Nessie. Update READMEs.
+
+**Decisions.** Removed `/api/bank`, `core/nessie.js`, and Render `NESSIE_API_KEY`. Phone saves drop leftover bank keys. Docs describe Render + `EXPO_PUBLIC_API_URL` as the Grok path for Expo.
+
 ## 2026-10-03 — Tell a story used Google speech, not ElevenLabs
 
 **Prompt (summary).** Tell a story sounded like Google Maps / Google TTS; use ElevenLabs instead.

@@ -16,7 +16,7 @@ export function PetsTurfProbe({ state, game }) {
       <Hint>
         {egg
           ? `🥚 Egg ${hatchPct}% · ${metersToHatch(egg, walked)} m to hatch`
-          : `No egg yet (${state.eggsReceived} found). Eggs come from walking, never from savings.`}
+          : `No egg yet (${state.eggsReceived} found). Eggs come from walking.`}
       </Hint>
       {state.issOverhead ? <Hint>🛰️ ISS overhead — rarer hatches</Hint> : null}
       {pets.length === 0 ? <Hint>No pets yet. Walk to earn an egg, then keep walking to hatch it.</Hint> : null}

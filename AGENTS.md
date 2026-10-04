@@ -14,7 +14,7 @@ The product is the **phone app** (`mobile/`). The web app was dropped on Oct 3; 
 | Folder | What | Run |
 |---|---|---|
 | `server/` | Node server (no deps): `/api` for Grok, leaderboards, turf. Holds all secrets. No web pages. | `npm start`, `npm test` |
-| `core/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `nessie`, `pets`, `services`, `geo`, `art`, `config`, `dayLog` | Plain JS, no DOM or React Native. Keep it that way. `npm test` in `core/`. |
+| `core/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `pets`, `services`, `geo`, `art`, `config`, `dayLog` | Plain JS, no DOM or React Native. Keep it that way. `npm test` in `core/`. |
 | `mobile/` | Expo SDK 57 app | Expo Go: `npm run tunnel` or `npm run start:go`. iOS garden map: development build (`npx expo run:ios` on a Mac, or EAS) |
 | `mobile/src/map/` | iOS MapLibre garden map (OpenFreeMap). Do not import MapLibre unless `canUseNativeMapLibre()` | — |
 | `mobile/src/core/` | **Generated** copy of the shared logic | Never edit; change `core/` and run `npm run sync-core` in `mobile/` |
@@ -22,7 +22,7 @@ The product is the **phone app** (`mobile/`). The web app was dropped on Oct 3; 
 | `docs/` | Idea sheets (LaTeX), mobile migration plan | |
 
 ## Rules that bite
-- **Secrets:** keys go in `.env` (git-ignored at the root and per folder). Never hardcode them or put them in the app bundle. Grok and real bank keys belong on a backend.
+- **Secrets:** keys go in `.env` (git-ignored at the root and per folder). Never hardcode them or put them in the app bundle. Grok keys belong on a backend.
 - **User-Agent:** Wikipedia and OpenStreetMap return 403 to generic clients. Node and React Native must call `setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (...)" })` from `services.js`.
 - **Facts come from tools:** agent memos only use data returned by Wikipedia or routing. Don't let an LLM invent place facts.
 - **Immutable state updates** (spread, map, filter). Keep files under about 400 lines.
@@ -31,6 +31,5 @@ The product is the **phone app** (`mobile/`). The web app was dropped on Oct 3; 
 ## Known gaps (from PLAN.md)
 1. **Grok is wired up but untested live:** `server/` calls xAI TTS and Imagine, tested only against a fake. Needs `XAI_API_KEY`. The phone app falls back to on-device speech and SVG art without it.
 2. **Not deployed yet:** `render.yaml` is ready. Supabase storage is written but untested; file storage is the default.
-3. **Nessie calls are untested.** The API was resetting connections. It uses plain HTTP, which store builds block.
-4. The phone app runs on iPhone through Expo Go (`npm run tunnel`); Android/Google Maps still has issues. The **garden 3D map** (MapLibre + OpenFreeMap) needs an iOS **development build**; Expo Go keeps Apple Maps. Pets/turf/Grok on mobile may still lag the server work.
-5. iMessage sessions are kept in memory only.
+3. The phone app runs on iPhone through Expo Go (`npm run tunnel`); Android/Google Maps still has issues. The **garden 3D map** (MapLibre + OpenFreeMap) needs an iOS **development build**; Expo Go keeps Apple Maps. Pets/turf/Grok on mobile may still lag the server work.
+4. iMessage sessions are kept in memory only.

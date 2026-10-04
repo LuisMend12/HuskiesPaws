@@ -1,6 +1,6 @@
 # HuskiesPaws mobile app (Expo)
 
-The mobile version of [HuskiesPaws](../README.md): walk, and your trail blooms. AI agents scout real places, you climb local, statewide and national ranks, you capture landmarks as postcards, and every ride you skip grows your savings tree through Capital One Nessie.
+The mobile version of [HuskiesPaws](../README.md): walk, and your trail blooms. AI agents scout real places, you climb local, statewide and national ranks, and you capture landmarks as postcards. Grok Voice, Grok Imagine, and Moss's ElevenLabs stories run through the backend — never from keys inside the app.
 
 > **Built outside Cursor.** The Cursor track requires the project to be built with Cursor. Treat this as a head start: open the folder in Cursor and keep building there.
 
@@ -37,7 +37,7 @@ You need:
 
 No API keys are needed for Expo Go or the garden map tiles (OpenFreeMap is free and has no registration).
 
-For live leaderboards, shared turf, Grok memos/postcards, Nessie, and Pip’s daily walk texts, set `EXPO_PUBLIC_API_URL` in `mobile/.env` to the backend's HTTPS URL and restart Expo. Set `EXPO_PUBLIC_PHOTON_PHONE` to the same E.164 number as the iMessage agent's `DEMO_PHONE_NUMBER` so Pip can report today’s steps and places you passed. Configure `XAI_API_KEY` and optional `NESSIE_API_KEY` on the backend only. Connect savings in the Savings tab; old Nessie keys saved on the phone are removed on startup.
+For live leaderboards, shared turf, Grok memos/postcards, and Pip’s daily walk texts, set `EXPO_PUBLIC_API_URL` in `mobile/.env` to the backend HTTPS origin (the Render URL after you deploy) and restart Expo. `npm run tunnel` keeps that URL if it is already set; otherwise it tunnels a local `server/` on port 8765. Set `EXPO_PUBLIC_PHOTON_PHONE` to the same E.164 number as the iMessage agent's `DEMO_PHONE_NUMBER`. Put `XAI_API_KEY` and `ELEVENLABS_API_KEY` on the backend only. There is no Nessie / banking flow.
 
 The app refreshes territory every 15 seconds while active and immediately on resume. Offline territory claims are allowed only in demo mode with no API URL; connection errors do not grant local territory.
 
@@ -120,7 +120,7 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 1. **Squad → Explore.** Pip scouts a real nearby place and returns with a postcard and a spoken memo.
 2. **Take me there.** With **demo mode** on (the default, good for indoor judging), the walk is simulated and the trail blooms. With demo mode off, actually walk there; Fern notices when you're within 40 m.
 3. **📸 Capture.** The camera opens with Pip in the frame. Snap a photo, then **Save to album**.
-4. **Ranks:** see your points, the trail picker and the leaderboards. **Savings:** see your tree and the rides you skipped.
+4. **Ranks:** see your points, the trail picker and the leaderboards.
 5. **📍 Live location:** turns on real GPS and the phone's **step counter**, so your actual walk blooms and real steps count toward your rank.
 
 ## What's native here (vs. the old web prototype, now removed)
@@ -130,9 +130,8 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 | Steps | Estimated from distance | **Real step counter** (`expo-sensors` Pedometer) |
 | Map | Leaflet | `react-native-maps` on Android and in Expo Go; iOS development builds can use MapLibre + OpenFreeMap (garden map) |
 | Capture | Browser camera | `expo-camera` and `react-native-view-shot` |
-| Voice | Browser speech | `expo-speech` |
+| Voice | Browser speech | Server audio (`/api/voice`) with `expo-speech` fallback |
 | Saved progress | localStorage | AsyncStorage |
-| Nessie | May be blocked by CORS | No CORS limits on a phone |
 
 ## Code layout
 
@@ -141,16 +140,16 @@ App.js                  main screen: map, controls, tabs, modals
 src/core/               shared game logic, GENERATED from ../core (don't edit here)
 src/game/state.js       initial state, saved fields, derived values
 src/game/store.js       tiny state store (getState / setState / useStore)
-src/game/game.js        game actions: agents, guided walks, capture, savings, Nessie
+src/game/game.js        game actions: agents, guided walks, capture, pets, turf
 src/game/walking.js     movement: simulated walks, GPS, step counter, blooms, trails
 src/components/         StandardTrailMap + MapPets, TrailMap switcher, SquadPanel, PetsPanel + PetArt + HatchModal,
-                        RanksPanel, SavingsPanel, AlbumPanel, PostcardModal, CaptureModal, MapControls, StatusToast, ui
+                        RanksPanel, AlbumPanel, PostcardModal, CaptureModal, MapControls, StatusToast, ui
 src/map/                iOS garden map: MapLibre + OpenFreeMap (not loaded in Expo Go)
 src/storage.js          AsyncStorage (`wanderlings:` prefix)
 src/voice.js            speech (placeholder for Grok Voice)
 ```
 
-**Shared logic:** the agents, ranks, trails, leaderboards, savings, Nessie client and art live in [`../core/`](../core/). After changing them, run `npm run sync-core` to copy them into `src/core/`.
+**Shared logic:** the agents, ranks, trails, leaderboards, pets and art live in [`../core/`](../core/). After changing them, run `npm run sync-core` to copy them into `src/core/`.
 
 ## Checks
 
@@ -166,8 +165,7 @@ The app now runs on a real phone through Expo Go with `npm run tunnel`. Still te
 
 ## Known limits and next steps
 
-- **Grok isn't used yet (required for the Cursor track).** Voice uses `expo-speech`, and postcards are SVG art. Add a small backend that holds the Grok key and calls Grok Voice and Grok Imagine. Never put the key in the app.
-- **Nessie uses plain HTTP.** Expo Go allows that. A store build needs cleartext HTTP enabled for `api.nessieisreal.com` (Android `usesCleartextTraffic` via `expo-build-properties`, and an iOS App Transport Security exception). The Nessie calls are also **untested**, since the API was resetting connections during development.
+- **Grok Voice and Imagine** need the backend (`XAI_API_KEY`) and `EXPO_PUBLIC_API_URL` on the phone. Without them, memos use on-device speech and postcards use SVG art. Deploy steps are in the [root README](../README.md) and [server/README.md](../server/README.md).
 - **Leaderboards use sample players** until there's a backend (for example Supabase). See [docs/mobile-migration.md](../docs/mobile-migration.md).
 - **Android step counting** only works while the app is open. Background tracking and **true AR** (ViroReact) need a development build (`npx expo run:android` or EAS).
 - **Garden 3D map is iOS + development build only.** Expo Go keeps Apple Maps. Visual QA on a real iPhone is still outstanding on Windows (no local `expo run:ios`).
