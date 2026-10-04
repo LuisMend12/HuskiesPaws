@@ -35,7 +35,7 @@ HuskiesPaws is for students and anyone who walks a campus or neighborhood and wa
 - Hatches **pets** from walking (never from bank money) that can **guard landmarks**
 - Uses **Wikipedia, OpenStreetMap, walking routes, and live ISS position** for facts and rarity — agents do not invent place history
 
-The product is the **phone app**. There is no web frontend in this repository. A Node API in [`server/`](server/) holds secrets (Grok, optional Supabase). An optional [`imessage-agent/`](imessage-agent/) runs the same squad over Photon Spectrum.
+The product is the **phone app**. There is no web frontend in this repository. A Node API in [`server/`](server/) holds secrets (Grok, optional Supabase). An optional [`imessage-agent/`](imessage-agent/) runs the same squad over Photon Spectrum. Pip can text **today’s step count and places you passed** when the phone (or an iMessage walk) updates the shared day log.
 
 Shared rules live in [`core/`](core/) (plain JavaScript, no DOM or React Native). That folder is the source of truth. [`mobile/src/core/`](mobile/src/core/) is a **generated copy**. Edit `core/`, then run `npm run sync-core` in `mobile/`. Never edit `mobile/src/core/` by hand.
 
@@ -48,6 +48,7 @@ flowchart LR
   Phone --> Server
   Phone -.sync-core.-> Core
   IM --> Core
+  IM --> Server
   Server --> Grok["xAI Grok<br/>Voice + Imagine"]
   Server --> Store["File JSON or Supabase"]
   Phone --> Nessie["Capital One Nessie"]
@@ -64,7 +65,7 @@ flowchart LR
 |---|---|
 | **Squad** | **Pip (Scout)** finds a nearby place you have not visited. **Moss (Storyteller)** reads Wikipedia-backed history. **Fern (Pathfinder)** plans a walking route. Memos are filled from tools, not free-form LLM place facts. |
 | **Blooming trails** | Walks drop flowers on the map. Rank unlocks trail styles. |
-| **Demo vs live walk** | Demo mode (on by default) simulates the walk along a real route for indoor judging. Turn it off to use GPS; Fern notices when you are close. Live location can also use the phone step counter. |
+| **Demo vs live walk** | Demo mode (on by default) simulates the walk along a real route for indoor judging. Turn it off to use GPS; Fern notices when you are close. Live location can also use the phone step counter. Today’s steps and places are posted to the API for Pip. |
 | **Capture + album** | Within about 50 m of a landmark, open the camera with an agent in frame and save a postcard. |
 | **Eggs and pets** | Walking earns eggs; walking farther hatches them (common → legendary). Eggs are **never** bought with Nessie savings. Starter pets are Pip, Moss, and Fern. |
 | **ISS rarity** | While the ISS is overhead ([wheretheiss.at](https://wheretheiss.at)), rarer hatches are 3× as likely and the pet is marked space-born. |
@@ -82,12 +83,21 @@ When `EXPO_PUBLIC_API_URL` is set and [`server/`](server/) is running:
 - **Grok Imagine** can draw **pet portraits** after a hatch (`POST /api/imagine`, `kind: "pet"`). Postcard Imagine exists on the server; the phone does not currently request postcard images.
 - **Grok Voice** is implemented as `POST /api/voice` on the server. The phone app still speaks with **expo-speech**; it does not call `/api/voice` yet.
 - Live **leaderboards** and **turf** go through `/api/score`, `/api/leaderboard`, `/api/turf`.
+- **Today’s walk** (`POST` / `GET /api/day`) stores step count and places passed for the local calendar day. The phone pushes it; Pip reads it over iMessage.
 
 Grok calls are tested against a **fake** xAI service in `server/` tests. They have **not** been verified against live xAI in this repo’s documented test suite. Set `XAI_API_KEY` to try them.
 
 ### iMessage (optional Photon track)
 
-Terminal mode works with no keys. Live iMessage needs Photon project credentials. Sessions are **in memory** (restart forgets chats). On Photon’s **Free** plan, register your iPhone as a project user, then text the **assigned** shared number. The agent may not be allowed to **start** a chat until you message first (`Target not allowed for this project`).
+Terminal mode works with no keys. Live iMessage needs Photon project credentials. Chat sessions are **in memory** (restart forgets location and savings). On Photon’s **Free** plan, register your iPhone as a project user, then text the **assigned** shared number. The agent may not be allowed to **start** a chat until you message first (`Target not allowed for this project`).
+
+**Daily walk updates.** Pip texts places you actually passed and today’s steps:
+
+- On iMessage, **`today`** or **`steps`** asks for the tally. **`arrived`** logs that stop and estimated steps from the route, then sends the tally.
+- Unprompted: when the phone (or an iMessage arrive) records a **new place** or a **step milestone** (1,000 / 2,500 / 5,000 / 10,000…), Pip texts the same kind of update. Small step bumps stay quiet.
+- Facts stay grounded: place titles come from the map / day log, not an LLM.
+
+To link the phone to Pip, set the **same E.164 number** as `EXPO_PUBLIC_PHOTON_PHONE` on the phone and `DEMO_PHONE_NUMBER` on the agent, plus `EXPO_PUBLIC_API_URL` and `HUSKIESPAWS_API_URL` pointing at the running API. The agent polls `/api/day` about every 45 seconds.
 
 ### Not done / known limits
 
@@ -150,6 +160,8 @@ SUPABASE_SERVICE_KEY=
 ```ini
 # Public HTTPS (or LAN) URL of the API. No secrets.
 EXPO_PUBLIC_API_URL=
+# Same E.164 number Photon texts, so Pip can report today's walk. Not a secret.
+EXPO_PUBLIC_PHOTON_PHONE=
 ```
 
 Example local value: `EXPO_PUBLIC_API_URL=http://127.0.0.1:8765` (a physical phone usually cannot reach that; use a tunnel or Render).
@@ -160,9 +172,10 @@ Example local value: `EXPO_PUBLIC_API_URL=http://127.0.0.1:8765` (a physical pho
 SPECTRUM_PROJECT_ID=your-project-id
 SPECTRUM_PROJECT_SECRET=your-project-secret
 DEMO_PHONE_NUMBER=
+HUSKIESPAWS_API_URL=
 ```
 
-Get id and secret from [app.photon.codes](https://app.photon.codes/) → project → Settings. Hackathon promo mentioned in the agent README: `HACKWITHPHOTON`. `DEMO_PHONE_NUMBER` is optional (E.164). On Free, outbound welcome texts can fail until you iMessage the assigned Photon number first.
+Get id and secret from [app.photon.codes](https://app.photon.codes/) → project → Settings. Hackathon promo mentioned in the agent README: `HACKWITHPHOTON`. `DEMO_PHONE_NUMBER` is optional (E.164). Set `HUSKIESPAWS_API_URL` to the same origin as `EXPO_PUBLIC_API_URL` so Pip can poll today’s steps and places. On Free, outbound welcome texts and unprompted tallies can fail until you iMessage the assigned Photon number first.
 
 ### Dependencies
 
@@ -267,7 +280,7 @@ cd imessage-agent
 npm start
 ```
 
-You should see `HuskiesPaws agent listening on iMessage…`. Photon Cloud does **not** require a Mac. Guide: [`imessage-agent/README.md`](imessage-agent/README.md).
+You should see `HuskiesPaws agent listening on iMessage…`. Photon Cloud does **not** require a Mac. Keep the API running if you want Pip to text daily steps and places from the phone app. Guide: [`imessage-agent/README.md`](imessage-agent/README.md).
 
 ### Tests and checks
 
@@ -307,7 +320,7 @@ iMessage conversation tests hit live Wikipedia / OSM (need network). Server test
 
 ### Outdoor walk
 
-Turn **demo mode off** and enable live location. Walk the route; arrival is based on GPS (about 40 m). Real steps can count toward rank while the app is open. Android step counting does not continue in the background in this build.
+Turn **demo mode off** and enable live location. Walk the route; arrival is based on GPS (about 40 m). Real steps can count toward rank while the app is open, and today’s count plus places you passed are posted to `/api/day` for Pip. Android step counting does not continue in the background in this build.
 
 ### iMessage (terminal)
 
@@ -318,10 +331,11 @@ explore
 story
 take me there
 arrived
+today
 savings
 ```
 
-Same commands work on iMessage after you text the Photon assigned number from a registered user phone.
+Same commands work on iMessage after you text the Photon assigned number from a registered user phone. After `arrived` (or when the phone logs a new place / step milestone), Pip answers with today’s steps and the places you passed.
 
 ### API (verified against `server/test/api.test.js`)
 
@@ -370,6 +384,16 @@ curl -s "http://localhost:8765/api/leaderboard?scope=state&region=New%20York&me=
 
 Turf: `GET /api/turf?me=<playerId>`, `POST /api/turf/claim` with player, landmark, and pet fields (see [`server/src/validate.js`](server/src/validate.js)).
 
+Today’s walk (needs `playerId` and/or E.164 `phone`; the server keeps the **max** step count and **unions** places for the local calendar day):
+
+```bash
+curl -s -X POST http://localhost:8765/api/day \
+  -H "Content-Type: application/json" \
+  -d "{\"phone\":\"+16075551234\",\"steps\":2100,\"places\":[{\"id\":\"sage\",\"title\":\"Sage Chapel\"}]}"
+
+curl -s "http://localhost:8765/api/day?phone=%2B16075551234"
+```
+
 ---
 
 ## Contributing
@@ -380,7 +404,7 @@ Work happened in **Cursor** for the SpaceX track. Keep [`.cursor/rules/`](.curso
 
 | Path | Role |
 |---|---|
-| [`core/`](core/) | Game rules: agents, rank, leaderboard, savings, Nessie client, pets, geo, art, config, Wikipedia/OSM/ISS helpers |
+| [`core/`](core/) | Game rules: agents, rank, leaderboard, savings, Nessie client, pets, geo, art, config, day log, Wikipedia/OSM/ISS helpers |
 | [`mobile/`](mobile/) | Expo SDK 57 app |
 | [`mobile/src/core/`](mobile/src/core/) | **Generated** from `core/` |
 | [`mobile/src/map/`](mobile/src/map/) | iOS MapLibre garden map |
@@ -393,7 +417,7 @@ Work happened in **Cursor** for the SpaceX track. Keep [`.cursor/rules/`](.curso
 1. Change files only under `core/` (not `mobile/src/core/`).
 2. Keep core free of DOM and React Native.
 3. `cd core && npm test`
-4. `cd mobile && npm run sync-core` (copies the ten core modules and prepends a generated header).
+4. `cd mobile && npm run sync-core` (copies the core modules, including `dayLog.js`, and prepends a generated header).
 5. `npx expo lint` in `mobile/`.
 6. If the iMessage bot depends on the change, `npm test` in `imessage-agent/`.
 7. Commit `core/` **and** the updated `mobile/src/core/` together.
@@ -426,7 +450,7 @@ Do not commit `.env` files. `git status` must not list them.
 | **BigRed** | Navigation by exploration and walking, not only shortest path |
 | **SpaceX** | Grok Voice/Imagine on the server; ISS-linked rarity; built with Cursor |
 | **Capital One Nessie** | Skipped-ride transfers into savings; eggs not purchased with that money |
-| **Photon** | Squad over iMessage via Spectrum |
+| **Photon** | Squad over iMessage via Spectrum, including Pip’s daily places-and-steps updates |
 | **Software / Design / People’s Choice** | Shared `core/`, tests, turf as a reason to walk back to campus landmarks |
 
 ---

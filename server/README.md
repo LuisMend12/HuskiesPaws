@@ -9,6 +9,7 @@ One small Node server (no dependencies) that backs the phone app (`../mobile/`).
 | `POST /api/score`, `GET /api/leaderboard` | Live **local / statewide / national** leaderboards |
 | `GET /api/turf`, `POST /api/turf/claim`, `POST /api/turf/recall` | **Turf:** claim with a stronger pet, recall your guard, and earn a walking XP boost while holding. Guards decay over time. |
 | `POST /api/bank/connect`, `POST /api/bank/transfer` | Nessie sandbox accounts and walk transfers using the server's key. |
+| `POST /api/day`, `GET /api/day` | **Today’s walk:** step count and places passed for the local calendar day. Body `{ playerId?, phone?, steps, places }`. Query `playerId` or `phone` (E.164). Merge keeps the higher step count and unions places. Used by the phone and by Pip over iMessage. |
 | `GET /api/health` | Shows whether Grok is on and which storage is in use |
 
 Without a configured API URL, the phone uses on-device speech, SVG art and sample leaderboards. Local turf is available in demo mode only. When an API URL is configured, a failed claim remains unconfirmed; it never grants local ownership.

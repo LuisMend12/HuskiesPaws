@@ -9,10 +9,13 @@ The HuskiesPaws squad as an iMessage agent, built on [Photon Spectrum](https://p
 | `explore` | 🍊 Pip heads out, then texts back with a real nearby place, a fact and a photo |
 | `story` | 🍇 Moss tells the history of the closest landmark, then sends a voice note reading it aloud (ElevenLabs) |
 | `take me there` | 🫐 Fern sends walking directions (an Apple Maps link) and the Uber fare you'll skip |
-| `arrived` | 🌸 Logs the walk; the skipped fare grows your savings tree |
+| `arrived` | 🌸 Logs the walk; the skipped fare grows your savings tree; Pip then texts today's steps and places you passed |
+| `today` / `steps` | 🍊 Pip lists today's step count and the landmarks already logged |
 | `savings` | 🌳 Shows your tree and total saved |
 
-It uses the same game logic as the phone app (`../core/`), so places, facts, routes and savings work identically everywhere.
+Pip can also **text first** when the phone (or an iMessage `arrived`) records a new place or a step milestone (1,000 / 2,500 / 5,000 / 10,000…). Small step bumps stay quiet. Place names come from the day log, not an LLM.
+
+It uses the same game logic as the phone app (`../core/`), so places, facts, routes, savings and the daily walk log work identically everywhere.
 
 ## 1. Try it without Photon (terminal mode)
 
@@ -42,10 +45,11 @@ Type messages like `hi`, `explore` and `take me there` and press Enter.
    SPECTRUM_PROJECT_ID=your-project-id
    SPECTRUM_PROJECT_SECRET=your-project-secret
    DEMO_PHONE_NUMBER=+16075551234
+   HUSKIESPAWS_API_URL=http://localhost:8765
    ELEVENLABS_API_KEY=your-elevenlabs-key   # optional: Moss's story voice notes (or put this in the repo-root .env)
    ```
 
-   `.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, rotate it in the dashboard.
+   `.env` is git-ignored. **Never commit it or paste the secret into chat.** If it leaks, rotate it in the dashboard. `HUSKIESPAWS_API_URL` should match the phone's `EXPO_PUBLIC_API_URL`. Put the same E.164 number on the phone as `EXPO_PUBLIC_PHOTON_PHONE`.
 4. **Check that iMessage is enabled and your project has a phone line** in the dashboard. With the Photon CLI, `photon spectrum lines ls` lists the lines assigned to your project.
 
 ## 3. Run it on iMessage
@@ -56,7 +60,9 @@ npm start
 
 You should see `HuskiesPaws agent listening on iMessage…`.
 
-**How you start a chat:** on Photon's free plan, messages go through a shared pool of phone numbers, so the number can differ per person. The easiest way to start: set **`DEMO_PHONE_NUMBER`** to your own number. Pip texts you first when the agent starts, and you just reply. If that doesn't arrive, check the dashboard (or `photon spectrum users ls`) for how users are added to your project.
+**How you start a chat:** on Photon's free plan, messages go through a shared pool of phone numbers, so the number can differ per person. The easiest way to start: set **`DEMO_PHONE_NUMBER`** to your own number. Pip texts you first when the agent starts, and you just reply. If that doesn't arrive, check the dashboard (or `photon spectrum users ls`) for how users are added to your project. Unprompted day tallies use the same outbound path, so **text Pip once first** on Free.
+
+With `HUSKIESPAWS_API_URL` set, the agent polls `GET /api/day?phone=…` about every 45 seconds and texts Pip's tally when a new place or a step milestone appears.
 
 The cloud iMessage provider runs on any computer. **It does not need a Mac.**
 
@@ -78,7 +84,7 @@ This runs a full conversation (locate → explore → take me there → arrived 
 
 ## Notes and limits
 
-- **Sessions live in memory,** so restarting the agent forgets everyone's location and savings. Fine for a demo; a real version would store them in the shared backend.
+- **Sessions live in memory,** so restarting the agent forgets everyone's location and savings. The **day log** on the server survives if you posted it to `/api/day`. Fine for a demo; a real version would store chats in the shared backend.
 - **Pip prefers places at least 300 m away,** far enough that you'd otherwise take a ride, so walking there saves money.
 - Wikipedia and OpenStreetMap require an identifying User-Agent. `src/index.js` sets one; without it, they return 403.
 - **Verified:** terminal mode and the conversation tests. **Not verified:** the live iMessage connection (needs your Photon keys and a phone line), including how the voice note arrives on a real iPhone.
@@ -89,7 +95,8 @@ This runs a full conversation (locate → explore → take me there → arrived 
 ```
 src/index.js       connects to Photon (or the terminal), one session per chat
 src/bot.js         the squad's replies; platform-independent and tested
+src/dayWatch.js    polls /api/day and sends Pip's places-and-steps texts
 test/bot.test.js   full conversation tests
 test/voice.test.js story voice notes with a fake ElevenLabs
-.env.example       the Photon and ElevenLabs settings template
+.env.example       the Photon, API URL, and ElevenLabs settings template
 ```
