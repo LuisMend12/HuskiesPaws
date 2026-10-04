@@ -3,6 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius, space } from "../theme.js";
 
 export function nextStep(state) {
+  if (state.hatching) {
+    return { title: "Your egg hatched", body: `Meet ${state.hatching.name}!` };
+  }
   if (state.capturable && !state.walking) {
     return { title: "Capture this place", body: `Save ${state.capturable.title} to your album.` };
   }

@@ -77,7 +77,7 @@ function ProgressBar({ progress, id }) {
   );
 }
 
-function EggRow({ egg, walked, index }) {
+function EggRow({ egg, walked, index, onHatch }) {
   const tilt = useLoop(wobble, index * 450); // eggs wobble one after another, not in sync
   const rotate = tilt.interpolate({ inputRange: [-1, 1], outputRange: ["-10deg", "10deg"] });
   const done = eggDone(egg, walked);
@@ -96,6 +96,9 @@ function EggRow({ egg, walked, index }) {
         </View>
         <ProgressBar progress={progress} id={egg.id} />
         {tier && <Text style={styles.eggOdds}>{`${tier.odds.epic + tier.odds.legendary}% epic or legendary`}</Text>}
+        {progress >= 1 && onHatch ? (
+          <Button title="Hatch now" onPress={onHatch} accessibilityLabel="Hatch this egg" />
+        ) : null}
       </View>
     </View>
   );
@@ -209,7 +212,9 @@ export function PetsPanel({ state, game }) {
         {eggs.length === 0 ? (
           <Hint>{`No eggs yet. You find one every ${EGG_EVERY_STEPS} steps; only walking earns eggs.`}</Hint>
         ) : (
-          eggs.map((egg, i) => <EggRow key={egg.id} egg={egg} walked={walked} index={i} />)
+          eggs.map((egg, i) => (
+            <EggRow key={egg.id} egg={egg} walked={walked} index={i} onHatch={game.hatchEgg} />
+          ))
         )}
       </Card>
 

@@ -12,7 +12,7 @@ import { Button } from "./ui.js";
 export const loadSquadView = () => import("./SquadView.js");
 export const SHEET_OVERLAP = 24;
 
-export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
+export function MapTopBar({ rank, score, boost = 1, issOverhead = false, onRankPress }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.topBar, { top: insets.top + space.sm }]} pointerEvents="box-none">
@@ -21,6 +21,7 @@ export function MapTopBar({ rank, score, boost = 1, onRankPress }) {
         <Text style={styles.brandText}>
           Huskies<Text style={styles.brandAccent}>Paws</Text>
         </Text>
+        {issOverhead ? <Text style={styles.issChip}>ISS</Text> : null}
       </View>
       <Pressable style={[styles.pill, styles.rankPill]} onPress={onRankPress} accessibilityRole="button" accessibilityLabel={`Your rank: ${rank.name}, ${score} XP${boost > 1 ? `, XP boost times ${boost.toFixed(1)}` : ""}`}>
         <RankBadge rank={rank} size={22} />
@@ -159,6 +160,7 @@ const styles = StyleSheet.create({
   logo: { width: 30, height: 30 },
   brandText: { fontFamily: fonts.black, fontSize: 15, color: colors.white },
   brandAccent: { color: colors.greenOnDark },
+  issChip: { fontFamily: fonts.black, fontSize: 11, letterSpacing: 1, color: colors.ice, marginLeft: 4 },
   pillText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
   bottomBar: { position: "absolute", left: space.md, right: space.md, gap: space.sm },
   capture: { alignSelf: "stretch" },

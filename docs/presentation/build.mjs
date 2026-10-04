@@ -11,31 +11,51 @@ const { applyTheme } = require(
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const OUT = path.join(__dirname, "HuskiesPaws-BigRedHacks-2026.pptx");
+const ART = path.join(__dirname, "assets");
 
-const C = {
-  navy: "0B1F3A",
+const HEX = {
+  forest: "163528",
   cream: "F6F1E4",
+  navy: "0B1F3A",
+  leaf: "E6F4EA",
   green: "2E9D4F",
   ice: "6EC6FF",
-  coral: "FF7A59",
   gold: "E8A317",
+  coral: "FF7A59",
+  moss: "237A3D",
+  slate: "5B6B82",
+  iceSoft: "E8F5FF",
   white: "FFFFFF",
-  moss: "1F6B45",
-  ink: "163528",
-  muted: "4A6358",
-  card: "FFFFFF",
-  leaf: "E7F3E4",
-  deep: "123252",
 };
 
-const ASSETS = {
-  icon: path.join(ROOT, "mobile/assets/icon.png"),
+const THEME = {
+  name: "HuskiesPaws",
+  headFontFace: "Calibri",
+  bodyFontFace: "Calibri",
+  colors: {
+    dk1: HEX.forest,
+    lt1: HEX.cream,
+    dk2: HEX.navy,
+    lt2: HEX.leaf,
+    accent1: HEX.green,
+    accent2: HEX.ice,
+    accent3: HEX.gold,
+    accent4: HEX.coral,
+    accent5: HEX.moss,
+    accent6: HEX.slate,
+    hlink: HEX.ice,
+    folHlink: HEX.green,
+  },
+};
+
+const IMG = {
   splash: path.join(ROOT, "mobile/assets/splash-icon.png"),
-  badge: path.join(ROOT, "mobile/assets/logo-badge.png"),
-  bronze: path.join(ROOT, "mobile/assets/badges/bronze.png"),
-  silver: path.join(ROOT, "mobile/assets/badges/silver.png"),
+  icon: path.join(ROOT, "mobile/assets/icon.png"),
   gold: path.join(ROOT, "mobile/assets/badges/gold.png"),
-  crystal: path.join(ROOT, "mobile/assets/badges/crystal.png"),
+  pip: path.join(ART, "scout.png"),
+  moss: path.join(ART, "storyteller.png"),
+  fern: path.join(ART, "pathfinder.png"),
+  postcard: path.join(ART, "postcard.png"),
 };
 
 function notes(text) {
@@ -43,19 +63,7 @@ function notes(text) {
 }
 
 function shadow() {
-  return { type: "outer", color: "0B1F3A", opacity: 0.1, blur: 8, offset: 2, angle: 90 };
-}
-
-function card(slide, x, y, w, h, fill) {
-  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-    x,
-    y,
-    w,
-    h,
-    fill: { color: fill },
-    rectRadius: 0.12,
-    shadow: shadow(),
-  });
+  return { type: "outer", color: HEX.navy, opacity: 0.08, blur: 8, offset: 2, angle: 90 };
 }
 
 const pres = new pptxgen();
@@ -64,31 +72,38 @@ pres.layout = "WIDE";
 pres.author = "Luis Mendez, Abdullah Rashid";
 pres.title = "HuskiesPaws — BigRed//Hacks 2026";
 pres.subject = "Navigation-themed demo deck";
-pres.theme = { headFontFace: "Calibri", bodyFontFace: "Calibri" };
+pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
+const C = pres.SchemeColor;
 
-pres.defineSlideMaster({
-  title: "TITLE_DARK",
-  background: { color: C.navy },
-  objects: [],
-});
+function card(slide, x, y, w, h, fill, name) {
+  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+    x,
+    y,
+    w,
+    h,
+    fill: { color: fill },
+    rectRadius: 0.16,
+    shadow: shadow(),
+    objectName: name,
+  });
+}
 
 pres.defineSlideMaster({
   title: "CONTENT",
-  background: { color: C.cream },
+  background: { color: C.background1 },
   objects: [
     {
       placeholder: {
         options: {
           name: "title",
           type: "title",
-          x: 0.55,
+          x: 0.6,
           y: 0.28,
-          w: 12.2,
-          h: 0.62,
-          fontFace: "Calibri",
-          fontSize: 32,
+          w: 12.1,
+          h: 0.72,
+          fontSize: 36,
           bold: true,
-          color: C.navy,
+          color: C.text1,
           margin: 0,
           align: "left",
           valign: "middle",
@@ -100,13 +115,12 @@ pres.defineSlideMaster({
       text: {
         text: "HuskiesPaws  ·  BigRed//Hacks 2026",
         options: {
-          x: 0.55,
-          y: 7.14,
-          w: 12.2,
-          h: 0.22,
-          fontFace: "Calibri",
+          x: 0.6,
+          y: 7.16,
+          w: 12.1,
+          h: 0.2,
           fontSize: 11,
-          color: C.muted,
+          color: C.accent6,
           margin: 0,
         },
       },
@@ -114,93 +128,64 @@ pres.defineSlideMaster({
   ],
 });
 
-pres.defineSlideMaster({
-  title: "CLOSE_DARK",
-  background: { color: C.navy },
-  objects: [],
-});
+pres.addSection({ title: "Pitch" });
+pres.addSection({ title: "Demo" });
+pres.addSection({ title: "Build" });
+pres.addSection({ title: "Close" });
 
-// ── 1. Title ───────────────────────────────────────────────────────────────
+// ── 1 Title ────────────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "TITLE_DARK" });
-  s.addShape(pres.shapes.OVAL, {
-    x: 10.6,
-    y: -1.6,
-    w: 4.6,
-    h: 4.6,
-    fill: { color: C.deep },
-  });
-  s.addShape(pres.shapes.OVAL, {
-    x: -1.6,
-    y: 5.4,
-    w: 3.8,
-    h: 3.8,
-    fill: { color: C.deep },
-  });
-
-  s.addImage({ path: ASSETS.splash, x: 9.35, y: 2.05, w: 3.15, h: 3.15 });
-  s.addImage({ path: ASSETS.icon, x: 0.7, y: 1.85, w: 1.15, h: 1.15 });
-  s.addText("HuskiesPaws", {
-    x: 2.05,
-    y: 1.85,
-    w: 7.0,
-    h: 0.7,
-    fontFace: "Calibri",
-    fontSize: 44,
-    bold: true,
-    color: C.white,
-    margin: 0,
-    valign: "middle",
-    isTextBox: true,
-  });
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Pitch" });
+  s.addText("HuskiesPaws", { placeholder: "title", isTextBox: true });
+  s.addImage({ path: IMG.splash, x: 0.7, y: 1.2, w: 2.2, h: 2.2, objectName: "mascot" });
   s.addText("Turn everyday walks into a creature-collecting adventure.", {
-    x: 2.05,
-    y: 2.55,
-    w: 7.1,
-    h: 0.5,
-    fontFace: "Calibri",
-    fontSize: 18,
+    x: 3.15,
+    y: 1.25,
+    w: 9.4,
+    h: 0.85,
+    fontSize: 24,
     italic: true,
-    color: C.ice,
+    color: C.accent5,
     margin: 0,
     isTextBox: true,
+    objectName: "tagline",
+  });
+  s.addText("BigRed//Hacks 2026  ·  Navigation  ·  the phone app", {
+    x: 3.15,
+    y: 2.15,
+    w: 9.4,
+    h: 0.4,
+    fontSize: 18,
+    color: C.accent6,
+    margin: 0,
+    isTextBox: true,
+    objectName: "event",
   });
 
-  card(s, 0.7, 3.85, 7.7, 2.15, C.deep);
-  s.addText("BigRed//Hacks 2026  ·  Theme: Navigation", {
-    x: 0.95,
-    y: 4.05,
-    w: 7.2,
-    h: 0.4,
-    fontFace: "Calibri",
-    fontSize: 18,
-    color: C.gold,
-    margin: 0,
-    isTextBox: true,
+  const chips = [
+    { t: "Luis Mendez", x: 0.7 },
+    { t: "Abdullah Rashid", x: 4.9 },
+    { t: "Built with Cursor", x: 9.1 },
+  ];
+  chips.forEach((chip) => {
+    card(s, chip.x, 3.55, 3.95, 1.2, C.background2, `chip-${chip.t}`);
+    s.addText(chip.t, {
+      x: chip.x + 0.2,
+      y: 3.75,
+      w: 3.55,
+      h: 0.8,
+      fontSize: 20,
+      bold: true,
+      color: C.text1,
+      margin: 0,
+      valign: "middle",
+      align: "center",
+      isTextBox: true,
+    });
   });
-  s.addText("Luis Mendez  ·  Abdullah Rashid", {
-    x: 0.95,
-    y: 4.5,
-    w: 7.2,
-    h: 0.45,
-    fontFace: "Calibri",
-    fontSize: 22,
-    bold: true,
-    color: C.white,
-    margin: 0,
-    isTextBox: true,
-  });
-  s.addText("Phone app  ·  Expo Go  ·  Built with Cursor", {
-    x: 0.95,
-    y: 5.05,
-    w: 7.2,
-    h: 0.35,
-    fontFace: "Calibri",
-    fontSize: 16,
-    color: C.ice,
-    margin: 0,
-    isTextBox: true,
-  });
+  s.addImage({ path: IMG.pip, x: 4.15, y: 5.05, w: 1.45, h: 1.45, objectName: "pip" });
+  s.addImage({ path: IMG.fern, x: 5.95, y: 5.05, w: 1.45, h: 1.45, objectName: "fern" });
+  s.addImage({ path: IMG.moss, x: 7.75, y: 5.05, w: 1.45, h: 1.45, objectName: "moss" });
   s.addNotes(
     notes(`
 About 25 seconds. We are HuskiesPaws. Ordinary walks become a creature-collecting adventure. Team is Luis Mendez and Abdullah Rashid, BigRed Hacks 2026, Navigation. The product is the phone app. Invite them to watch the loop.
@@ -208,89 +193,75 @@ About 25 seconds. We are HuskiesPaws. Ordinary walks become a creature-collectin
   );
 }
 
-// ── 2. Problem ─────────────────────────────────────────────────────────────
+// ── 2 Problem ──────────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CONTENT" });
-  s.addText("People walk past the interesting places", {
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Pitch" });
+  s.addText("Maps get you there. They do not make you look.", {
     placeholder: "title",
     isTextBox: true,
   });
-
-  s.addText("Typical navigation", {
-    x: 0.55,
-    y: 1.02,
-    w: 5.85,
-    h: 0.32,
-    fontFace: "Calibri",
-    fontSize: 16,
-    bold: true,
-    color: C.coral,
-    margin: 0,
-    isTextBox: true,
-  });
-  s.addText("What walking could be", {
-    x: 6.95,
-    y: 1.02,
-    w: 5.85,
-    h: 0.32,
-    fontFace: "Calibri",
-    fontSize: 16,
-    bold: true,
-    color: C.moss,
-    margin: 0,
-    isTextBox: true,
-  });
-
-  const rows = [
-    { left: "Get there as fast as possible", right: "Notice the route, not only the pin" },
-    { left: "Stay on the shortest path", right: "Named places with real stories" },
-    { left: "Put the phone away at the door", right: "Walking earns progress and company" },
+  const pts = [
+    { t: "Shortest path", d: "Navigation ends at the pin." },
+    { t: "Phone away", d: "The walk itself is leftover time." },
+    { t: "Missed places", d: "Campus already has stories. Nothing asks you to notice." },
   ];
-  rows.forEach((row, i) => {
-    const y = 1.4 + i * 1.85;
-    card(s, 0.55, y, 5.85, 1.65, C.card);
-    s.addText(row.left, {
-      x: 0.8,
-      y: y + 0.35,
-      w: 5.35,
-      h: 0.95,
-      fontFace: "Calibri",
-      fontSize: 22,
-      bold: true,
-      color: C.navy,
-      margin: 0,
-      valign: "middle",
-      isTextBox: true,
+  pts.forEach((p, i) => {
+    const x = 0.6 + i * 4.15;
+    card(s, x, 1.25, 3.95, 3.55, HEX.white, `problem-${i}`);
+    s.addShape(pres.shapes.OVAL, {
+      x: x + 1.5,
+      y: 1.5,
+      w: 0.9,
+      h: 0.9,
+      fill: { color: C.accent2 },
+      objectName: `dot-${i}`,
     });
-
-    s.addText("→", {
-      x: 6.4,
-      y: y + 0.5,
-      w: 0.5,
-      h: 0.55,
+    s.addText(String(i + 1), {
+      x: x + 1.5,
+      y: 1.62,
+      w: 0.9,
+      h: 0.65,
       align: "center",
-      fontFace: "Calibri",
-      fontSize: 24,
-      bold: true,
-      color: C.green,
-      margin: 0,
-      isTextBox: true,
-    });
-
-    card(s, 6.95, y, 5.85, 1.65, C.leaf);
-    s.addText(row.right, {
-      x: 7.2,
-      y: y + 0.35,
-      w: 5.35,
-      h: 0.95,
-      fontFace: "Calibri",
       fontSize: 22,
       bold: true,
-      color: C.ink,
+      color: C.text1,
       margin: 0,
-      valign: "middle",
       isTextBox: true,
     });
+    s.addText(p.t, {
+      x: x + 0.25,
+      y: 2.6,
+      w: 3.45,
+      h: 0.7,
+      align: "center",
+      fontSize: 22,
+      bold: true,
+      color: C.text1,
+      margin: 0,
+      isTextBox: true,
+    });
+    s.addText(p.d, {
+      x: x + 0.3,
+      y: 3.35,
+      w: 3.35,
+      h: 1.1,
+      align: "center",
+      fontSize: 16,
+      color: C.accent6,
+      margin: 0,
+      isTextBox: true,
+    });
+  });
+  s.addText("No fake statistics. Walking already happens. Discovery does not.", {
+    x: 0.6,
+    y: 5.05,
+    w: 12.1,
+    h: 0.7,
+    fontSize: 20,
+    italic: true,
+    color: C.accent5,
+    margin: 0,
+    isTextBox: true,
   });
   s.addNotes(
     notes(`
@@ -299,112 +270,67 @@ About 25 seconds. Do not invent numbers. Typical maps optimize for arrival. Peop
   );
 }
 
-// ── 3. Solution ────────────────────────────────────────────────────────────
+// ── 3 Solution loop ────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CONTENT" });
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Pitch" });
   s.addText("Explore  →  Walk  →  Discover  →  Collect", {
     placeholder: "title",
     isTextBox: true,
   });
-
   const steps = [
-    { t: "Explore", d: "Pip scouts nearby places from Wikipedia and OpenStreetMap." },
-    { t: "Walk", d: "Fern guides the route. The trail blooms as you move." },
-    { t: "Discover", d: "Moss tells the grounded story at a real landmark." },
-    { t: "Collect", d: "Capture the place. Walking fills eggs and grows the squad." },
+    { img: IMG.pip, t: "Explore", who: "Pip", d: "Scouts a nearby place with Wikipedia and OSM." },
+    { img: IMG.fern, t: "Walk", who: "Fern", d: "Guides the route. The trail blooms." },
+    { img: IMG.moss, t: "Discover", who: "Moss", d: "Tells the grounded story." },
+    { img: IMG.gold, t: "Collect", who: "You", d: "Capture the landmark. Eggs fill as you walk." },
   ];
   steps.forEach((step, i) => {
     const x = 0.55 + i * 3.2;
-    card(s, x, 1.05, 3.0, 2.7, C.card);
-    s.addShape(pres.shapes.OVAL, {
-      x: x + 1.12,
-      y: 1.22,
-      w: 0.72,
-      h: 0.72,
-      fill: { color: C.green },
-    });
-    s.addText(String(i + 1), {
-      x: x + 1.12,
-      y: 1.3,
-      w: 0.72,
-      h: 0.56,
+    card(s, x, 1.15, 3.05, 4.35, HEX.white, `loop-${step.t}`);
+    s.addImage({ path: step.img, x: x + 0.55, y: 1.35, w: 1.95, h: 1.95, objectName: `art-${step.t}` });
+    s.addText(step.t, {
+      x: x + 0.15,
+      y: 3.4,
+      w: 2.75,
+      h: 0.45,
       align: "center",
-      fontFace: "Calibri",
       fontSize: 22,
       bold: true,
-      color: C.white,
+      color: C.text1,
       margin: 0,
       isTextBox: true,
     });
-    s.addText(step.t, {
+    s.addText(step.who, {
       x: x + 0.15,
-      y: 2.05,
-      w: 2.7,
-      h: 0.4,
+      y: 3.85,
+      w: 2.75,
+      h: 0.32,
       align: "center",
-      fontFace: "Calibri",
-      fontSize: 22,
-      bold: true,
-      color: C.navy,
+      fontSize: 14,
+      color: C.accent1,
       margin: 0,
       isTextBox: true,
     });
     s.addText(step.d, {
       x: x + 0.18,
-      y: 2.5,
-      w: 2.64,
-      h: 1.05,
+      y: 4.22,
+      w: 2.7,
+      h: 1.1,
       align: "center",
-      fontFace: "Calibri",
       fontSize: 14,
-      color: C.muted,
+      color: C.accent6,
       margin: 0,
       isTextBox: true,
     });
   });
-
-  card(s, 0.55, 3.95, 12.25, 2.9, C.navy);
-  const squad = [
-    { n: "Pip", r: "Scout", d: "Finds a nearby place and a fact from tools, not guesswork." },
-    { n: "Moss", r: "Storyteller", d: "Reads the landmark’s history in a short voice memo." },
-    { n: "Fern", r: "Pathfinder", d: "Turns that place into a walk you can follow." },
-  ];
-  squad.forEach((p, i) => {
-    const x = 0.85 + i * 4.0;
-    s.addText(p.n, {
-      x,
-      y: 4.2,
-      w: 3.7,
-      h: 0.42,
-      fontFace: "Calibri",
-      fontSize: 24,
-      bold: true,
-      color: C.gold,
-      margin: 0,
-      isTextBox: true,
-    });
-    s.addText(p.r, {
-      x,
-      y: 4.65,
-      w: 3.7,
-      h: 0.32,
-      fontFace: "Calibri",
-      fontSize: 16,
-      color: C.ice,
-      margin: 0,
-      isTextBox: true,
-    });
-    s.addText(p.d, {
-      x,
-      y: 5.1,
-      w: 3.7,
-      h: 1.35,
-      fontFace: "Calibri",
-      fontSize: 18,
-      color: C.white,
-      margin: 0,
-      isTextBox: true,
-    });
+  s.addText("Pip, Fern, and Moss — original art from the app.", {
+    x: 0.6,
+    y: 5.65,
+    w: 12.1,
+    h: 1.2,
+    fontSize: 16,
+    color: C.accent6,
+    margin: 0,
+    isTextBox: true,
   });
   s.addNotes(
     notes(`
@@ -413,84 +339,90 @@ About 30 seconds. Loop: Explore, Walk, Discover, Collect. Pip scouts with Wikipe
   );
 }
 
-// ── 4. Live demo ───────────────────────────────────────────────────────────
+// ── 4 Demo ─────────────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CONTENT" });
-  s.addText("Live demo  —  keep this slide up", {
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Demo" });
+  s.addText("Keep this slide up. Hand them the phone.", {
     placeholder: "title",
     isTextBox: true,
   });
-
-  card(s, 0.55, 1.02, 12.25, 0.7, C.navy);
-  s.addText("Demo Walk is ON   ·   steps are simulated at the judging table", {
-    x: 0.75,
-    y: 1.12,
-    w: 11.85,
-    h: 0.5,
+  card(s, 0.6, 1.15, 12.15, 0.75, C.text2, "demo-banner");
+  s.addText("Demo Walk is ON  ·  steps are simulated at the table", {
+    x: 0.8,
+    y: 1.25,
+    w: 11.75,
+    h: 0.55,
     align: "center",
-    fontFace: "Calibri",
     fontSize: 20,
     bold: true,
-    color: C.gold,
+    color: C.accent3,
     margin: 0,
     valign: "middle",
     isTextBox: true,
   });
-
   const seq = [
-    { n: "1", t: "Send Pip exploring", d: "Squad → Pip → Explore. A nearby place and a fact come back." },
-    { n: "2", t: "Choose a place", d: "Open the postcard. That is the landmark for this walk." },
-    { n: "3", t: "Start a walk", d: "Fern leads. The trail blooms on the map as Demo Walk runs." },
-    { n: "4", t: "Capture", d: "When you arrive, capture the landmark or hatch from the walk." },
+    { n: "1", t: "Pip explores" },
+    { n: "2", t: "Choose a place" },
+    { n: "3", t: "Start a walk" },
+    { n: "4", t: "Capture" },
   ];
   seq.forEach((step, i) => {
-    const x = 0.55 + i * 3.2;
-    card(s, x, 1.95, 3.05, 4.85, C.card);
+    const x = 0.6 + i * 3.2;
+    card(s, x, 2.15, 3.05, 2.55, HEX.white, `demo-${step.n}`);
     s.addShape(pres.shapes.OVAL, {
       x: x + 1.1,
-      y: 2.2,
-      w: 0.85,
-      h: 0.85,
-      fill: { color: C.green },
+      y: 2.4,
+      w: 0.8,
+      h: 0.8,
+      fill: { color: C.accent1 },
+      objectName: `n-${step.n}`,
     });
     s.addText(step.n, {
       x: x + 1.1,
-      y: 2.3,
-      w: 0.85,
-      h: 0.65,
+      y: 2.5,
+      w: 0.8,
+      h: 0.6,
       align: "center",
-      fontFace: "Calibri",
-      fontSize: 28,
+      fontSize: 24,
       bold: true,
-      color: C.white,
+      color: HEX.white,
       margin: 0,
       isTextBox: true,
     });
     s.addText(step.t, {
-      x: x + 0.18,
-      y: 3.2,
-      w: 2.7,
-      h: 1.05,
+      x: x + 0.15,
+      y: 3.4,
+      w: 2.75,
+      h: 0.95,
       align: "center",
-      fontFace: "Calibri",
       fontSize: 22,
       bold: true,
-      color: C.navy,
+      color: C.text1,
       margin: 0,
       isTextBox: true,
     });
-    s.addText(step.d, {
-      x: x + 0.2,
-      y: 4.3,
-      w: 2.65,
-      h: 2.15,
-      align: "center",
-      fontFace: "Calibri",
-      fontSize: 16,
-      color: C.muted,
-      margin: 0,
-      isTextBox: true,
-    });
+  });
+  card(s, 0.6, 4.95, 12.15, 1.85, HEX.iceSoft, "missing-shots");
+  s.addText("Follow these four taps on the phone.", {
+    x: 0.85,
+    y: 5.15,
+    w: 11.65,
+    h: 0.5,
+    fontSize: 22,
+    bold: true,
+    color: C.text1,
+    margin: 0,
+    isTextBox: true,
+  });
+  s.addText("Hide the Expo tools button. If voice is slow, keep going.", {
+    x: 0.85,
+    y: 5.7,
+    w: 11.65,
+    h: 0.8,
+    fontSize: 16,
+    color: C.accent6,
+    margin: 0,
+    isTextBox: true,
   });
   s.addNotes(
     notes(`
@@ -499,95 +431,82 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
   );
 }
 
-// ── 5. Built ───────────────────────────────────────────────────────────────
+// ── 5 Architecture ─────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CONTENT" });
-  s.addText("How we built it", {
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Build" });
+  s.addText("A phone, a small API, the real world", {
     placeholder: "title",
     isTextBox: true,
   });
-
   const boxes = [
-    { t: "Phone", d: "Expo SDK 57\nReact Native\nExpo Router" },
-    { t: "API", d: "Node.js /api\nSecrets stay here\nTurf + voice + art", dark: true },
-    { t: "World", d: "Wikipedia · OSM\nGrok / ElevenLabs\nPhoton iMessage" },
+    { t: "Phone", d: "Expo app\nShared game logic", fill: HEX.white, ink: C.text1 },
+    { t: "API", d: "Node /api\nSecrets stay here", fill: C.text2, ink: HEX.white },
+    { t: "World", d: "Wikipedia · OSM\nVoice and art optional", fill: HEX.white, ink: C.text1 },
   ];
   boxes.forEach((b, i) => {
-    const x = 0.55 + i * 4.4;
-    card(s, x, 1.05, 3.7, 2.05, b.dark ? C.navy : C.card);
+    const x = 0.7 + i * 4.2;
+    card(s, x, 1.5, 3.55, 2.7, b.fill, `arch-${b.t}`);
     s.addText(b.t, {
-      x: x + 0.25,
-      y: 1.2,
-      w: 3.2,
-      h: 0.42,
-      fontFace: "Calibri",
-      fontSize: 22,
+      x: x + 0.2,
+      y: 1.75,
+      w: 3.15,
+      h: 0.6,
+      fontSize: 26,
       bold: true,
-      color: b.dark ? C.gold : C.navy,
+      color: i === 1 ? C.accent3 : C.text1,
       margin: 0,
       isTextBox: true,
     });
     s.addText(b.d, {
-      x: x + 0.25,
-      y: 1.68,
-      w: 3.2,
-      h: 1.2,
-      fontFace: "Calibri",
-      fontSize: 16,
-      color: b.dark ? C.white : C.muted,
+      x: x + 0.2,
+      y: 2.5,
+      w: 3.15,
+      h: 1.35,
+      fontSize: 18,
+      color: i === 1 ? HEX.white : C.accent6,
       margin: 0,
       isTextBox: true,
     });
     if (i < 2) {
       s.addText("→", {
-        x: x + 3.7,
-        y: 1.7,
-        w: 0.7,
-        h: 0.5,
+        x: x + 3.5,
+        y: 2.4,
+        w: 0.75,
+        h: 0.7,
         align: "center",
-        fontFace: "Calibri",
-        fontSize: 26,
+        fontSize: 32,
         bold: true,
-        color: C.green,
+        color: C.accent1,
         margin: 0,
         isTextBox: true,
+        objectName: `arrow-${i}`,
       });
     }
   });
-
-  const pills = [
-    { t: "Shared JavaScript game logic", d: "core/ is the source of truth. Phone, server, and iMessage import the same rules." },
-    { t: "Grounded facts and routes", d: "Place facts from Wikipedia. Walking routes from OpenStreetMap. Agents do not invent landmarks." },
-    { t: "Voice and art, with fallbacks", d: "Moss can use ElevenLabs. Pip and Fern can use Grok when keys are set. Else on-device speech and original art." },
-    { t: "Cursor-assisted build", d: "SpaceX track: designed and iterated in Cursor. iMessage agent uses Photon Spectrum." },
+  const facts = [
+    "Facts and routes come from tools, not the model.",
+    "Photon carries the same squad into iMessage.",
+    "Designed and iterated in Cursor.",
   ];
-  pills.forEach((p, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = 0.55 + col * 6.4;
-    const y = 3.35 + row * 1.8;
-    card(s, x, y, 6.15, 1.65, C.card);
-    s.addText(p.t, {
-      x: x + 0.25,
-      y: y + 0.18,
-      w: 5.65,
-      h: 0.4,
-      fontFace: "Calibri",
-      fontSize: 18,
-      bold: true,
-      color: C.green,
-      margin: 0,
-      isTextBox: true,
+  facts.forEach((line, i) => {
+    const y = 4.55 + i * 0.7;
+    s.addShape(pres.shapes.OVAL, {
+      x: 0.75,
+      y: y + 0.12,
+      w: 0.28,
+      h: 0.28,
+      fill: { color: C.accent2 },
+      objectName: `fact-dot-${i}`,
     });
-    s.addText(p.d, {
-      x: x + 0.25,
-      y: y + 0.62,
-      w: 5.65,
-      h: 0.85,
-      fontFace: "Calibri",
-      fontSize: 15,
-      color: C.ink,
+    s.addText(line, {
+      x: 1.2,
+      y,
+      w: 11.4,
+      h: 0.55,
+      fontSize: 20,
+      color: C.text1,
       margin: 0,
+      valign: "middle",
       isTextBox: true,
     });
   });
@@ -598,88 +517,64 @@ About 25 seconds. Phone talks to our Node API. Secrets never ship in the app. Wi
   );
 }
 
-// ── 6. Special ─────────────────────────────────────────────────────────────
+// ── 6 Special ──────────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CONTENT" });
-  s.addText("What makes it special", {
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Build" });
+  s.addText("Walking becomes play", {
     placeholder: "title",
     isTextBox: true,
   });
-
-  const strengths = [
-    {
-      img: ASSETS.splash,
-      t: "Navigation becomes play",
-      d: "The map is a blooming trail and a squad, not only a blue line to a pin.",
-    },
-    {
-      img: ASSETS.gold,
-      t: "Walking earns pets",
-      d: "Distance fills eggs, ranks, and landmark captures — completable at the table in Demo Walk.",
-    },
-    {
-      img: ASSETS.badge,
-      t: "Lives in iMessage",
-      d: "The same squad can explore, story, and route over Photon — terminal today, iMessage with keys.",
-    },
+  const items = [
+    { img: IMG.splash, t: "The map is a trail", d: "A blooming path and a squad, not only a blue line." },
+    { img: IMG.gold, t: "Steps earn creatures", d: "Eggs, ranks, and captures — completable in Demo Walk." },
+    { img: IMG.pip, t: "It continues in iMessage", d: "Same squad over Photon. Terminal today; iMessage with keys." },
   ];
-  strengths.forEach((st, i) => {
+  items.forEach((it, i) => {
     const x = 0.55 + i * 4.2;
-    card(s, x, 1.05, 3.95, 4.55, C.card);
-    s.addImage({
-      path: st.img,
-      x: x + 1.12,
-      y: 1.28,
-      w: 1.7,
-      h: 1.7,
-    });
-    s.addText(st.t, {
+    card(s, x, 1.2, 4.0, 4.15, HEX.white, `special-${i}`);
+    s.addImage({ path: it.img, x: x + 1.2, y: 1.4, w: 1.55, h: 1.55, objectName: `special-art-${i}` });
+    s.addText(it.t, {
       x: x + 0.22,
-      y: 3.15,
-      w: 3.5,
-      h: 0.85,
-      fontFace: "Calibri",
+      y: 3.1,
+      w: 3.55,
+      h: 0.7,
       fontSize: 20,
       bold: true,
-      color: C.navy,
+      color: C.text1,
       margin: 0,
       isTextBox: true,
     });
-    s.addText(st.d, {
+    s.addText(it.d, {
       x: x + 0.22,
-      y: 4.05,
-      w: 3.5,
-      h: 1.3,
-      fontFace: "Calibri",
-      fontSize: 15,
-      color: C.muted,
+      y: 3.85,
+      w: 3.55,
+      h: 1.2,
+      fontSize: 16,
+      color: C.accent6,
       margin: 0,
       isTextBox: true,
     });
   });
-
-  card(s, 0.55, 5.8, 6.0, 1.1, C.leaf);
-  s.addText("In the app: ISS overhead can boost rare hatches.", {
+  card(s, 0.55, 5.55, 6.05, 1.3, C.background2, "working");
+  s.addText("Working  ·  ISS overhead can boost rare hatches.", {
     x: 0.75,
-    y: 5.95,
-    w: 5.6,
-    h: 0.8,
-    fontFace: "Calibri",
+    y: 5.75,
+    w: 5.65,
+    h: 0.9,
     fontSize: 16,
-    color: C.ink,
+    color: C.text1,
     margin: 0,
     valign: "middle",
     isTextBox: true,
   });
-  card(s, 6.8, 5.8, 6.0, 1.1, C.card);
-  s.addText("Not claimed today: live Grok without a key, cloud deploy, background tracking.", {
+  card(s, 6.8, 5.55, 5.95, 1.3, HEX.iceSoft, "later");
+  s.addText("Later  ·  live Grok without a key, cloud deploy, background tracking.", {
     x: 7.0,
-    y: 5.95,
-    w: 5.6,
-    h: 0.8,
-    fontFace: "Calibri",
+    y: 5.75,
+    w: 5.55,
+    h: 0.9,
     fontSize: 16,
-    color: C.muted,
+    color: C.accent6,
     margin: 0,
     valign: "middle",
     isTextBox: true,
@@ -691,144 +586,93 @@ About 25 seconds. Three things they saw: navigation is play; walking earns creat
   );
 }
 
-// ── 7. Close ───────────────────────────────────────────────────────────────
+// ── 7 Close ────────────────────────────────────────────────────────────────
 {
-  const s = pres.addSlide({ masterName: "CLOSE_DARK" });
-  s.addText("Walk more of the world you already live in", {
-    x: 0.7,
-    y: 0.35,
-    w: 12,
-    h: 0.6,
-    fontFace: "Calibri",
-    fontSize: 30,
-    bold: true,
-    color: C.white,
-    margin: 0,
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Close" });
+  s.addText("Everyday walks. Extraordinary company.", {
+    placeholder: "title",
     isTextBox: true,
   });
-  s.addText("Campus, hometown blocks, and the path between classes — same loop.", {
-    x: 0.7,
-    y: 0.95,
-    w: 12,
-    h: 0.38,
-    fontFace: "Calibri",
+  s.addText("Campus, hometown blocks, the path between classes — same loop.", {
+    x: 0.6,
+    y: 1.1,
+    w: 12.1,
+    h: 0.45,
     fontSize: 18,
-    color: C.ice,
+    color: C.accent5,
     margin: 0,
     isTextBox: true,
   });
-  s.addText("What’s next  ·  planned, not shipped", {
-    x: 0.7,
-    y: 1.5,
-    w: 12,
-    h: 0.35,
-    fontFace: "Calibri",
+  s.addText("Planned next — not shipped", {
+    x: 0.6,
+    y: 1.7,
+    w: 12.1,
+    h: 0.4,
     fontSize: 16,
     bold: true,
-    color: C.gold,
+    color: C.accent1,
     margin: 0,
     isTextBox: true,
   });
-
   const next = [
-    { t: "Background tracking", d: "Keep the walk honest when the phone is in a pocket." },
-    { t: "Accessibility", d: "Clearer motion, voice, and contrast for more walkers." },
-    { t: "Reliable deploy", d: "Wake the API so Grok and turf stay up for a whole event." },
-    { t: "Social exploration", d: "Richer shared landmarks without turning it into a grind." },
+    { t: "Background tracking", d: "Honest walks with the phone in a pocket." },
+    { t: "A deploy that stays awake", d: "Grok and turf up for a whole event." },
+    { t: "Richer social exploration", d: "Shared landmarks without a grind." },
   ];
   next.forEach((n, i) => {
-    const x = 0.7 + (i % 2) * 6.2;
-    const y = 1.95 + Math.floor(i / 2) * 1.45;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-      x,
-      y,
-      w: 5.85,
-      h: 1.3,
-      fill: { color: C.deep },
-      rectRadius: 0.12,
-    });
+    const x = 0.6 + i * 4.15;
+    card(s, x, 2.25, 3.95, 2.35, HEX.white, `next-${i}`);
     s.addText(n.t, {
-      x: x + 0.25,
-      y: y + 0.16,
-      w: 5.35,
-      h: 0.38,
-      fontFace: "Calibri",
-      fontSize: 18,
+      x: x + 0.22,
+      y: 2.5,
+      w: 3.5,
+      h: 0.85,
+      fontSize: 20,
       bold: true,
-      color: C.gold,
+      color: C.text1,
       margin: 0,
       isTextBox: true,
     });
     s.addText(n.d, {
-      x: x + 0.25,
-      y: y + 0.58,
-      w: 5.35,
-      h: 0.55,
-      fontFace: "Calibri",
+      x: x + 0.22,
+      y: 3.4,
+      w: 3.5,
+      h: 0.9,
       fontSize: 16,
-      color: C.white,
+      color: C.accent6,
       margin: 0,
       isTextBox: true,
     });
   });
-
-  s.addText("Everyday walks. Extraordinary company.", {
-    x: 0.7,
-    y: 5.05,
-    w: 12,
-    h: 0.5,
-    fontFace: "Calibri",
-    fontSize: 24,
-    italic: true,
-    color: C.ice,
-    margin: 0,
-    isTextBox: true,
-  });
+  s.addImage({ path: IMG.splash, x: 0.7, y: 4.9, w: 1.35, h: 1.35, objectName: "close-mascot" });
   s.addText("Try it on the phone. Ask us anything.", {
-    x: 0.7,
-    y: 5.6,
-    w: 12,
-    h: 0.42,
-    fontFace: "Calibri",
-    fontSize: 20,
-    color: C.white,
+    x: 2.2,
+    y: 5.15,
+    w: 10.4,
+    h: 0.55,
+    fontSize: 24,
+    bold: true,
+    color: C.text1,
     margin: 0,
     isTextBox: true,
   });
-  s.addText("Luis Mendez  ·  Abdullah Rashid  ·  HuskiesPaws", {
-    x: 0.7,
-    y: 6.75,
-    w: 12,
-    h: 0.3,
-    fontFace: "Calibri",
-    fontSize: 14,
-    color: "9BB0C4",
+  s.addText("Luis Mendez  ·  Abdullah Rashid", {
+    x: 2.2,
+    y: 5.75,
+    w: 10.4,
+    h: 0.4,
+    fontSize: 16,
+    color: C.accent6,
     margin: 0,
     isTextBox: true,
   });
   s.addNotes(
     notes(`
-About 25 seconds. Close on campus exploration — not inflated stats. Next is planned: background tracking, accessibility, a deploy that stays awake, richer social play. Line: Everyday walks. Extraordinary company. Hand them the phone.
+About 25 seconds. Close on campus exploration — not inflated stats. Next is planned: background tracking, a deploy that stays awake, richer social play. Line: Everyday walks. Extraordinary company. Hand them the phone.
 `)
   );
 }
 
 await pres.writeFile({ fileName: OUT });
-await applyTheme(OUT, {
-  name: "HuskiesPaws",
-  colors: {
-    dk1: C.navy,
-    lt1: C.cream,
-    dk2: C.ink,
-    lt2: C.leaf,
-    accent1: C.green,
-    accent2: C.ice,
-    accent3: C.gold,
-    accent4: C.coral,
-    accent5: C.moss,
-    accent6: "7D8CA3",
-    hlink: C.ice,
-    folHlink: C.green,
-  },
-});
+await applyTheme(OUT, THEME);
 console.log("Wrote", OUT);

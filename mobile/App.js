@@ -26,7 +26,7 @@ import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
-import { NextStepCard } from "./src/components/NextStep.js";
+import { WelcomeOverlay } from "./src/components/WelcomeOverlay.js";
 import { AlbumIcon, PetsIcon, RanksIcon, SquadIcon } from "./src/components/GameIcons.js";
 import { Hint, PillTabs } from "./src/components/ui.js";
 import { rankFor } from "./src/core/rank.js";
@@ -157,7 +157,7 @@ function Main() {
             onUserExplore={() => game.set({ followCamera: false })}
           />
         )}
-        <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} onRankPress={() => game.set({ tab: "ranks" })} />
+        <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} issOverhead={state.issOverhead} onRankPress={() => game.set({ tab: "ranks" })} />
         <StatusToast message={state.status} />
         <MapControls state={state} game={game} onSquadOpen={setSquadOpen} />
       </View>
@@ -173,6 +173,12 @@ function Main() {
               plural(state.progress.landmarksFound, "place"),
             ].join(" · ")}
           </Text>
+          {state.issOverhead && (
+            <View style={[styles.banner, styles.bannerIss]}>
+              <Text style={styles.bannerIssTitle}>ISS is overhead</Text>
+              <Text style={[styles.bannerBody, styles.bannerIssBody]}>Eggs that hatch now are more likely to be rare.</Text>
+            </View>
+          )}
           {!state.demoMode && !state.liveLocation && (
             <View style={[styles.banner, state.locationIssue === "denied" ? styles.bannerWarn : styles.bannerInfo]}>
               <Text style={styles.bannerTitle}>{state.locationIssue === "denied" ? "Location is off" : "Walk live to bloom the trail"}</Text>
@@ -245,6 +251,7 @@ function Main() {
         onSave={game.saveCapture}
         onClose={() => game.set({ captureOpen: false })}
       />
+      <WelcomeOverlay visible={state.loaded && !state.welcomeSeen} onDismiss={game.dismissWelcome} />
     </View>
   );
 }
@@ -266,6 +273,9 @@ const styles = StyleSheet.create({
   stats: { ...type.caption },
   banner: { borderRadius: radius.small, paddingVertical: space.sm, paddingHorizontal: space.md, gap: 2 },
   bannerWarn: { backgroundColor: "#ffe8e0" },
+  bannerIss: { backgroundColor: colors.navy },
+  bannerIssTitle: { ...type.label, color: colors.ice },
+  bannerIssBody: { color: colors.white },
   bannerInfo: { backgroundColor: colors.iceSoft },
   bannerTitle: { ...type.label },
   bannerBody: { ...type.caption },

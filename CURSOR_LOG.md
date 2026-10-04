@@ -1,5 +1,17 @@
 # Cursor log
 
+## 2026-10-04 — First-run welcome, ISS cue, hatch button
+
+**Prompt (summary).** Improve the HuskiesPaws phone app (open-ended, before judging).
+
+**Decisions.** Added a first-run welcome overlay (Explore → Walk → Collect) saved as `welcomeSeen`. ISS overhead is labeled on the map brand pill and a sheet banner. Next coach mentions a hatch. Pets tab gets Hatch now when an egg is ready. No core/server changes.
+
+## 2026-10-04 — Judges deck visual redesign
+
+**Prompt (summary).** Improve visual design of the existing 7-slide HuskiesPaws deck: cream/forest/sky-blue, large titles, original pet art, real screenshots if any, simple architecture, working vs planned. No app code changes.
+
+**Decisions.** Restyled the PPTX generator to cream slides, forest titles, sky-blue accents, and rounded cards. Rasterized Pip, Moss, Fern, and postcard SVG from `core/art.js` (app art, not fabricated UI). `docs/screenshots/` is still empty, so solution/demo slides use squad art plus a live-phone cue card rather than fake captures. Architecture is Phone → API → World plus three facts. Working vs later called out on slide 6. Speaker notes preserved. PPTX + PDF exported.
+
 ## 2026-10-03 — Judges demo deck (7 slides)
 
 **Prompt (summary).** Create a polished 7-slide PPTX/PDF for BigRed//Hacks 2026 judges. Team: Luis Mendez, Abdullah Rashid. Theme Navigation. Verify implemented tech. Speaker notes for ~3 minutes. Save under `docs/presentation/`. No app code changes.

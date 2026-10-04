@@ -25,6 +25,7 @@ export const SAVED_DEFAULTS = Object.freeze({
   eggsReceived: 0,
   squad: STARTER_PETS.map((p) => p.id), // pet ids with you, picked in the Pets tab
   player: null, // { id, name } created on first load
+  welcomeSeen: false, // first-run coach; kept across "Reset my progress"
 });
 
 // "Reset my progress" clears these but keeps the player id.

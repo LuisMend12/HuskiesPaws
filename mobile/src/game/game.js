@@ -406,6 +406,10 @@ export function createGame() {
       set(patch);
       if (patch.scope) online.refreshLeaderboard();
     },
+    dismissWelcome: () => {
+      set({ welcomeSeen: true });
+      persist();
+    },
     setTrailChoice: (trailChoice) => {
       set({ trailChoice });
       persist();

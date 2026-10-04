@@ -1,13 +1,13 @@
-# Slide 4 screenshots to capture
+# Screenshot assets
 
-The deck ships with labeled placeholders, not fake app photos. Capture these on the **iPhone in Expo Go** with **Demo Walk on**, then drop the PNGs into `docs/presentation/assets/` as:
+`docs/screenshots/` is empty. Do not invent app UI for the deck.
 
-| File | Screen | What should be visible |
-|---|---|---|
-| `placeholder-map.png` | Walk tab | Map with nearby food-bag landmarks; squad or you-marker |
-| `placeholder-walk.png` | Active walk | Blooming trail toward a chosen place; **Demo Walk** clearly on |
-| `placeholder-capture.png` | Capture or Pets | Capture viewfinder **or** hatch / pet reward |
+Drop Expo Go captures here if you want them on slides 3–4 later:
 
-Optional extra (not required for rebuild): Squad → Pip exploring / postcard.
+| File | Screen |
+|---|---|
+| `docs/screenshots/map.png` | Walk tab: map + landmark bags |
+| `docs/screenshots/walk.png` | Demo Walk on, blooming trail |
+| `docs/screenshots/capture.png` | Capture or hatch |
 
-Rebuild `build.mjs` after replacing the files. Do not screenshot Pikmin or other inspiration art.
+Until then the live phone is the visual. Point `build.mjs` at those files after capture.
