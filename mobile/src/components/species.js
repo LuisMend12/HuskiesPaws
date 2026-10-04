@@ -1,6 +1,6 @@
-// Pet species for the 2D art. Every species keeps a rounded collectible body;
-// they differ by ears, face markings, tail and extras.
-// All drawn in PetSvg's 100 x 100 box: body around (50,58); face around y 50-70.
+// Pet species for the 2D art. Every species keeps the chunky rounded-cube body
+// (Roblox simulator style); they differ by ears, face markings, tail and extras.
+// All drawn in PetSvg's 100 x 100 box: body x 16-84, y 28-86; face around y 50-70.
 import { Circle, Ellipse, G, Path } from "react-native-svg";
 import { hashString } from "../core/geo.js";
 import { colors } from "../theme.js";

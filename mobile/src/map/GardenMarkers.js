@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Marker } from "@maplibre/maplibre-react-native";
-import { BloomIcon, MysteryMarker, YouMarker } from "../components/GameIcons.js";
+import { MysteryMarker, YouMarker } from "../components/GameIcons.js";
 import { colors, fonts, radius } from "../theme.js";
 import { petsView } from "../components/fakeData.js";
 import { hpNow, landmarksView, ringOf } from "../components/landmarks.js";
@@ -34,7 +34,7 @@ function placeOnTrip({ from, to, startedAt, durationMs }, home, now) {
 function BloomMarker({ bloom }) {
   return (
     <Marker id={`bloom-${bloom.id}`} lngLat={lngLatOf(bloom)} anchor="center">
-      <BloomIcon size={16} color={bloom.color ?? colors.pink} />
+      <Text style={styles.bloom}>{bloom.emoji}</Text>
     </Marker>
   );
 }
@@ -132,6 +132,7 @@ export function GardenMarkers({ state, onOpenLandmark }) {
 }
 
 const styles = StyleSheet.create({
+  bloom: { fontSize: 16 },
   landmark: { alignItems: "center", width: 96 },
   landmarkRow: { flexDirection: "row", alignItems: "flex-end" },
   owner: { borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 1, maxWidth: 84 },
