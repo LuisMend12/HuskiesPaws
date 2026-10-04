@@ -16,7 +16,7 @@ export function WelcomeOverlay({ visible, onDismiss }) {
         <View style={styles.card} accessibilityRole="summary">
           <Image source={require("../../assets/splash-icon.png")} style={styles.mascot} accessibilityIgnoresInvertColors />
           <Text style={styles.title}>Walks become an adventure</Text>
-          <Text style={styles.body}>Your squad finds real places, tells their stories, and walks you there.</Text>
+          <Text style={styles.body}>Your squad finds real places, tells their stories, and walks you there. The green Next card always has the next tap.</Text>
           {STEPS.map((step) => (
             <View key={step.n} style={styles.row}>
               <View style={styles.badge}>

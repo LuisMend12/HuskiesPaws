@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
-  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggTierOf, hatchEgg, hatchMetersOf, petLevel, petPower, rarityOf, rollEggTier,
+  EGG_EVERY_STEPS, ISS_RARITY_BOOST, RARITIES, eggProgress, eggTierOf, hatchEgg, hatchMetersOf, petLevel, petPower, rarityOf, rollEggTier,
   stepsToNextEgg,
 } from "../core/pets.js";
 import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
@@ -180,15 +180,10 @@ export function PetsPanel({ state, game }) {
     return setSquad([...squadIds, id]);
   };
   const previewHatch = () => game.set({ hatching: previewPet(walked) });
+  const hatchReady = eggs.some((egg) => eggProgress(egg, walked) >= 1);
 
-  return (
-    <View style={styles.panel}>
-      {state.issOverhead && (
-        <Card style={styles.iss}>
-          <Text style={styles.issText}>{`🛰️ The ISS is overhead right now! Eggs that hatch now are ${ISS_RARITY_BOOST}x as likely to be rare.`}</Text>
-        </Card>
-      )}
-
+  const petBlock = (
+    <>
       <View style={styles.header}>
         <Text style={type.heading}>{`Your pets · ${pets.length}`}</Text>
         <RarityDots filter={filter} onChange={setFilter} />
@@ -203,7 +198,11 @@ export function PetsPanel({ state, game }) {
           ))}
         </View>
       )}
+    </>
+  );
 
+  const eggBlock = (
+    <>
       <View style={styles.header}>
         <Text style={type.heading}>{`Your eggs · ${eggs.length}`}</Text>
         <Hint>{`Next egg in ${stepsToNextEgg(steps).toLocaleString()} steps`}</Hint>
@@ -217,7 +216,18 @@ export function PetsPanel({ state, game }) {
           ))
         )}
       </Card>
+    </>
+  );
 
+  return (
+    <View style={styles.panel}>
+      {state.issOverhead && (
+        <Card style={styles.iss}>
+          <Text style={styles.issText}>{`🛰️ The ISS is overhead right now! Eggs that hatch now are ${ISS_RARITY_BOOST}x as likely to be rare.`}</Text>
+        </Card>
+      )}
+      {hatchReady ? eggBlock : petBlock}
+      {hatchReady ? petBlock : eggBlock}
       {sample && <Hint>Sample pets and eggs for now. Yours appear here once hatching is connected.</Hint>}
       {__DEV__ && <Button title="Preview hatch (dev only)" icon={PetsIcon} variant="secondary" onPress={previewHatch} />}
     </View>

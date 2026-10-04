@@ -71,6 +71,33 @@ export function EmptyState({ emoji, icon, title, body }) {
   );
 }
 
+// Four equal tabs across the sheet (no sideways scroll).
+export function AppTabs({ tabs, active, onChange, badges = {} }) {
+  return (
+    <View style={styles.appTabs} accessibilityRole="tablist">
+      {tabs.map((tab) => {
+        const selected = tab.id === active;
+        return (
+          <Pressable
+            key={tab.id}
+            onPress={() => onChange(tab.id)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            accessibilityLabel={badges[tab.id] ? `${tab.label}, new` : tab.label}
+            style={[styles.appTab, selected && styles.appTabActive]}
+          >
+            {tab.Icon ? <tab.Icon size={18} color={selected ? colors.white : colors.muted} /> : null}
+            <Text style={[styles.appTabText, selected && styles.appTabTextActive]} numberOfLines={1}>
+              {tab.label}
+            </Text>
+            {badges[tab.id] ? <View style={styles.appTabBadge} /> : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 // Sideways-scrolling pill tabs; the active one scrolls into view.
 export function PillTabs({ tabs, active, onChange }) {
   const scrollRef = useRef(null);
@@ -144,6 +171,36 @@ const styles = StyleSheet.create({
   chipTextActive: { color: colors.white },
   tabsScroll: { flexGrow: 0 }, // a ScrollView grows to fill by default; the tab row shouldn't
   tabs: { alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
+  appTabs: {
+    flexDirection: "row",
+    marginHorizontal: space.md,
+    marginVertical: space.xs,
+    backgroundColor: colors.stripe,
+    borderRadius: radius.pill,
+    padding: 4,
+    gap: 2,
+  },
+  appTab: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    minHeight: 48,
+    gap: 2,
+  },
+  appTabActive: { backgroundColor: colors.green },
+  appTabText: { fontFamily: fonts.bold, fontSize: 12, color: colors.muted },
+  appTabTextActive: { color: colors.white },
+  appTabBadge: {
+    position: "absolute",
+    top: 6,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.gold,
+  },
   buttonRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   tab: { borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
   tabActive: { backgroundColor: colors.green },

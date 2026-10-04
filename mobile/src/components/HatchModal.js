@@ -7,6 +7,7 @@ import { colors, fonts, space, type } from "../theme.js";
 import { RarityMark } from "./GameIcons.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { Button } from "./ui.js";
+import { successFeel } from "../feel.js";
 
 const SHAKES = 7;
 
@@ -22,6 +23,7 @@ function Reveal({ pet, walked, onClose }) {
     let ringLoop = null;
     const showPet = (animate) => {
       setHatched(true);
+      successFeel();
       AccessibilityInfo.announceForAccessibility(`Your egg hatched! Meet ${pet.name}, a ${rarity.label} ${pet.petClass}.`);
       if (!animate) {
         pop.setValue(1);

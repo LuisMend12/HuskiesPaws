@@ -27,8 +27,11 @@ import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
 import { WelcomeOverlay } from "./src/components/WelcomeOverlay.js";
+import { NextStepCard } from "./src/components/NextStep.js";
+import { eggIsReady, followNext } from "./src/components/nextCoach.js";
 import { AlbumIcon, PetsIcon, RanksIcon, SquadIcon } from "./src/components/GameIcons.js";
-import { Hint, PillTabs } from "./src/components/ui.js";
+import { AppTabs, Hint } from "./src/components/ui.js";
+import { tapFeel } from "./src/feel.js";
 import { rankFor } from "./src/core/rank.js";
 import { createGame } from "./src/game/game.js";
 import { scoreOf } from "./src/game/state.js";
@@ -50,6 +53,23 @@ const TABS = [
   { id: "album", label: "Album", Icon: AlbumIcon },
 ];
 const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
+
+function ProgressStrip({ rank, next, progress, steps, blooms, places }) {
+  return (
+    <View accessibilityRole="text">
+      <View style={styles.progressHead}>
+        <Text style={styles.progressRank}>{rank.name}</Text>
+        <Text style={styles.progressNext}>{next ? `${Math.round(progress * 100)}% to ${next.name}` : "Top rank"}</Text>
+      </View>
+      <View style={styles.meter}>
+        <View style={[styles.meterFill, { width: `${Math.round(progress * 100)}%` }]} />
+      </View>
+      <Text style={styles.stats}>
+        {[plural(steps, "step"), plural(blooms, "bloom"), plural(places, "place")].join(" · ")}
+      </Text>
+    </View>
+  );
+}
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -143,7 +163,7 @@ function Main() {
 
   const { pets, squad } = petsView(state);
   const score = scoreOf(state);
-  const { current } = rankFor(score);
+  const { current, next, progress } = rankFor(score);
 
   return (
     <View style={styles.screen}>
@@ -165,19 +185,10 @@ function Main() {
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
-          <NextStepCard state={state} />
-          <Text style={styles.stats} accessibilityRole="text">
-            {[
-              plural(state.progress.steps, "step"),
-              plural(state.blooms.length, "bloom"),
-              plural(state.progress.landmarksFound, "place"),
-            ].join(" · ")}
-          </Text>
+          <NextStepCard state={state} onPress={() => { tapFeel(); followNext(state, game, openLandmark); }} />
+          <ProgressStrip rank={current} next={next} progress={progress} steps={state.progress.steps} blooms={state.blooms.length} places={state.progress.landmarksFound} />
           {state.issOverhead && (
-            <View style={[styles.banner, styles.bannerIss]}>
-              <Text style={styles.bannerIssTitle}>ISS is overhead</Text>
-              <Text style={[styles.bannerBody, styles.bannerIssBody]}>Eggs that hatch now are more likely to be rare.</Text>
-            </View>
+            <Text style={styles.issLine}>ISS overhead · rarer hatches right now</Text>
           )}
           {!state.demoMode && !state.liveLocation && (
             <View style={[styles.banner, state.locationIssue === "denied" ? styles.bannerWarn : styles.bannerInfo]}>
@@ -210,7 +221,12 @@ function Main() {
             />
           </Pressable>
         </View>
-        <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
+        <AppTabs
+          tabs={TABS}
+          active={state.tab}
+          badges={{ pets: eggIsReady(state) }}
+          onChange={(tab) => { tapFeel(); game.set({ tab }); }}
+        />
         <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
           {state.tab === "squad" && <SquadPanel state={state} game={game} onOpenLandmark={openLandmark} />}
           {state.tab === "pets" && <PetsPanel state={state} game={game} />}
@@ -270,12 +286,15 @@ const styles = StyleSheet.create({
   },
   handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginTop: space.sm },
   sheetHeader: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
+  progressHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  progressRank: { ...type.label },
+  progressNext: { ...type.caption },
+  meter: { height: 8, borderRadius: 4, backgroundColor: colors.stripe, overflow: "hidden", marginTop: 4, marginBottom: 4 },
+  meterFill: { height: "100%", backgroundColor: colors.green, borderRadius: 4 },
   stats: { ...type.caption },
+  issLine: { ...type.label, color: colors.navy, backgroundColor: colors.iceSoft, borderRadius: radius.small, paddingVertical: 6, paddingHorizontal: space.md },
   banner: { borderRadius: radius.small, paddingVertical: space.sm, paddingHorizontal: space.md, gap: 2 },
   bannerWarn: { backgroundColor: "#ffe8e0" },
-  bannerIss: { backgroundColor: colors.navy },
-  bannerIssTitle: { ...type.label, color: colors.ice },
-  bannerIssBody: { color: colors.white },
   bannerInfo: { backgroundColor: colors.iceSoft },
   bannerTitle: { ...type.label },
   bannerBody: { ...type.caption },

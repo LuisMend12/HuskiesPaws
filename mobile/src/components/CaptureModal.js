@@ -10,6 +10,7 @@ import { colors, fonts, space } from "../theme.js";
 import { CaptureIcon } from "./GameIcons.js";
 import { PetSvg } from "./PetArt.js";
 import { Button, Hint } from "./ui.js";
+import { successFeel } from "../feel.js";
 
 const CARD_PIXELS = Object.freeze({ width: 480, height: 600 }); // keeps saved cards small
 
@@ -49,6 +50,7 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
     try {
       const image = await captureRef(cardRef, { format: "jpg", quality: 0.7, result: "data-uri", ...CARD_PIXELS });
       setPhoto(null);
+      successFeel();
       onSave(image);
     } catch (saveError) {
       console.warn("Saving postcard failed:", saveError);
@@ -100,14 +102,20 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
         <View style={styles.actions}>
           {photo ? (
             <>
-              <Button title="Save to album" onPress={save} disabled={busy} />
+              <Button title="Save to album" size="large" onPress={save} disabled={busy} />
               <Button title="Retake" variant="secondary" onPress={() => setPhoto(null)} disabled={busy} />
+            </>
+          ) : permission?.granted ? (
+            <>
+              <Button title="Capture" icon={({ color, size }) => <CaptureIcon size={size} color={color} />} onPress={snap} disabled={busy} />
+              <Button title="Use landmark photo" variant="secondary" onPress={useLandmarkPhoto} disabled={busy} />
+              <Button title="Use a drawn postcard" variant="secondary" onPress={() => setPhoto("art")} disabled={busy} />
             </>
           ) : (
             <>
-              <Button title="Capture" icon={({ color, size }) => <CaptureIcon size={size} color={color} />} onPress={snap} disabled={busy || !permission?.granted} />
+              <Button title="Save a drawn postcard" size="large" onPress={() => setPhoto("art")} disabled={busy} />
               <Button title="Use landmark photo" variant="secondary" onPress={useLandmarkPhoto} disabled={busy} />
-              <Button title="Use a drawn postcard" variant="secondary" onPress={() => setPhoto("art")} disabled={busy} />
+              {permission?.canAskAgain ? <Button title="Allow camera" variant="secondary" onPress={requestPermission} disabled={busy} /> : null}
             </>
           )}
           <Button title="Cancel" variant="secondary" onPress={close} disabled={busy} />

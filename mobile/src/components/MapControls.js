@@ -8,6 +8,7 @@ import { canUseNativeMapLibre } from "../map/availability.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { CaptureIcon, GardenIcon, LiveIcon, MapGlyphIcon, PawIcon, RecenterIcon, WalkIcon } from "./GameIcons.js";
 import { Button } from "./ui.js";
+import { tapFeel } from "../feel.js";
 
 export const loadSquadView = () => import("./SquadView.js");
 export const SHEET_OVERLAP = 24;
@@ -96,7 +97,7 @@ export function MapControls({ state, game, onSquadOpen }) {
             title={`Capture ${state.capturable.title}`}
             size="large"
             icon={({ color, size }) => <CaptureIcon size={size} color={color} />}
-            onPress={() => game.set({ captureOpen: true })}
+            onPress={() => { tapFeel(); game.set({ captureOpen: true }); }}
             style={shadow.raised}
             accessibilityLabel={`Capture ${state.capturable.title} for your album`}
           />

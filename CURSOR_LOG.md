@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Sheet coach, tabs, indoor capture
+
+**Prompt (summary).** Upgrade the app UI/UX a lot; think of ways and implement.
+
+**Decisions.** Next card is now a real tap (capture, hatch, postcard, Squad). Four equal sheet tabs with a gold hatch-ready badge. Rank progress sits under Next. Ready eggs jump to the top of Pets. Indoor capture leads with a drawn postcard. Light haptics on tabs, capture, and hatch. Welcome copy points at Next.
+
 ## 2026-10-04 — Deck uses real app screenshots
 
 **Prompt (summary).** Update the HuskiesPaws presentation with images in `docs/presentation/app_images/`. Inspect every image, use real shots as main visuals on solution/demo/collectible slides, preserve aspect, phone frames only for full-screen captures, embed images, 5–10 slides, keep verified content and notes, export PPTX+PDF.
