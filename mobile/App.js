@@ -55,6 +55,22 @@ const TABS = [
   { id: "ranks", label: "Ranks", Icon: RanksIcon },
   { id: "album", label: "Album", Icon: AlbumIcon },
 ];
+const MODAL_SETTLE_MS = 600; // a closing Modal's animation, plus a margin
+
+// True once `blocked` has been false for `ms` (lets a closing Modal finish first).
+function useClearFor(blocked, ms) {
+  const [clear, setClear] = useState(!blocked);
+  useEffect(() => {
+    if (blocked) {
+      setClear(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => setClear(true), ms);
+    return () => clearTimeout(timer);
+  }, [blocked, ms]);
+  return clear && !blocked;
+}
+
 const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
 function ProgressStrip({ rank, next, progress, steps, blooms, places }) {
@@ -104,7 +120,14 @@ function Main() {
   const [tipsOpen, setTipsOpen] = useState(true); // hide the coach cards to give the tabs more room
   const [LandmarkScreen, setLandmarkScreen] = useState(null);
   const [SquadScreen, setSquadScreen] = useState(null);
-  const hideMap = Boolean(state.landmarkOpen) || squadOpen;
+  // iOS presents one Modal at a time, and presenting a second one fails silently,
+  // leaving an invisible layer that eats every touch. So Capture is mounted only
+  // while it is the one thing on screen (it waits for a hatch or postcard to close).
+  const otherModal = Boolean(state.landmarkOpen || squadOpen || state.hatching || state.postcardOpen);
+  const modalsSettled = useClearFor(otherModal, MODAL_SETTLE_MS);
+  const captureShown = Boolean(state.captureOpen && state.capturable) && modalsSettled;
+  // Full-screen views cover the map, so pause it (fewer native views next to the camera / 3D).
+  const hideMap = Boolean(state.landmarkOpen) || squadOpen || captureShown;
 
   // Closing a landmark resets the map's bag markers, and iOS re-selects the bag
   // that was tapped, which fired a new "open": the screen reopened by itself
@@ -277,13 +300,15 @@ function Main() {
         walked={state.progress.walked}
         onClose={() => (game.closeHatch ? game.closeHatch() : game.set({ hatching: null }))}
       />
-      <CaptureModal
-        visible={state.captureOpen}
-        place={state.capturable}
-        pet={capturePetOf(squad)}
-        onSave={game.saveCapture}
-        onClose={() => game.set({ captureOpen: false })}
-      />
+      {captureShown ? (
+        <CaptureModal
+          visible
+          place={state.capturable}
+          pet={capturePetOf(squad)}
+          onSave={game.saveCapture}
+          onClose={() => game.set({ captureOpen: false })}
+        />
+      ) : null}
       <WelcomeOverlay visible={state.loaded && !state.welcomeSeen} onDismiss={game.dismissWelcome} />
     </View>
   );

@@ -63,8 +63,9 @@ function usePulse(running) {
   useEffect(() => {
     if (!running) return undefined;
     let loop = null;
+    let stopped = false; // the button can go away before the reduce-motion check answers
     AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (reduced) return;
+      if (reduced || stopped) return;
       loop = Animated.loop(
         Animated.sequence([
           Animated.timing(scale, { toValue: 1.05, duration: 700, useNativeDriver: true }),
@@ -74,6 +75,7 @@ function usePulse(running) {
       loop.start();
     });
     return () => {
+      stopped = true;
       loop?.stop();
       scale.setValue(1);
     };
