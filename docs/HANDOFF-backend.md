@@ -103,7 +103,7 @@ The screens call these when they exist and fall back to `game.set(...)` until th
   - For the first egg with `eggProgress(egg, walked) >= 1`: `hatchEgg(egg, walked, Math.random, { issOverhead })`, prepend to `pets`, remove the egg, set `hatching: pet`, add it to `squad` if there's a free slot, persist, speak "Your egg hatched! Meet …". One hatch at a time: skip while `hatching` is set.
   - Then hand out a new egg if earned and fewer than 5 are carried: `eggsReceived + 1`, status "🥚 You found an egg!".
 - ISS: `getIssPosition()` from `core/services.js` every 60 s; `issOverhead = issIsOverhead(iss, position, distanceMeters)`.
-- **Never** let Nessie money buy eggs (see PLAN.md: it would look like gambling).
+- Eggs come from walking only.
 
 **Grok portraits:** after hatching, ask the server for a portrait and set `pet.art` to the **absolute** URL (`${EXPO_PUBLIC_API_URL}/images/x.png`). The screens show the image as is. Please update `petPrompt` in `server/src/grok.js` to match the in-app look: *"a chunky rounded-cube {species} in the style of a Roblox simulator pet, big glossy ice-blue eyes, {color} fur, {class accessory}, soft studio lighting, plain light background"*. Accessories: Scout = leaf sprout on the head, Storyteller = red scarf, Pathfinder = explorer hat, Guardian = small shield. Add `species` to the `/api/imagine` pet request and its validation.
 

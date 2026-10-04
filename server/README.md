@@ -8,7 +8,6 @@ One small Node server (no dependencies) that backs the phone app (`../mobile/`).
 | `POST /api/imagine` | **Grok Imagine:** postcard illustrations and pet portraits. Prompts are built here from fixed templates (the app can't send its own), and each image is generated once and cached. |
 | `POST /api/score`, `GET /api/leaderboard` | Live **local / statewide / national** leaderboards |
 | `GET /api/turf`, `POST /api/turf/claim`, `POST /api/turf/recall` | **Turf:** claim with a stronger pet, recall your guard, and earn a walking XP boost while holding. Guards decay over time. |
-| `POST /api/bank/connect`, `POST /api/bank/transfer` | Nessie sandbox accounts and walk transfers using the server's key. |
 | `POST /api/day`, `GET /api/day` | **Today’s walk:** step count and places passed for the local calendar day. Body `{ playerId?, phone?, steps, places }`. Query `playerId` or `phone` (E.164). Merge keeps the higher step count and unions places. Used by the phone and by Pip over iMessage. |
 | `GET /api/health` | Shows whether Grok is on and which storage is in use |
 
@@ -35,17 +34,19 @@ Settings come from the **repo-root `.env`** or `server/.env`. See [.env.example]
 | Setting | Needed for |
 |---|---|
 | `XAI_API_KEY` | Grok Voice and Grok Imagine. Get it at console.x.ai. |
-| `NESSIE_API_KEY` | Optional Nessie sandbox banking. Kept on the backend; the phone's Connect savings button needs no key. HTTPS only, with no insecure redirect fallback. |
+| `ELEVENLABS_API_KEY` | Moss's story voice on `/api/voice`. |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Optional. Without them, data is saved in `server/data/db.json`. |
 
 ## Deploy with HTTPS (Render, free)
 
-Phones on other networks can't reach your laptop, so deploy before testing turf, leaderboards and Grok on phones.
+This API exists so the **phone app** can use Grok Voice, Grok Imagine, turf, and leaderboards. There is no Nessie / banking API.
+
+Phones on other networks can't reach your laptop, so deploy before testing those features on a device.
 
 1. Push the repo to GitHub.
 2. In [Render](https://render.com): **New → Blueprint**, then pick this repo. It reads [`render.yaml`](../render.yaml).
-3. Fill in `XAI_API_KEY` (and `ELEVENLABS_API_KEY` for ElevenLabs voices) when asked. Add the Supabase values too if you set it up.
-4. Open `https://huskiespaws-….onrender.com/api/health` to check it's up. That base URL is what the phone app calls.
+3. Fill in `XAI_API_KEY` (and `ELEVENLABS_API_KEY` for Moss). Add the Supabase values too if you set it up.
+4. Open `https://huskiespaws-….onrender.com/api/health` to check it's up (`"grok": true`). That origin is the phone's `EXPO_PUBLIC_API_URL`.
 
 Notes on the free plan:
 - It **sleeps after about 15 minutes idle**, and the first visit takes about a minute to wake. Open it a few minutes before judging.
@@ -57,9 +58,9 @@ Notes on the free plan:
 2. **SQL Editor → New query**, paste [supabase/schema.sql](supabase/schema.sql), and click **Run**.
 3. Copy the **Project URL** and the **service_role** key from **Project Settings → API** into `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
 
-**Existing projects:** re-run the updated schema before restarting the server. It adds the private bank tables and `turf_snapshot`, `commit_turf`, `recall_guard` and `reserve_transfer` functions. Territory decisions are computed from a consistent snapshot and committed only if the database revision still matches, including the three-landmark ownership cap. RPC execution is restricted to `service_role`.
+**Existing projects:** re-run the updated schema before restarting the server. It adds `turf_snapshot`, `commit_turf`, `recall_guard` functions. Territory decisions are computed from a consistent snapshot and committed only if the database revision still matches, including the three-landmark ownership cap. RPC execution is restricted to `service_role`.
 
-Bank setup reuses the server's saved account mapping. Each transfer reserves its trip ID before contacting Nessie. Completed transfers can be read again safely; pending transfers need reconciliation after an uncertain response and are never automatically sent twice. As with scores and turf, player IDs currently act as capabilities rather than authenticated accounts; this remains a sandbox demo.
+Player IDs currently act as capabilities rather than authenticated accounts; this remains a sandbox demo.
 
 The service-role key is a full-access key. It stays on the server; row-level security blocks direct access from clients. **The Supabase code hasn't been tested against a live project yet,** so check `/api/health` (it should say `"storage":"supabase"`) and post a score after setting it up.
 
@@ -83,7 +84,7 @@ These run the real server against **fake xAI and ElevenLabs services**. They che
 
 ```
 src/index.js            settings from env, picks storage, starts the server
-src/app.js              routing, /env.js, static files, errors
+src/app.js              routing, static images, errors
 src/routes.js           the API handlers
 src/grok.js             xAI client and prompt templates
 src/elevenlabs.js       ElevenLabs text-to-speech client and squad voices

@@ -36,7 +36,7 @@ This file groups every idea from the brainstorms and the repo docs, adds the new
 
 - **Scope:** this is basically Pokémon GO gyms. A full multiplayer version won't fit by Sunday, so we build a simplified one (see section 3).
 - **It needs a real backend.** Turf only works if it's shared between players. The leaderboards are still sample data.
-- **The Nessie savings must not buy eggs.** Loot boxes paid with banking money look like gambling, especially with Capital One judging. Eggs are earned only by walking.
+- **Eggs are earned only by walking.**
 - **Keep the pitch about navigation.** Present the turf map as "who explored where", not as a battle game, so the theme judges stay on board.
 
 ## 2. Every idea, grouped
@@ -61,7 +61,7 @@ This file groups every idea from the brainstorms and the repo docs, adds the new
 | | Friends' agents meet when you walk near each other | Idea |
 | **Impact** | Tag stairs, ramps and broken elevators | Idea |
 | | Forager agent: finds water, food and benches | Idea |
-| **Sponsor tracks** | Savings tree with Nessie (Capital One) | Built (Nessie calls untested) |
+| **Sponsor tracks** | Savings tree with Nessie (Capital One) | Dropped |
 | | Agents text you in iMessage (Photon) | Built in [`imessage-agent/`](imessage-agent/) and tested in the terminal. Needs Photon keys. |
 | | Desk garden on a SenseCAP or Raspberry Pi (Hardware) | Idea |
 | **Grok (required)** | Voice memos, Imagine postcards and pet art, Grok chat for agents | Voice and Imagine built in `server/`. **Needs an `XAI_API_KEY`;** tested only against a fake xAI service. Grok chat not done. |

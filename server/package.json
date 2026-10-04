@@ -2,7 +2,7 @@
   "name": "huskiespaws-server",
   "version": "1.0.0",
   "private": true,
-  "description": "HuskiesPaws backend: serves the web app and holds the secrets (Grok, Supabase) behind a small API.",
+  "description": "HuskiesPaws backend: holds secrets (Grok, ElevenLabs, Supabase) behind a small API for the phone app.",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

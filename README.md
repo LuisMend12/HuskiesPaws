@@ -2,11 +2,11 @@
 
 <p align="center"><img src="docs/logo/huskiespaws-logo.svg" alt="HuskiesPaws logo" width="560"></p>
 
-**Walk somewhere new. Bloom a trail. Hatch a pet. Skip the ride.**
+**Walk somewhere new. Bloom a trail. Hatch a pet.**
 
 HuskiesPaws turns everyday walks into an adventure. Pip scouts real nearby places,
 Moss tells their stories, and Fern plans the walking route. Steps bloom a flower
-trail, hatch pets, and grow a savings tree when you walk instead of riding.
+trail and hatch pets.
 
 Built for [BigRed//Hacks 2026](https://bigredhacks2026.devpost.com/) at Cornell,
 October 2–4, around the theme **Navigation**. Team: **Luis Mendez and Abdullah Rashid**.
@@ -28,11 +28,10 @@ The animation illustrates the walking loop; it is not a screen recording.
 | Blooming trails | Walking leaves flowers on the map; ranks unlock trail styles. |
 | Demo and GPS walks | Simulate an indoor judging walk or use live location and supported phone step sensors while the app is open. |
 | Postcards | Capture nearby landmarks and save them in an album. Optional Grok Imagine illustrates discoveries and pets. |
-| Eggs, pets, and turf | Earn eggs by walking, hatch pets, and guard landmarks. Stronger pets can take turf. Eggs are never bought with savings. |
+| Eggs, pets, and turf | Earn eggs by walking, hatch pets, and guard landmarks. Stronger pets can take turf. Eggs come from walking only. |
 | ISS rarity | Live ISS position boosts rare hatch odds when overhead. |
 | Leaderboards | Local, statewide, and national rankings through the backend; sample rankings without a configured API. |
-| Savings tree | Walks of at least 300 m estimate a skipped rideshare fare. Optional backend Nessie sandbox transfers fund savings. |
-| Voice | Server-generated audio with on-device speech fallback. Optional ElevenLabs voice for Moss. |
+| Voice | Server-generated audio (Grok Voice for Pip and Fern, ElevenLabs for Moss) with on-device speech fallback. |
 | iMessage | Photon Spectrum agent shares the squad and reports today's steps and places passed. |
 
 ## Quick start
@@ -50,43 +49,61 @@ npm --prefix mobile run start:go
 Scan the QR code in Expo Go and allow location, camera, and motion permissions
 when requested. On venue Wi-Fi, use `npm --prefix mobile run tunnel` instead.
 The app runs without backend credentials using local art, on-device speech, and
-sample or demo features. Live rankings, shared turf, and banking need the API.
+sample or demo features. Live rankings, shared turf, and Grok voice/art need the API.
 
 In PowerShell, use `npm.cmd` and `npx.cmd` if script execution policy blocks npm.
 
-## Backend setup
+## Backend setup (for the phone app)
 
-Copy the safe templates to `server/.env` and `mobile/.env` before adding settings.
-Keep existing environment files if already configured.
+The Expo app does not hold Grok or ElevenLabs keys. Deploy or run `server/` and
+point the phone at it with `EXPO_PUBLIC_API_URL`. There is no Nessie / banking
+integration.
+
+Copy the safe templates before adding settings. Keep existing environment files
+if already configured.
 
 ```bash
-cp server/.env.example server/.env
-cp mobile/.env.example mobile/.env
+Copy-Item server/.env.example server/.env
+Copy-Item mobile/.env.example mobile/.env
 npm --prefix server start
 ```
 
-PowerShell: use `Copy-Item` instead of `cp`. The server has no npm dependencies.
-Check `http://localhost:8765/api/health`. The API serves `/api/*` and generated
-`/images/*`; it does not serve web pages.
+The server has no npm dependencies. Check `http://localhost:8765/api/health`.
+The API serves `/api/*` and generated `/images/*`; it does not serve web pages.
 
 The server reads root `.env` and `server/.env`; package settings take precedence.
-All service integrations are optional:
+Locally `GROK_API_KEY` is accepted as an alias for `XAI_API_KEY`.
 
 | Server variable | Purpose |
 |---|---|
-| `XAI_API_KEY` | Grok Voice and Imagine |
+| `XAI_API_KEY` | Grok Voice (Pip, Fern) and Grok Imagine (postcards, pet art) |
 | `ELEVENLABS_API_KEY` | Moss's story voice |
-| `NESSIE_API_KEY` | Capital One Nessie banking sandbox; backend only |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Persistent shared storage instead of local JSON |
-| `PORT` | API port, default `8765` |
+| `PORT` | API port, default `8765` (Render sets this for you) |
 
-In `mobile/.env`, set `EXPO_PUBLIC_API_URL` to the backend origin. A physical phone
-needs a reachable LAN address or HTTPS deployment: `localhost` on the phone means
-the phone itself. Restart Expo after environment changes.
+In `mobile/.env`, set `EXPO_PUBLIC_API_URL` to the backend origin (no trailing
+slash, no `/api`). A physical phone needs a reachable HTTPS URL: `localhost` on
+the phone means the phone itself. Restart Expo after environment changes.
+`npm run tunnel` keeps a URL already set in `EXPO_PUBLIC_API_URL`.
 
-**Never put private keys in `EXPO_PUBLIC_*` variables or the app bundle.** Banking
-uses the server's key. Environment files are ignored; safe `.env.example`
-templates remain versioned.
+**Never put private keys in `EXPO_PUBLIC_*` variables or the app bundle.**
+Environment files are ignored; safe `.env.example` templates remain versioned.
+
+### Deploy Grok for the phone (Render)
+
+Phones on other networks cannot reach your laptop, so host the API with HTTPS.
+
+1. Get an xAI key at [console.x.ai](https://console.x.ai).
+2. Push this repo to GitHub (`https://github.com/LuisMend12/big-red-hacks2026`).
+3. In [Render](https://render.com): **New → Blueprint**, pick this repo. It reads
+   [`render.yaml`](render.yaml).
+4. Paste the xAI key as **`XAI_API_KEY`**. Add `ELEVENLABS_API_KEY` for Moss.
+   Do not add a Nessie key.
+5. Open `https://huskiespaws-….onrender.com/api/health`. You want `"grok": true`.
+6. Put that origin in `mobile/.env` as `EXPO_PUBLIC_API_URL` and restart Expo.
+
+Free Render sleeps after about 15 minutes idle; wake `/api/health` before a demo.
+Without Supabase, file storage resets on each deploy.
 
 ## Maps and development builds
 
@@ -115,7 +132,7 @@ configure Photon, and run `npm --prefix imessage-agent start`.
 To link phone walks to Pip, match the phone's `EXPO_PUBLIC_PHOTON_PHONE` with the
 agent's `DEMO_PHONE_NUMBER` (E.164), and point `HUSKIESPAWS_API_URL` at the same API
 as the phone. Commands include `explore`, `story`, `take me there`, `arrived`,
-`today`, and `savings`. See [the agent guide](imessage-agent/README.md).
+and `today`. See [the agent guide](imessage-agent/README.md).
 
 ## Project layout
 
@@ -125,7 +142,7 @@ as the phone. Commands include `explore`, `story`, `take me there`, `arrived`,
 | [core/](core/) | Shared plain JavaScript game rules and services; source of truth |
 | [mobile/src/core/](mobile/src/core/) | Generated copy of shared logic; do not edit directly |
 | [mobile/src/map/](mobile/src/map/) | iOS garden map |
-| [server/](server/) | Secrets, banking, audio, images, rankings, and turf APIs |
+| [server/](server/) | Secrets, Grok, audio, images, rankings, and turf APIs for the phone |
 | [imessage-agent/](imessage-agent/) | Photon Spectrum and terminal agent |
 | [docs/](docs/) | Demo, design notes, branding, and promo artifacts |
 | [render.yaml](render.yaml) | Render deployment blueprint |
@@ -156,15 +173,14 @@ Keep shared [Cursor rules](.cursor/rules/) current and record substantial work i
 
 ## Deployment and current limits
 
-- Deploy the API with [render.yaml](render.yaml), configure backend secrets, and
-  set the phone's API origin to its HTTPS URL.
+- Deploy the API with [render.yaml](render.yaml) so the **phone app** can use
+  Grok. Set `EXPO_PUBLIC_API_URL` to the HTTPS origin.
 - Default storage is `server/data/db.json`. Ephemeral hosting does not preserve
   it across redeploys. For Supabase, apply
   [server/supabase/schema.sql](server/supabase/schema.sql), including updates to
   existing databases, before enabling that store.
-- Live xAI, ElevenLabs, Nessie, and Supabase integrations need verification with
-  real credentials. Mock tests do not establish live-service availability.
-- Nessie uses HTTPS; live sandbox connectivity remains unverified.
+- Live xAI, ElevenLabs, and Supabase integrations need verification with real
+  credentials. Mock tests do not establish live-service availability.
 - Android maps have known rough edges. Garden maps need an iOS development build.
 - No background walking tracking or true AR. iMessage sessions are in memory and
   reset when the process restarts.
