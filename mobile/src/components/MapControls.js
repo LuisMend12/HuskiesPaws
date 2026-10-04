@@ -5,13 +5,15 @@ import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View }
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { petsView } from "./fakeData.js";
+import { Loading3D } from "./Loading3D.js";
 import { RankBadge } from "./RankBadge.js";
 import { canUseNativeMapLibre } from "../map/availability.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { Button } from "./ui.js";
 
 // The 3D squad view pulls in three.js, so it loads only when opened.
-const SquadView = lazy(() => import("./SquadView.js"));
+export const loadSquadView = () => import("./SquadView.js");
+const SquadView = lazy(loadSquadView);
 
 export const SHEET_OVERLAP = 24; // how far the sheet's rounded top covers the map
 
@@ -127,7 +129,7 @@ export function MapControls({ state, game }) {
         <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
       </View>
       {squadOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<Loading3D label="Loading your squad…" />}>
           <SquadView visible squad={petsView(state).squad} onClose={() => setSquadOpen(false)} />
         </Suspense>
       )}

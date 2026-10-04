@@ -231,8 +231,8 @@ export function createGame() {
     if (get().resetting) return;
     const arrived = get().found.find((p) => p.id === place.id) ?? null;
     set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
-    const savings = recordWalkSavings(place.title, meters);
-    say(`You made it to ${place.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
+    notePlace(place);
+    say(`You made it to ${place.title}! 🌸 Tap 📸 Capture to add it to your album.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
     checkRankUp(null);
     pets.tickPets();
@@ -255,7 +255,7 @@ export function createGame() {
       if (!current(token)) return;
       const rankBefore = get().rankName;
       if (!(await walking.walkAlong(route.points)) || !current(token)) return;
-      const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
+      notePlace(target);
       checkRankUp(null);
       if (get().rankName === rankBefore) say(`Walked to ${target.title}. Send Pip to explore from here!`);
     } catch (error) {

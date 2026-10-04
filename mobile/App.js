@@ -14,7 +14,8 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
 import { HatchModal } from "./src/components/HatchModal.js";
-import { MapControls, MapTopBar, SHEET_OVERLAP } from "./src/components/MapControls.js";
+import { Loading3D } from "./src/components/Loading3D.js";
+import { MapControls, MapTopBar, SHEET_OVERLAP, loadSquadView } from "./src/components/MapControls.js";
 import { PetsPanel } from "./src/components/PetsPanel.js";
 import { petsView } from "./src/components/fakeData.js";
 import { capturePetOf, finderOf } from "./src/components/petStatus.js";
@@ -34,7 +35,9 @@ import { colors, radius, shadow, space, type } from "./src/theme.js";
 SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts load
 
 // The landmark screen pulls in three.js, so it loads only when opened.
-const LandmarkView = lazy(() => import("./src/components/LandmarkView.js"));
+const loadLandmarkView = () => import("./src/components/LandmarkView.js");
+const LandmarkView = lazy(loadLandmarkView);
+const PRELOAD_3D_MS = 4000; // after start-up, fetch the 3D screens' code so their first open is quick
 
 const TABS = [
   { id: "squad", label: "Squad" },
@@ -70,6 +73,15 @@ function Main() {
   const game = useMemo(() => createGame(), []);
   const state = useStore(game.store);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    // Best effort: if this fails, tapping a 3D button loads the code then.
+    const timer = setTimeout(() => {
+      loadSquadView().catch(() => {});
+      loadLandmarkView().catch(() => {});
+    }, PRELOAD_3D_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     game.load().catch(() => game.set({ status: "Couldn't load progress. Restart the app to try again." }));
@@ -144,7 +156,7 @@ function Main() {
         onReplay={game.replayMemo}
       />
       {state.landmarkOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<Loading3D label="Opening landmark…" />}>
           <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={() => game.set({ landmarkOpen: null })} />
         </Suspense>
       )}

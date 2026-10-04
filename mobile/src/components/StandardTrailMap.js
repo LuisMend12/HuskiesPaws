@@ -113,6 +113,7 @@ export function StandardTrailMap({ state, onOpenLandmark }) {
         <Bloom key={`bloom-${bloom.id}`} bloom={bloom} />
       ))}
       <MapPets
+        landmarkOpen={Boolean(state.landmarkOpen)}
         position={state.position}
         squad={squadStatuses(squad, state)}
         landmarks={landmarks}

@@ -111,17 +111,23 @@ function Landmark({ landmark, onOpen }) {
 
 // squad: [{ pet, status, agentId }] from squadStatuses().
 // landmarks: from landmarksView(); onOpenLandmark(id) opens the landmark screen.
-export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark }) {
+// landmarkOpen: whether the landmark screen is showing.
+export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark, landmarkOpen = false }) {
   // iOS keeps a tapped marker "selected", and the next tap only deselects it (no
-  // press event), so every other tap was lost. Remounting the bags after each
-  // open clears the selection. The ref guards against the press events that fire together.
+  // press event), so every other tap was lost. Remounting the bags clears the
+  // selection, but only once the landmark screen has closed: removing the marker
+  // the map is still handling a tap on (while a Modal opens) could freeze the app.
   const [opens, setOpens] = useState(0);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && !landmarkOpen) setOpens((n) => n + 1);
+    wasOpen.current = landmarkOpen;
+  }, [landmarkOpen]);
   const lastOpen = useRef(0);
   const open = (id) => {
     const now = Date.now();
-    if (now - lastOpen.current < 400) return;
+    if (now - lastOpen.current < 400) return; // several press events fire for one tap
     lastOpen.current = now;
-    setOpens((n) => n + 1);
     onOpenLandmark?.(id);
   };
   const following = squad.filter((s) => s.status === "with-you").map((s) => s.pet).slice(0, FOLLOW_SPOTS.length);
