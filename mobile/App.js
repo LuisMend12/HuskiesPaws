@@ -8,7 +8,7 @@ import {
 } from "@expo-google-fonts/nunito";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { Suspense, lazy, useEffect, useMemo } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef } from "react";
 import { AppState, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
@@ -38,6 +38,7 @@ SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts 
 // The landmark screen pulls in three.js, so it loads only when opened.
 const loadLandmarkView = () => import("./src/components/LandmarkView.js");
 const LandmarkView = lazy(loadLandmarkView);
+const REOPEN_GUARD_MS = 1500; // see openLandmark below
 const PRELOAD_3D_MS = 4000; // after start-up, fetch the 3D screens' code so their first open is quick
 
 const TABS = [
@@ -75,6 +76,21 @@ function Main() {
   const state = useStore(game.store);
   const insets = useSafeAreaInsets();
 
+  // Closing a landmark resets the map's bag markers, and iOS re-selects the bag
+  // that was tapped, which fired a new "open": the screen reopened by itself
+  // (seen in the diag log) and looked frozen. Ignore re-opening the same
+  // landmark for a moment after it closes.
+  const closedLandmark = useRef({ id: null, at: 0 });
+  const openLandmark = (id) => {
+    const { id: lastId, at } = closedLandmark.current;
+    if (id === lastId && Date.now() - at < REOPEN_GUARD_MS) return;
+    game.set({ landmarkOpen: id });
+  };
+  const closeLandmark = () => {
+    closedLandmark.current = { id: state.landmarkOpen, at: Date.now() };
+    game.set({ landmarkOpen: null });
+  };
+
   useEffect(() => {
     startHeartbeat();
     // Best effort: if this fails, tapping a 3D button loads the code then.
@@ -111,7 +127,7 @@ function Main() {
       <View style={styles.map}>
         <TrailMap
           state={state}
-          onOpenLandmark={(landmarkOpen) => game.set({ landmarkOpen })}
+          onOpenLandmark={openLandmark}
           onUserExplore={() => game.set({ followCamera: false })}
         />
         <MapTopBar rank={current} score={score} boost={xpBoostOf(state)} onRankPress={() => game.set({ tab: "ranks" })} />
@@ -159,7 +175,7 @@ function Main() {
       />
       {state.landmarkOpen && (
         <Suspense fallback={<Loading3D label="Opening landmark…" />}>
-          <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={() => game.set({ landmarkOpen: null })} />
+          <LandmarkView state={state} game={game} landmarkId={state.landmarkOpen} onClose={closeLandmark} />
         </Suspense>
       )}
       <HatchModal
