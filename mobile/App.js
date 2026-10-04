@@ -9,7 +9,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { AppState, LogBox, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
@@ -34,6 +34,7 @@ import { useStore } from "./src/game/store.js";
 import { colors, radius, shadow, space, type } from "./src/theme.js";
 
 SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts load
+LogBox.ignoreLogs(["Server voice unavailable"]); // expected fallback when /api/voice is unreachable
 
 // The landmark screen pulls in three.js, so it loads only when opened.
 const loadLandmarkView = () => import("./src/components/LandmarkView.js");
