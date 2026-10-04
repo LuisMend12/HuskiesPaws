@@ -1,10 +1,10 @@
 // Tilted Apple Maps (iOS) / Google Maps (Android) with blooms, routes, and pets.
 import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { DEFAULT_CENTER } from "../core/config.js";
 import { distanceMeters } from "../core/geo.js";
-import { BloomIcon, YouMarker } from "./GameIcons.js";
+import { YouMarker } from "./GameIcons.js";
 import { colors } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { MapPets, useSettled } from "./MapPets.js";
@@ -30,9 +30,7 @@ function Bloom({ bloom }) {
   const tracking = useSettled();
   return (
     <Marker coordinate={toCoord(bloom)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracking}>
-      <View>
-        <BloomIcon size={16} color={bloom.color ?? colors.pink} />
-      </View>
+      <Text style={styles.bloom}>{bloom.emoji}</Text>
     </Marker>
   );
 }
@@ -131,3 +129,7 @@ export function StandardTrailMap({ state, onOpenLandmark }) {
     </MapView>
   );
 }
+
+const styles = StyleSheet.create({
+  bloom: { fontSize: 16 },
+});
