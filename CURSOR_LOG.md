@@ -1,5 +1,9 @@
 # Cursor log
 
+## 2026-10-04 — Remove duplicate capture tip (Codex)
+
+User request: remove the "NEXT — Capture this place" card shown in the screenshot. NextStepCard now hides the capture tip while keeping other next-step tips and the map capture action.
+
 ## 2026-10-04 — Compact walk-distance pill
 
 **Prompt (summary).** Make the remaining-distance indicator on the map smaller: compact centered pill, width to text, 16×6 padding, 14 px type, navy/white, above walk controls, keep updates.
@@ -163,3 +167,8 @@ Backend pets/turf/leaderboards and branding were implemented on other branches (
 Prompt: implement the backend handoff (pets/eggs, walking XP with turf boosts, turf HP decay, live leaderboards, mobile API client). Do not deploy, merge, or push. Branch was `photon-setup`; switched to `backend` without merging `main`.
 
 Worked in Cursor Agent on `backend`: `core/rank.js` leagues + `walkXp`, server turf HP, `mobile/src/api.js`, game state/actions, plain `PetsTurfProbe`.
+## 2026-10-04 — Map controls polish (Codex)
+
+User prompt: "how can I improve my current app can you try to use codex to do this for me"
+
+Implemented with Codex at the user's explicit request. Kept the existing compact distance pill, bounded long labels, allowed map header and tool rows to wrap on narrow screens, and made rank text shrink within its pill. Fixed capture pulse cleanup so a delayed reduced-motion check cannot start an animation after cleanup; unavailable accessibility checks leave it static. No shared game logic changed.

@@ -18,6 +18,8 @@ function useTick(active) {
 export function NextStepCard({ state, onPress }) {
   useTick(Boolean(state.expedition) || state.walking);
   const step = nextStep(state);
+  // Capture already has a prominent action on the map.
+  if (step.intent === "capture") return null;
   const tappable = Boolean(step.cta && onPress);
   return (
     <Pressable

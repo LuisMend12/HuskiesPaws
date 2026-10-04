@@ -63,8 +63,9 @@ function usePulse(running) {
   useEffect(() => {
     if (!running) return undefined;
     let loop = null;
+    let cancelled = false;
     AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (reduced) return;
+      if (reduced || cancelled) return;
       loop = Animated.loop(
         Animated.sequence([
           Animated.timing(scale, { toValue: 1.05, duration: 700, useNativeDriver: true }),
@@ -72,8 +73,9 @@ function usePulse(running) {
         ]),
       );
       loop.start();
-    });
+    }).catch(() => {});
     return () => {
+      cancelled = true;
       loop?.stop();
       scale.setValue(1);
     };
@@ -95,7 +97,7 @@ export function MapControls({ state, game, onSquadOpen }) {
     <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.sm }]} pointerEvents="box-none">
       {hud ? (
         <View style={styles.hud} accessibilityRole="text">
-          <Text style={styles.hudText}>{hud}</Text>
+          <Text style={styles.hudText} numberOfLines={2}>{hud}</Text>
         </View>
       ) : null}
       {canCapture && (
@@ -151,7 +153,7 @@ export function MapControls({ state, game, onSquadOpen }) {
 }
 
 const styles = StyleSheet.create({
-  topBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.sm },
+  topBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: space.sm },
   pill: {
     flexDirection: "row",
     alignItems: "center",
@@ -169,19 +171,20 @@ const styles = StyleSheet.create({
   brandText: { fontFamily: fonts.black, fontSize: 15, color: colors.white },
   brandAccent: { color: colors.greenOnDark },
   issChip: { fontFamily: fonts.black, fontSize: 11, letterSpacing: 1, color: colors.ice, marginLeft: 4 },
-  pillText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
+  pillText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink, flexShrink: 1 },
   bottomBar: { position: "absolute", left: space.md, right: space.md, gap: space.sm },
   hud: {
     alignSelf: "center",
+    maxWidth: "90%",
     backgroundColor: colors.navy,
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 16,
     ...shadow.soft,
   },
-  hudText: { fontFamily: fonts.bold, fontSize: 14, color: colors.white },
+  hudText: { fontFamily: fonts.bold, fontSize: 14, color: colors.white, textAlign: "center" },
   capture: { alignSelf: "stretch" },
-  tools: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm },
+  tools: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: space.sm },
   iconRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   iconBtn: {
     width: 44,
