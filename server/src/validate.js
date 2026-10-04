@@ -125,6 +125,7 @@ export function validateClaim(body) {
     title: str(body.title, "title", { max: 120 }),
     lat: num(body.lat, "lat", { min: -90, max: 90 }),
     lon: num(body.lon, "lon", { min: -180, max: 180 }),
+    hpShare: body.hpShare == null ? 1 : num(body.hpShare, "hpShare", { min: 0, max: 1 }),
     pet: {
       id: playerId(pet.id),
       name: str(pet.name, "pet.name", { max: 24 }),

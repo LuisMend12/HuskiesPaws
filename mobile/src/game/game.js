@@ -317,7 +317,8 @@ export function createGame() {
     const scout = agentById("scout");
     const card = { id: place.id, title: place.title, image, date: new Date().toISOString(), agentId: scout.id };
     set({
-      album: [card, ...get().album].slice(0, ALBUM_MAX_CARDS),
+      // Capturing a place again replaces its card: one postcard per place (ids are list keys).
+      album: [card, ...get().album.filter((c) => String(c.id) !== String(place.id))].slice(0, ALBUM_MAX_CARDS),
       capturable: null,
       captureOpen: false,
       tab: "album",

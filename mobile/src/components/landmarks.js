@@ -15,18 +15,22 @@ const LANDMARK_SPACING_M = 130; // real landmarks closer than this to another ar
 const baseName = (title) => title.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
 export const XP_BOOST_PER_LANDMARK = 0.1;
 
-// HP: everyone has 100. Damage from a fight stays, then heals slowly
-// (guards eat from their landmark's food; pets rest). Below READY_HP a pet rests.
+// HP: everyone has 100. Damage from a fight stays. Pets in the squad heal while
+// they rest (below READY_HP they can't fight); a guard keeps the HP it had and
+// loses GUARD_DRAIN_PER_HOUR while it holds the landmark (server/src/turf.js).
 export const MAX_HP = 100;
 export const HEAL_PER_MINUTE = 10;
 export const READY_HP = 50;
+export const GUARD_DRAIN_PER_HOUR = 10;
 
-// HP right now from a stored { hp, hpAt } (hpAt in ms; no hpAt = no healing).
+// Turf entry: { startHp, maxHp, decaysAt } drains from startHp. Pet: { hp, hpAt }
+// heals from hp (hpAt in ms; no hpAt = no healing).
 export function hpNow(entry, now = Date.now()) {
   if (!entry) return MAX_HP;
   if (Number.isFinite(entry.decaysAt)) {
-    return Math.max(0, (entry.maxHp ?? entry.pet?.power ?? MAX_HP)
-      - Math.floor(Math.max(0, now - entry.decaysAt) / 3_600_000 * 10));
+    const max = entry.maxHp ?? entry.pet?.power ?? MAX_HP;
+    const start = Number.isFinite(entry.startHp) ? Math.min(max, entry.startHp) : max;
+    return Math.max(0, start - Math.floor(Math.max(0, now - entry.decaysAt) / 3_600_000 * GUARD_DRAIN_PER_HOUR));
   }
   if (!entry.hpAt) return entry.hp ?? MAX_HP;
   return Math.min(entry.maxHp ?? MAX_HP, entry.hp + ((now - entry.hpAt) / 60000) * HEAL_PER_MINUTE);
@@ -92,7 +96,7 @@ export function claimLocally(state, landmark, pet, power, guardHp = MAX_HP) {
   const now = Date.now();
   const claim = {
     landmarkId: landmark.landmarkId, title: landmark.title, lat: landmark.lat, lon: landmark.lon,
-    ownerName: "You", mine: true, hp: guardHp, maxHp: MAX_HP, hpAt: now, claimedAt: new Date(now).toISOString(), pet: guardPet,
+    ownerName: "You", mine: true, startHp: guardHp, maxHp: MAX_HP, decaysAt: now, claimedAt: new Date(now).toISOString(), pet: guardPet,
   };
   const replace = (entry) => [...turf.filter((t) => String(t.landmarkId) !== landmark.landmarkId), entry];
 
