@@ -1,11 +1,17 @@
 // Album of captured landmark postcards.
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme.js";
-import { Hint } from "./ui.js";
+import { EmptyState } from "./ui.js";
 
 export function AlbumPanel({ album }) {
   if (album.length === 0) {
-    return <Hint>No postcards yet. Walk to a landmark Pip found, then tap 📸 Capture.</Hint>;
+    return (
+      <EmptyState
+        emoji="📸"
+        title="No postcards yet"
+        body="Squad → Explore, then Take me there. When you arrive, tap Capture to save a photo here."
+      />
+    );
   }
   return (
     <View style={styles.grid}>

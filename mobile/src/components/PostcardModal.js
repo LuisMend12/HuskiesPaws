@@ -86,9 +86,11 @@ export function PostcardModal({ visible, discovery, pet, onClose, onGo, onReplay
             </View>
           </ScrollView>
           <View style={styles.actions}>
-            <Button title="🔊 Replay" variant="secondary" onPress={onReplay} />
-            <Button title="Take me there" onPress={onGo} style={styles.go} />
-            <Button title="Later" variant="secondary" onPress={onClose} />
+            <Button title="Take me there" size="large" onPress={onGo} />
+            <View style={styles.row}>
+              <Button title="🔊 Replay" variant="secondary" onPress={onReplay} style={styles.half} />
+              <Button title="Later" variant="secondary" onPress={onClose} style={styles.half} />
+            </View>
           </View>
         </View>
       </View>
@@ -110,6 +112,7 @@ const styles = StyleSheet.create({
   more: { fontFamily: fonts.bold, fontSize: 14, color: colors.greenDark },
   meta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   link: { fontFamily: fonts.bold, color: colors.greenDark, textDecorationLine: "underline", fontSize: 13 },
-  actions: { flexDirection: "row", gap: space.sm, padding: space.lg, paddingTop: space.xs, alignItems: "center" },
-  go: { flex: 1 },
+  actions: { gap: space.sm, padding: space.lg, paddingTop: space.xs },
+  row: { flexDirection: "row", gap: space.sm },
+  half: { flex: 1 },
 });
