@@ -110,6 +110,7 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 | What you see | Fix |
 |---|---|
 | Cloudflare 530 / Error 1033 on trycloudflare.com | That hostname is from a **dead** tunnel (old QR, laptop slept, or Metro was not up yet). Ctrl+C, run `npm run tunnel` again, wait for **Metro is up**, scan the **new** QR. |
+| Yellow "Cannot connect to Expo CLI" / URL `….trycloudflare.com:80` | Hot reload lost the tunnel. The game can still run. Dismiss it, or Ctrl+C and `npm run tunnel` again, then scan the **new** QR. Ignore `adb reverse` unless you are on a USB Android emulator. |
 | Loading spins forever, "Could not connect to development server", or "request timed out" | The network blocks LAN. Use `npm run tunnel`. Wait for Metro before scanning. |
 | "Project is incompatible with this version of Expo Go" | Update Expo Go from the app store. The project needs SDK 57. |
 | `The expected package.json path ... does not exist` | You're in the wrong folder. `cd mobile` first (step 1). |

@@ -39,7 +39,10 @@ import { useStore } from "./src/game/store.js";
 import { colors, radius, shadow, space, type } from "./src/theme.js";
 
 SplashScreen.preventAutoHideAsync(); // keep the splash up until the fonts load
-LogBox.ignoreLogs(["Server voice unavailable"]); // expected fallback when /api/voice is unreachable
+LogBox.ignoreLogs([
+  "Server voice unavailable", // expected fallback when /api/voice is unreachable
+  "Cannot connect to Expo CLI", // Cloudflare tunnel: the JS bundle loaded; live reload often cannot
+]);
 
 // The landmark screen pulls in three.js, so it loads only when opened.
 const loadLandmarkView = () => import("./src/components/LandmarkView.js");

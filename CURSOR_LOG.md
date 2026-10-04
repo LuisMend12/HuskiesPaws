@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Compact walk-distance pill
+
+**Prompt (summary).** Make the remaining-distance indicator on the map smaller: compact centered pill, width to text, 16×6 padding, 14 px type, navy/white, above walk controls, keep updates.
+
+**Decisions.** Map HUD dropped `alignSelf: stretch`. It is now `alignSelf: center` with 16 px horizontal and 6 px vertical padding and 14 px white type on navy.
+
 ## 2026-10-04 — Sheet coach, tabs, indoor capture
 
 **Prompt (summary).** Upgrade the app UI/UX a lot; think of ways and implement.
