@@ -1,4 +1,4 @@
-// Eggs hatch from walking only. Nessie savings never buy eggs (PLAN.md).
+// Eggs hatch from walking only.
 // You carry up to MAX_EGGS; every egg fills as you walk; one hatches at a time.
 import { distanceMeters } from "../core/geo.js";
 import { MAX_EGGS, eggProgress, eggTierOf, hatchEgg, issIsOverhead, maybeNewEgg, rarityOf } from "../core/pets.js";
