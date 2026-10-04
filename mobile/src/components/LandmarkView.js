@@ -18,6 +18,7 @@ import { getPlaceSummary } from "../core/services.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
+import { FrameTicker } from "./Pet3D.js";
 import {
   FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
 } from "./landmarks.js";
@@ -234,7 +235,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
         ) : (
           <Field />
         )}
-        <Canvas style={styles.canvas} gl={{ alpha: true }} camera={{ fov: 40 }} onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
+        <Canvas style={styles.canvas} gl={{ alpha: true }} camera={{ fov: 40 }} frameloop="demand" onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}>
+          <FrameTicker />
           <FitCamera width={battle ? BATTLE_WIDTH : SCENE_WIDTH} />
           <ambientLight intensity={1.1} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.4} />

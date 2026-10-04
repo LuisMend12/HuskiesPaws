@@ -13,7 +13,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { rarityOf } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { ArSquad } from "./ArSquad.js";
-import { Pup } from "./Pet3D.js";
+import { FrameTicker, Pup } from "./Pet3D.js";
 
 const PET_SCALE = 0.7;
 const SPACING = 2.7; // between pets, before scaling (room for each one's walking triangle)
@@ -93,8 +93,10 @@ export default function SquadView({ visible, squad, onClose }) {
           style={StyleSheet.absoluteFill}
           gl={{ alpha: true }}
           camera={{ fov: 42 }}
+          frameloop="demand"
           onCreated={({ gl }) => gl.setClearColor(0x000000, 0)} // see-through: the camera or field shows behind
         >
+          <FrameTicker />
           <ambientLight intensity={1.1} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.4} />
           {showCamera ? (

@@ -4,8 +4,8 @@
 // Only loaded lazily (see SquadView.js): importing three must not happen at app start.
 /* eslint-disable react/no-unknown-property -- three.js elements (mesh, args, roughness...) aren't DOM tags */
 import "./threePolyfill.js"; // must stay first: three crashes on React Native without it
-import { useFrame } from "@react-three/fiber/native";
-import { useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber/native";
+import { useEffect, useRef } from "react";
 import { BackSide, DataTexture, NearestFilter, RGBAFormat } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { colorOf, rarityOf } from "../core/pets.js";
@@ -27,6 +27,18 @@ const FOOT = new RoundedBoxGeometry(0.36, 0.26, 0.42, 2, 0.1);
 
 export const Toon = ({ color }) => <meshToonMaterial color={color} gradientMap={RAMP} />;
 export const Flat = ({ color }) => <meshBasicMaterial color={color} />;
+
+// On Expo every GL call runs on the JS thread, so drawing at 60 fps starved taps
+// and the app felt frozen. Canvases use frameloop="demand" plus this ticker.
+export const FPS_3D = 30;
+export function FrameTicker({ fps = FPS_3D }) {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    const timer = setInterval(() => invalidate(), 1000 / fps);
+    return () => clearInterval(timer);
+  }, [invalidate, fps]);
+  return null;
+}
 
 // A part with a dark outline: the same shape, slightly bigger, drawn inside-out behind it.
 export function Outlined({ geometry, color, position, rotation, scale = 1, children }) {
