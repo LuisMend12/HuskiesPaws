@@ -9,6 +9,7 @@ import { createRateLimiter } from "./rateLimit.js";
 import { grokVoiceFor } from "./tts.js";
 import { currentHp, decideClaim } from "./turf.js";
 import { validateClaim, validateImagine, validateLeaderboardQuery, validateRecall, validateScore, validateSpeech } from "./validate.js";
+import { defenderAt, withBots } from "./bots.js";
 
 const LEADERBOARD_LIMIT = 10;
 const IMAGE_FETCH_TIMEOUT_MS = 30_000;
@@ -132,7 +133,7 @@ export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir
     async listTurf(req, res, url) {
       const me = url.searchParams.get("me");
       const now = Date.now();
-      const turf = (await store.listTurf())
+      const turf = withBots(await store.listTurf(), now)
         .map((t) => {
           const hp = currentHp(t, now);
           if (hp <= 0) return null;
@@ -153,6 +154,7 @@ export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir
               rarity: pet.rarity,
               petClass: pet.petClass,
               color: pet.color ?? "snowy",
+              species: pet.species ?? null,
               spaceBorn: Boolean(pet.spaceBorn),
               power: pet.power,
               art: pet.art ?? null,
@@ -165,8 +167,9 @@ export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir
 
     async claimTurf(req, res) {
       const attempt = validateClaim(await readJson(req));
-      const outcome = await store.claimTurf(attempt.landmarkId, (defender, allTurf) =>
-        decideClaim({ defender, allTurf, attempt }),
+      const now = Date.now();
+      const outcome = await store.claimTurf(attempt.landmarkId, (stored, allTurf) =>
+        decideClaim({ defender: defenderAt(attempt.landmarkId, stored, now), allTurf, attempt, now }),
       );
       sendJson(res, 200, { result: outcome.result, message: outcome.message, won: Boolean(outcome.claim) });
     },

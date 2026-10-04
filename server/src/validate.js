@@ -1,6 +1,6 @@
 // Input validation at the API boundary. Each validator returns a clean object
 // or throws HttpError(400) with a message that's safe to show the user.
-import { PET_COLORS } from "../../core/pets.js";
+import { PET_COLORS, PET_SPECIES } from "../../core/pets.js";
 import { HttpError } from "./http.js";
 
 const RARITIES = ["common", "rare", "epic", "legendary"];
@@ -131,6 +131,7 @@ export function validateClaim(body) {
       rarity: oneOf(pet.rarity, "pet.rarity", RARITIES),
       petClass: oneOf(pet.petClass, "pet.petClass", PET_CLASSES),
       color: oneOf(pet.color ?? "snowy", "pet.color", PET_COLOR_NAMES),
+      species: pet.species == null ? null : oneOf(pet.species, "pet.species", PET_SPECIES),
       spaceBorn: Boolean(pet.spaceBorn),
       power: Math.floor(num(pet.power, "pet.power", { min: 1, max: 200 })),
       emoji: str(pet.emoji ?? "🐾", "pet.emoji", { max: 8 }),
