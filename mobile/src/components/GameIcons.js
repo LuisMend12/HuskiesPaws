@@ -104,7 +104,7 @@ export function TerritoryIcon({ size = 22, color = INK }) {
 export function LiveIcon({ size = 22, color = INK }) {
   return (
     <GameIcon size={size} label="Live location">
-      <Path d="M12 21 C12 21 6 14.4 6 10.2 A6 6 0 0 1 18 10.2 C18 14.4 12 21 12 21 Z" fill={colors.coral} stroke={color} strokeWidth={1.8} />
+      <Path d="M12 21 L6 10.5 Q6 5.5 12 5.5 Q18 5.5 18 10.5 Z" fill={colors.coral} stroke={color} strokeWidth={1.8} strokeLinejoin="round" />
       <Circle cx={12} cy={10.2} r={2.2} fill={colors.cream} />
     </GameIcon>
   );

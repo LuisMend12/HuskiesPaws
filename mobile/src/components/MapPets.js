@@ -61,7 +61,9 @@ function ExplorerPet({ pet, expedition, home }) {
     <>
       <Polyline coordinates={[{ latitude: home.lat, longitude: home.lon }, target]} strokeColor={colors.ice} strokeWidth={3} lineDashPattern={[2, 8]} />
       <Marker coordinate={target} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracking} title="Somewhere new…">
-        <MysteryMarker size={30} />
+        <View>
+          <MysteryMarker size={30} />
+        </View>
       </Marker>
       <Marker coordinate={placeOnTrip(expedition, home, now)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={tracking} title={`${pet.name} is exploring`}>
         <PetSvg pet={pet} size={46} />
