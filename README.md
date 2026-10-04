@@ -69,6 +69,12 @@ Pip, Moss, and Fern are **role-based agents** in shared game logic (`core/`). Th
 
 Hatched pets can fill those classes (and a Guardian class for holding turf). The same rules drive the phone app and the optional Photon iMessage agent.
 
+<p align="center">
+  <img src="docs/presentation/app_images/imessage-pip-explore.jpg" alt="iMessage with Pip: the user texts Explore, Pip returns with Risley Residential College about 340 m away, a Wikipedia photo of the hall, and a prompt to text take me there." width="320">
+</p>
+
+<p align="center"><em>Same Explore loop over iMessage: text <code>Explore</code>, Pip scouts a real nearby place, then <code>take me there</code> starts the walk.</em></p>
+
 ## The app
 
 Real Expo Go captures (not stock UI):
@@ -194,7 +200,7 @@ npm install
 npm run terminal
 ```
 
-Type `hi`, `explore`, `take me there`. Photon keys are only needed for real iMessage (`npm start`). Guide: [imessage-agent/README.md](imessage-agent/README.md).
+Type `hi`, `explore`, `take me there`. Photon keys are only needed for real iMessage (`npm start`). Guide: [imessage-agent/README.md](imessage-agent/README.md). A live Explore thread is in the squad section above.
 
 ### Tests
 

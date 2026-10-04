@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — iMessage Explore screenshot on README
+
+**Prompt (summary).** Add the iMessage Explore screenshot (Pip / Risley) to the root README.
+
+**Decisions.** Saved a redacted copy at `docs/presentation/app_images/imessage-pip-explore.jpg`. Contact header (phone number) and leaked prior-thread copy were covered; chat content kept. Placed under The squad with alt text for Explore → Wikipedia place + take me there.
+
 ## 2026-10-04 — Judges tech briefing (TeX)
 
 **Prompt (summary).** Put the technologies-and-how-to-present briefing into a TeX file.
