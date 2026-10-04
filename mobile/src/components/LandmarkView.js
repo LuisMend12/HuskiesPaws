@@ -120,6 +120,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const [battle, setBattle] = useState(null); // { attacker, power, defender, outcome, hp: { you, them } }
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [claimError, setClaimError] = useState(null); // shown in the sheet; the status toast is hidden behind this screen
   const [ar, setAr] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   useTicker(3000);
@@ -203,15 +204,18 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     if (!picked) return;
     setBusy(true);
     const power = petPower(picked, walked);
-    // Local claims are allowed only in the explicit demo without a configured API.
+    // With a server, it decides; if it can't be reached nothing changes (no fake
+    // local win). Without a configured server (offline play, or before the deploy),
+    // the same rules run on the phone, in demo mode and on real walks.
     const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark) : null;
     if (game.store.getState().generation !== state.generation) { setBusy(false); return; }
-    const outcome = online ?? (!apiAvailable() && state.demoMode
-      ? { ...claimLocally(state, landmark, picked, power), local: true } : null);
+    const outcome = online ?? (!apiAvailable() ? { ...claimLocally(state, landmark, picked, power), local: true } : null);
     if (!outcome) {
+      setClaimError("Couldn't reach the turf server. Nothing changed; try again in a moment.");
       setBusy(false);
       return;
     }
+    setClaimError(null);
     const fight = guard && !guard.mine && (outcome.result === "captured" || outcome.result === "defended");
     const start = { you: petHpOf(state, picked.id), them: hpNow(guard) };
     if (fight) setBattle({ attacker: picked, power, defender: guard.pet, outcome, start, hp: start });
@@ -310,6 +314,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
                 <Hint>{`⚡${petPower(picked, walked)} vs ⚡${guard.pet.power}: the stronger pet wins and holds the landmark.`}</Hint>
               )}
               {picked && petHpOf(state, picked.id) < MAX_HP && <Hint>{`${picked.name} has ${Math.round(petHpOf(state, picked.id))} HP (healing).`}</Hint>}
+              {claimError && <Text style={styles.error}>{claimError}</Text>}
               {reach.inRange ? (
                 <Button title={picked ? `${icon} ${action} with ${picked.name}` : action} size="large" onPress={go} disabled={!picked || busy} />
               ) : (
@@ -351,4 +356,5 @@ const styles = StyleSheet.create({
   pickName: { ...type.label, fontSize: 12 },
   pickPower: { fontFamily: fonts.black, fontSize: 12, color: colors.ink },
   resultTitle: { ...type.title },
+  error: { ...type.label, color: colors.coral },
 });
