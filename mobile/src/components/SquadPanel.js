@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center", minHeight: 44, justifyContent: "center" },
   locked: { backgroundColor: colors.stripe },
   emptyText: { ...type.label, color: colors.muted },
-  landmark: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm, paddingHorizontal: space.sm, borderRadius: radius.card, backgroundColor: colors.stripe },
+  landmark: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm, paddingHorizontal: space.sm, borderRadius: radius.card, backgroundColor: colors.stripe, minHeight: 44 },
   pressed: { opacity: 0.7 },
   chevron: { fontFamily: fonts.black, fontSize: 22, color: colors.muted },
 });
