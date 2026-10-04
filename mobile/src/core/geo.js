@@ -20,6 +20,7 @@ export function interpolate(a, b, t) {
 }
 
 export function walkingMinutes(meters, speedMps) {
+  if (!(meters > 0) || !(speedMps > 0)) return 0;
   return Math.max(1, Math.round(meters / speedMps / 60));
 }
 

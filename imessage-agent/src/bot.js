@@ -46,7 +46,7 @@ export async function handleMessage(rawText, session, send, { tts } = {}) {
     if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send);
     if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts, lower);
     if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send);
-    if (/\b(arrived|made it|here|i'?m there)\b/.test(lower)) return await arrive(session, send);
+    if (/\b(arrived|made it|i'?m there)\b/.test(lower)) return await arrive(session, send);
     if (/\b(saved|savings|tree)\b/.test(lower)) return await showSavings(session, send);
     await send({ text: `Hmm, I didn't catch that.\n\n${HELP}` });
     return session;

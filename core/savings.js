@@ -38,11 +38,13 @@ export const TREE_STAGES = Object.freeze([
 ]);
 
 export function treeStage(saved) {
-  const index = TREE_STAGES.findLastIndex((stage) => saved >= stage.min);
-  const current = TREE_STAGES[Math.max(0, index)];
+  const safe = Number.isFinite(saved) ? saved : 0;
+  const index = Math.max(0, TREE_STAGES.findLastIndex((stage) => safe >= stage.min));
+  const current = TREE_STAGES[index];
   const next = TREE_STAGES[index + 1] ?? null;
-  const progress = next ? (saved - current.min) / (next.min - current.min) : 1;
-  return { index: Math.max(0, index), current, next, progress };
+  const span = next ? next.min - current.min : 1;
+  const progress = next ? Math.min(1, Math.max(0, (safe - current.min) / span)) : 1;
+  return { index, current, next, progress };
 }
 
 export const formatDollars = (amount) => `$${amount.toFixed(2)}`;

@@ -67,9 +67,11 @@ export function scoreFor({ steps, walkXp, landmarksFound, landmarksCaptured, bon
 }
 
 export function rankFor(score) {
-  const index = RANKS.findLastIndex((rank) => score >= rank.min);
-  const current = RANKS[Math.max(0, index)];
+  const safe = Number.isFinite(score) ? score : 0;
+  const index = Math.max(0, RANKS.findLastIndex((rank) => safe >= rank.min));
+  const current = RANKS[index];
   const next = RANKS[index + 1] ?? null;
-  const progress = next ? (score - current.min) / (next.min - current.min) : 1;
+  const span = next ? next.min - current.min : 1;
+  const progress = next ? Math.min(1, Math.max(0, (safe - current.min) / span)) : 1;
   return { current, next, progress };
 }
