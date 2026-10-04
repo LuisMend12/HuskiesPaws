@@ -5,7 +5,9 @@
 // lets each story follow with a voice note.
 import { AGENTS, choosePlace, expeditionDuration, firstSentences, routeMemo, storyMemo } from "../../core/agents.js";
 import { DEFAULT_CENTER } from "../../core/config.js";
+import { addDayPlace, addDaySteps, emptyDay, formatDayUpdate, rollDay } from "../../core/dayLog.js";
 import { distanceMeters, pathLength } from "../../core/geo.js";
+import { stepsFromMeters } from "../../core/rank.js";
 import { MIN_TRIP_M, estimateRideFare, formatDollars, totalSaved, treeStage } from "../../core/savings.js";
 import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from "../../core/services.js";
 
@@ -21,11 +23,20 @@ export const HELP = [
   "• \"pip story\" / \"fern story\": Pip or Fern tell the same facts in Grok Voice",
   "• \"take me there\": Fern plans the walk",
   "• \"arrived\": log the walk, and the Uber you skipped grows your savings tree",
+  "• \"today\": Pip lists places you passed and today's step count",
   "• \"savings\": see your tree",
 ].join("\n");
 
 export function newSession() {
-  return { position: DEFAULT_CENTER, placeName: DEFAULT_PLACE_NAME, visited: [], discovery: null, pendingTrip: null, trips: [] };
+  return {
+    position: DEFAULT_CENTER,
+    placeName: DEFAULT_PLACE_NAME,
+    visited: [],
+    discovery: null,
+    pendingTrip: null,
+    trips: [],
+    dayLog: emptyDay(),
+  };
 }
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,7 +44,7 @@ const walkingLink = (p) => `https://maps.apple.com/?daddr=${p.lat},${p.lon}&dirf
 
 // Returns the updated session. send({ text }), send({ imageUrl }) or
 // send({ audio: Buffer, mimeType, name }) delivers replies.
-export async function handleMessage(rawText, session, send, { tts } = {}) {
+export async function handleMessage(rawText, session, send, { tts, dayApi, phone } = {}) {
   const text = rawText.trim();
   const lower = text.toLowerCase();
   try {
@@ -43,10 +54,13 @@ export async function handleMessage(rawText, session, send, { tts } = {}) {
       await send({ text: `${HELP}\n\n(Right now I think you're near ${session.placeName}.)` });
       return session;
     }
+    if (/^(today|steps|tally)\b/.test(lower) || /how many steps/.test(lower)) {
+      return await todayTally(session, send, dayApi, phone);
+    }
     if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send);
     if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts, lower);
     if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send);
-    if (/\b(arrived|made it|i'?m there)\b/.test(lower)) return await arrive(session, send);
+    if (/\b(arrived|made it|i'?m there)\b/.test(lower)) return await arrive(session, send, dayApi, phone);
     if (/\b(saved|savings|tree)\b/.test(lower)) return await showSavings(session, send);
     await send({ text: `Hmm, I didn't catch that.\n\n${HELP}` });
     return session;
@@ -131,7 +145,7 @@ async function guide(session, send) {
   return { ...session, pendingTrip: { place, meters } };
 }
 
-async function arrive(session, send) {
+async function arrive(session, send, dayApi, phone) {
   const trip = session.pendingTrip;
   if (!trip) {
     await send({ text: `🫐 ${fern.name}: Arrived where? Text "explore", then "take me there" first.` });
@@ -141,8 +155,10 @@ async function arrive(session, send) {
   const trips = amount ? [...session.trips, { title: trip.place.title, amount }] : session.trips;
   const stage = treeStage(totalSaved(trips)).current;
   const saved = amount ? ` You skipped a ~${formatDollars(amount)} ride, so your savings tree is now a ${stage.emoji} ${stage.name}.` : "";
+  const dayLog = addDaySteps(addDayPlace(rollDay(session.dayLog), trip.place), stepsFromMeters(trip.meters));
   await send({ text: `🌸 You made it to ${trip.place.title}!${saved}` });
-  return {
+  await send({ text: formatDayUpdate(dayLog) });
+  const next = {
     ...session,
     position: { lat: trip.place.lat, lon: trip.place.lon },
     placeName: trip.place.title,
@@ -150,7 +166,26 @@ async function arrive(session, send) {
     discovery: null,
     pendingTrip: null,
     trips,
+    dayLog,
   };
+  await syncDay(next, dayApi, phone);
+  return next;
+}
+
+async function todayTally(session, send, dayApi, phone) {
+  const remote = phone && dayApi?.getDay ? await dayApi.getDay(phone) : null;
+  const dayLog = remote?.date ? remote : rollDay(session.dayLog);
+  await send({ text: formatDayUpdate(dayLog) });
+  return { ...session, dayLog };
+}
+
+async function syncDay(session, dayApi, phone) {
+  if (!dayApi?.putDay || !phone) return;
+  await dayApi.putDay({
+    phone,
+    steps: session.dayLog?.steps ?? 0,
+    places: session.dayLog?.places ?? [],
+  });
 }
 
 async function showSavings(session, send) {

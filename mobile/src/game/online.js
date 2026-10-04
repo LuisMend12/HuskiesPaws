@@ -1,7 +1,8 @@
 import { distanceMeters } from "../core/geo.js";
 import { petPower } from "../core/pets.js";
 import { xpBoostFor } from "../core/rank.js";
-import { apiAvailable, claimTurf, fetchLeaderboard, fetchTurf, recallGuard, submitScore } from "../api.js";
+import { dayFingerprint } from "../core/dayLog.js";
+import { apiAvailable, claimTurf, fetchLeaderboard, fetchTurf, recallGuard, submitDayLog, submitScore } from "../api.js";
 import { scoreOf } from "./state.js";
 
 const FIGHT_RANGE_M = 150; // same as the landmark screen (components/landmarks.js)
@@ -9,9 +10,12 @@ const WINS = ["claimed", "captured", "reinforced"];
 
 export function createOnline({ get, set, persist, say }) {
   let lastSubmitted = null;
+  let lastDayStamp = null;
+  let dayTimer = null;
   let turfRequest = 0;
   let boardRequest = 0;
   let scoreQueue = Promise.resolve();
+  let dayQueue = Promise.resolve();
   const current = (generation) => generation === get().generation && !get().resetting;
 
   const player = () => get().player;
@@ -72,6 +76,42 @@ export function createOnline({ get, set, persist, say }) {
     });
     scoreQueue = run;
     return run;
+  }
+
+  function photonPhone() {
+    return (process.env.EXPO_PUBLIC_PHOTON_PHONE ?? "").trim() || null;
+  }
+
+  function pushDay({ immediate = false } = {}) {
+    const state = get();
+    const me = player();
+    const phone = photonPhone();
+    if ((!me?.id && !phone) || state.resetting) return Promise.resolve();
+    const generation = state.generation;
+    const send = () => {
+      const run = dayQueue.catch(() => {}).then(async () => {
+        const latest = get();
+        const stampNow = dayFingerprint(latest.dayLog);
+        if (!current(generation) || stampNow === lastDayStamp) return;
+        const saved = await submitDayLog({
+          ...(me?.id ? { playerId: me.id } : {}),
+          ...(phone ? { phone } : {}),
+          steps: latest.dayLog?.steps ?? 0,
+          places: latest.dayLog?.places ?? [],
+        });
+        if (!saved || !current(generation)) return;
+        lastDayStamp = stampNow;
+      });
+      dayQueue = run;
+      return run;
+    };
+    if (!immediate) {
+      clearTimeout(dayTimer);
+      dayTimer = setTimeout(send, 4_000);
+      return Promise.resolve();
+    }
+    clearTimeout(dayTimer);
+    return send();
   }
 
   // Leaves a squad pet on guard, or challenges the guard. Returns
@@ -151,6 +191,8 @@ export function createOnline({ get, set, persist, say }) {
     turfRequest += 1;
     boardRequest += 1;
     lastSubmitted = null;
+    lastDayStamp = null;
+    clearTimeout(dayTimer);
   }
 
   function rename(name) {
@@ -162,5 +204,5 @@ export function createOnline({ get, set, persist, say }) {
     return true;
   }
 
-  return { refreshTurf, refreshLeaderboard, pushScore, claimLandmark, recallPet, expireTurf, invalidate, rename };
+  return { refreshTurf, refreshLeaderboard, pushScore, pushDay, claimLandmark, recallPet, expireTurf, invalidate, rename };
 }

@@ -14,7 +14,7 @@ The product is the **phone app** (`mobile/`). The web app was dropped on Oct 3; 
 | Folder | What | Run |
 |---|---|---|
 | `server/` | Node server (no deps): `/api` for Grok, leaderboards, turf. Holds all secrets. No web pages. | `npm start`, `npm test` |
-| `core/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `nessie`, `pets`, `services`, `geo`, `art`, `config` | Plain JS, no DOM or React Native. Keep it that way. `npm test` in `core/`. |
+| `core/` | **Shared game logic, the source of truth:** `agents`, `rank`, `leaderboard`, `savings`, `nessie`, `pets`, `services`, `geo`, `art`, `config`, `dayLog` | Plain JS, no DOM or React Native. Keep it that way. `npm test` in `core/`. |
 | `mobile/` | Expo SDK 57 app | Expo Go: `npm run tunnel` or `npm run start:go`. iOS garden map: development build (`npx expo run:ios` on a Mac, or EAS) |
 | `mobile/src/map/` | iOS MapLibre garden map (OpenFreeMap). Do not import MapLibre unless `canUseNativeMapLibre()` | — |
 | `mobile/src/core/` | **Generated** copy of the shared logic | Never edit; change `core/` and run `npm run sync-core` in `mobile/` |

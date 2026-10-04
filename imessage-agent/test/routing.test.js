@@ -37,6 +37,22 @@ test("I'm at with no place name does not call the geocoder as empty", async () =
   assert.match(all, /didn't catch that|near/);
 });
 
+test("today and arrived report places passed and daily steps", async () => {
+  const empty = await chat("today");
+  assert.match(empty.all, /0 steps/);
+  const pending = {
+    ...newSession(),
+    pendingTrip: { place: { id: 9, title: "Sage Chapel", lat: 42.45, lon: -76.48 }, meters: 800 },
+  };
+  const first = await chat("arrived", pending);
+  assert.match(first.all, /Sage Chapel/);
+  assert.match(first.all, /steps/);
+  assert.equal(first.session.dayLog.places[0].title, "Sage Chapel");
+  assert.ok(first.session.dayLog.steps > 0);
+  const tally = await chat("today", first.session);
+  assert.match(tally.all, /Sage Chapel/);
+});
+
 test("arrived twice does not log a second walk", async () => {
   const pending = {
     ...newSession(),

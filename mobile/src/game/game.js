@@ -11,6 +11,7 @@ import { fetchPostcard } from "../api.js";
 import { createBanking } from "./banking.js";
 import { createOnline } from "./online.js";
 import { createPetsLoop } from "./petsLoop.js";
+import { addDayPlace, rollDay } from "../core/dayLog.js";
 import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFields, scoreOf } from "./state.js";
 import { createStore } from "./store.js";
 import { createWalking } from "./walking.js";
@@ -63,7 +64,10 @@ export function createGame() {
       if (get().resetting) return;
       online.expireTurf();
       pets.tickPets();
-      if (final) online.pushScore();
+      if (final) {
+        online.pushScore();
+        online.pushDay();
+      }
     },
   });
 
@@ -73,7 +77,12 @@ export function createGame() {
     // Remove credentials saved by earlier versions; they never migrate into state.
     await clearKeys(["nessieKey"]);
     if (!current(token)) return;
-    set({ ...saved, loaded: true, rankName: rankFor(scoreOf({ ...get(), ...saved })).current.name });
+    set({
+      ...saved,
+      dayLog: rollDay(saved.dayLog),
+      loaded: true,
+      rankName: rankFor(scoreOf({ ...get(), ...saved })).current.name,
+    });
     persist();
     walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
     stopIss?.();
@@ -215,10 +224,17 @@ export function createGame() {
     if (!(await walking.startLiveLocation())) set({ guide: null });
   }
 
+  function notePlace(place) {
+    set({ dayLog: addDayPlace(get().dayLog, place) });
+    persist();
+    online.pushDay({ immediate: true });
+  }
+
   function arrive(place, meters) {
     if (get().resetting) return;
     const arrived = get().found.find((p) => p.id === place.id) ?? null;
     set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
+    notePlace(place);
     const savings = recordWalkSavings(place.title, meters);
     say(`You made it to ${place.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
@@ -243,6 +259,7 @@ export function createGame() {
       if (!current(token)) return;
       const rankBefore = get().rankName;
       if (!(await walking.walkAlong(route.points)) || !current(token)) return;
+      notePlace(target);
       const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
       checkRankUp(null);
       if (get().rankName === rankBefore) say(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);

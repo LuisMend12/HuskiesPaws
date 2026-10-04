@@ -65,6 +65,13 @@ export async function fetchPetPortrait(body) {
 export const recallGuard = (body) => postJson("/api/turf/recall", body);
 export const connectBank = (playerId) => postJson("/api/bank/connect", { playerId });
 export const transferWalk = (body) => postJson("/api/bank/transfer", body);
+export const submitDayLog = (body) => postJson("/api/day", body);
+export const fetchDayLog = ({ playerId, phone } = {}) => {
+  const params = new URLSearchParams();
+  if (playerId) params.set("playerId", playerId);
+  if (phone) params.set("phone", phone);
+  return getJson(`/api/day?${params}`);
+};
 
 export async function fetchPostcard(body) {
   const data = await postJson("/api/imagine", { kind: "postcard", ...body }, { timeout: IMAGINE_TIMEOUT_MS });

@@ -2,6 +2,7 @@
 import * as Location from "expo-location";
 import { Pedometer } from "expo-sensors";
 import { BLOOM_EVERY_M, CAPTURE_RADIUS_M, DEMO_WALK_SPEED_MPS } from "../core/config.js";
+import { addDaySteps, mergeDayLogs, todayKey } from "../core/dayLog.js";
 import { distanceMeters, interpolate } from "../core/geo.js";
 import { stepsFromMeters, walkingXpFromSteps } from "../core/rank.js";
 import { currentTrail } from "./state.js";
@@ -59,6 +60,11 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     };
   }
 
+  function bumpDaySteps(added) {
+    if (!added || added <= 0) return get().dayLog;
+    return addDaySteps(get().dayLog, added);
+  }
+
   // countSteps: estimate steps from distance (simulated walks, or no pedometer).
   function stepTo(position, { countDistance = true, countSteps = true, notifyWalk = true } = {}) {
     const state = get();
@@ -77,6 +83,7 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     store.setState({
       position,
       progress,
+      dayLog: bumpDaySteps(addedSteps),
       blooms: bloomsAfter(state.blooms, position, trail),
       trailSegments: extendTrail(state.trailSegments, position, trail),
       capturable: capturableAt(position, state),
@@ -135,6 +142,16 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
       if (!(await Pedometer.isAvailableAsync())) return false;
       const { granted } = await Pedometer.requestPermissionsAsync();
       if (!granted || epoch !== watchEpoch) return false;
+      try {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const counted = await Pedometer.getStepCountAsync(start, new Date());
+        if (epoch === watchEpoch && Number.isFinite(counted?.steps) && counted.steps > 0) {
+          store.setState({
+            dayLog: mergeDayLogs(get().dayLog, { date: todayKey(), steps: Math.floor(counted.steps), places: [] }),
+          });
+        }
+      } catch { /* Android / Expo Go may not support a daily query. */ }
       stepSubscription = Pedometer.watchStepCount(({ steps }) => {
         if (epoch !== watchEpoch) return;
         const added = stepsLast === null ? steps : steps - stepsLast;
@@ -147,6 +164,7 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
             added,
             state.xpBoost ?? 1,
           ),
+          dayLog: bumpDaySteps(added),
         });
         onWalk?.();
       });

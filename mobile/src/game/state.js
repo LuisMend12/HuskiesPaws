@@ -12,6 +12,7 @@ function newPlayer() {
 // Fields saved on the phone, with their defaults.
 export const SAVED_DEFAULTS = Object.freeze({
   progress: { walked: 0, steps: 0, walkXp: 0, landmarksFound: 0, landmarksCaptured: 0 },
+  dayLog: { date: "", steps: 0, places: [] },
   found: [], // [{ id, title, lat, lon, photo }]
   album: [], // [{ id, title, image, date, agentId }]
   xp: Object.fromEntries(AGENTS.map((a) => [a.id, 0])),
@@ -28,7 +29,7 @@ export const SAVED_DEFAULTS = Object.freeze({
 
 // "Reset my progress" clears these but keeps the Nessie connection and player id.
 export const RESETTABLE_KEYS = [
-  "progress", "found", "album", "xp", "trailChoice", "trips",
+  "progress", "dayLog", "found", "album", "xp", "trailChoice", "trips",
   "pets", "eggs", "eggsReceived", "squad",
 ];
 

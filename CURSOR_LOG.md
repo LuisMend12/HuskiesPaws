@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Photon daily places and steps
+
+**Prompt (summary).** Photon should update the user about places they passed and how many steps they walked today.
+
+**Decisions.** Shared `core/dayLog.js` is the source of truth (local calendar day, max steps + union of places). The phone writes `POST /api/day` after walks and arrivals (`EXPO_PUBLIC_PHOTON_PHONE` links the iMessage number). Pip texts a tally on new landmarks or step milestones (1k / 2.5k / 5k / 10k…), and answers `"today"` / `"steps"`. iMessage `"arrived"` also logs estimated steps from the route. Place names still come from the map, not the LLM.
+
 ## 2026-10-03 — Bug-hunt tests
 
 **Prompt (summary).** Add more tests and try to find as many bugs as possible.

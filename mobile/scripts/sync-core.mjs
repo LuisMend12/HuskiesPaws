@@ -10,7 +10,7 @@ const source = join(here, "..", "..", "core");
 const target = join(here, "..", "src", "core");
 
 const CORE_FILES = [
-  "agents.js", "art.js", "config.js", "geo.js", "leaderboard.js",
+  "agents.js", "art.js", "config.js", "dayLog.js", "geo.js", "leaderboard.js",
   "nessie.js", "pets.js", "rank.js", "savings.js", "services.js",
 ];
 

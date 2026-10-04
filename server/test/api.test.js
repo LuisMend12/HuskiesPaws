@@ -237,6 +237,29 @@ describe("HuskiesPaws API", () => {
     assert.equal(guarded.maxHp, 50);
     assert.doesNotMatch(JSON.stringify(list), /player-/);
   });
+
+  test("day log merges phone steps with iMessage places", async () => {
+    const phone = "+18609890738";
+    const first = await json(await post(app.base, "/api/day", {
+      phone,
+      steps: 400,
+      places: [{ id: "lib", title: "Uris Library" }],
+    }));
+    assert.equal(first.status, 200);
+    assert.equal(first.data.steps, 400);
+    const linked = await json(await post(app.base, "/api/day", {
+      playerId: "player-walker",
+      phone,
+      steps: 2500,
+      places: [{ id: "sage", title: "Sage Chapel" }],
+    }));
+    assert.equal(linked.data.steps, 2500);
+    assert.equal(linked.data.places.length, 2);
+    const byPhone = await json(await fetch(`${app.base}/api/day?phone=${encodeURIComponent(phone)}`));
+    assert.equal(byPhone.data.steps, 2500);
+    assert.equal((await post(app.base, "/api/day", { steps: 3 })).status, 400);
+    assert.equal((await fetch(`${app.base}/api/day`)).status, 400);
+  });
 });
 
 describe("ElevenLabs voice", () => {

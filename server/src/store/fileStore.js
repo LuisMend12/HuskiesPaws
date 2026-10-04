@@ -3,8 +3,9 @@
 // each other. On hosts with ephemeral disks, data resets on redeploy.
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { nextDayRecord } from "../day.js";
 
-const EMPTY = Object.freeze({ players: {}, turf: {}, images: {}, banks: {}, transfers: {} });
+const EMPTY = Object.freeze({ players: {}, turf: {}, images: {}, banks: {}, transfers: {}, days: {}, dayPhones: {} });
 
 export function createFileStore(dataDir) {
   const file = join(dataDir, "db.json");
@@ -22,6 +23,8 @@ export function createFileStore(dataDir) {
       images: asMap(raw.images),
       banks: asMap(raw.banks),
       transfers: asMap(raw.transfers),
+      days: asMap(raw.days),
+      dayPhones: asMap(raw.dayPhones),
     };
   }
 
@@ -123,6 +126,24 @@ export function createFileStore(dataDir) {
 
     async saveImage(key, path) {
       await update((db) => ({ ...db, images: { ...db.images, [key]: path } }));
+    },
+
+    async upsertDayLog({ playerId, phone, incoming, now = new Date() }) {
+      let saved = null;
+      await update((db) => {
+        const { owner, next, dayPhones } = nextDayRecord(db.days ?? {}, db.dayPhones ?? {}, {
+          playerId, phone, incoming, now,
+        });
+        saved = next;
+        return { ...db, days: { ...(db.days ?? {}), [owner]: next }, dayPhones };
+      });
+      return saved;
+    },
+
+    async getDayLog({ playerId, phone }) {
+      const db = await load();
+      const owner = playerId || (phone && db.dayPhones?.[phone]) || phone;
+      return owner ? db.days?.[owner] ?? null : null;
     },
   };
 }
