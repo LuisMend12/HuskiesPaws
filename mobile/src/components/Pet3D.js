@@ -10,6 +10,7 @@ import { BackSide, DataTexture, NearestFilter, RGBAFormat } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { colorOf, rarityOf } from "../core/pets.js";
 import { colors } from "../theme.js";
+import { diag } from "../diag.js";
 
 export const INK = colors.navy;
 const OUTLINE = 1.07; // outline shell size relative to the part
@@ -33,9 +34,19 @@ export const Flat = ({ color }) => <meshBasicMaterial color={color} />;
 export const FPS_3D = 30;
 export function FrameTicker({ fps = FPS_3D }) {
   const invalidate = useThree((state) => state.invalidate);
+  const frames = useRef(0);
+  useFrame(() => {
+    frames.current += 1;
+  });
   useEffect(() => {
     const timer = setInterval(() => invalidate(), 1000 / fps);
-    return () => clearInterval(timer);
+    const report = setInterval(() => diag(`3D drew ${frames.current} frames in the last 2 s`, (frames.current = 0) || ""), 2000);
+    diag("3D view created");
+    return () => {
+      clearInterval(timer);
+      clearInterval(report);
+      diag("3D view removed");
+    };
   }, [invalidate, fps]);
   return null;
 }

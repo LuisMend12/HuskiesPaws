@@ -19,6 +19,7 @@ import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { BATTLE_ROUNDS, BattleScene, LandmarkScene, RING_COLORS } from "./Landmark3D.js";
 import { FrameTicker } from "./Pet3D.js";
+import { diag } from "../diag.js";
 import {
   FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
 } from "./landmarks.js";
@@ -122,6 +123,10 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   const [ar, setAr] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   useTicker(3000);
+  useEffect(() => {
+    diag("landmark screen opened", landmarkId);
+    return () => diag("landmark screen closed", landmarkId);
+  }, [landmarkId]);
   const [fetchedPhoto, setFetchedPhoto] = useState(null);
 
   const walked = state.progress.walked;

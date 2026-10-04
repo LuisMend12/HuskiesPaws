@@ -14,6 +14,7 @@ import { rarityOf } from "../core/pets.js";
 import { colors, fonts, radius, shadow, space, type } from "../theme.js";
 import { ArSquad } from "./ArSquad.js";
 import { FrameTicker, Pup } from "./Pet3D.js";
+import { diag } from "../diag.js";
 
 const PET_SCALE = 0.7;
 const SPACING = 2.7; // between pets, before scaling (room for each one's walking triangle)
@@ -69,6 +70,10 @@ function Button({ label, onPress, active }) {
 }
 
 export default function SquadView({ visible, squad, onClose }) {
+  useEffect(() => {
+    diag("squad 3D opened");
+    return () => diag("squad 3D closed");
+  }, []);
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [ar, setAr] = useState(true);

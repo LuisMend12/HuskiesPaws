@@ -15,6 +15,7 @@ import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
 import { HatchModal } from "./src/components/HatchModal.js";
 import { Loading3D } from "./src/components/Loading3D.js";
+import { startHeartbeat } from "./src/diag.js";
 import { MapControls, MapTopBar, SHEET_OVERLAP, loadSquadView } from "./src/components/MapControls.js";
 import { PetsPanel } from "./src/components/PetsPanel.js";
 import { petsView } from "./src/components/fakeData.js";
@@ -75,6 +76,7 @@ function Main() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
+    startHeartbeat();
     // Best effort: if this fails, tapping a 3D button loads the code then.
     const timer = setTimeout(() => {
       loadSquadView().catch(() => {});
