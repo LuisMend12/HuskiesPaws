@@ -231,7 +231,7 @@ function Main() {
           {state.tab === "squad" && <SquadPanel state={state} game={game} onOpenLandmark={openLandmark} />}
           {state.tab === "pets" && <PetsPanel state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
-          {state.tab === "album" && <AlbumPanel album={state.album} />}
+          {state.tab === "album" && <AlbumPanel album={state.album} onExplore={() => game.set({ tab: "squad" })} />}
         </ScrollView>
       </View>
 

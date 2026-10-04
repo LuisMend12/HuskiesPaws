@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { followNext, nextStep } from "../src/components/nextCoach.js";
+import { followNext, nextStep, remainingWalkMeters, walkHud } from "../src/components/nextCoach.js";
 
 const base = {
   progress: { landmarksFound: 0, walked: 0 },
@@ -49,4 +49,19 @@ test("followNext opens capture and hatches", () => {
     eggs: [{ id: "e1", startWalked: 0, hatchMeters: 100 }],
   }, game);
   assert.deepEqual(calls, [["set", { tab: "pets" }], ["hatch"]]);
+});
+
+test("remaining walk meters follow the leftover route", () => {
+  const meters = remainingWalkMeters({
+    position: { lat: 0, lon: 0 },
+    route: [
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0.001 },
+    ],
+  });
+  assert.ok(meters > 90 && meters < 130);
+  assert.match(
+    walkHud({ walking: true, position: { lat: 0, lon: 0 }, route: [{ lat: 0, lon: 0 }, { lat: 0, lon: 0.001 }], discovery: { place: { title: "Bailey Hall" } } }),
+    /Bailey Hall/,
+  );
 });

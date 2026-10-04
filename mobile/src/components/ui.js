@@ -61,12 +61,13 @@ export function Chip({ label, active = false, disabled = false, outlined = false
   );
 }
 
-export function EmptyState({ emoji, icon, title, body }) {
+export function EmptyState({ emoji, icon, title, body, action }) {
   return (
     <View style={styles.emptyState}>
       {icon ?? (emoji ? <Text style={styles.emptyEmoji}>{emoji}</Text> : null)}
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
+      {action ? <Button title={action.title} onPress={action.onPress} /> : null}
     </View>
   );
 }

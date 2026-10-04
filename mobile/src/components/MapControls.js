@@ -9,6 +9,7 @@ import { colors, fonts, radius, shadow, space } from "../theme.js";
 import { CaptureIcon, GardenIcon, LiveIcon, MapGlyphIcon, PawIcon, RecenterIcon, WalkIcon } from "./GameIcons.js";
 import { Button } from "./ui.js";
 import { tapFeel } from "../feel.js";
+import { walkHud } from "./nextCoach.js";
 
 export const loadSquadView = () => import("./SquadView.js");
 export const SHEET_OVERLAP = 24;
@@ -88,9 +89,15 @@ export function MapControls({ state, game, onSquadOpen }) {
   const gardenOn = gardenCapable && state.mapRenderer === "garden";
   const busy = state.walking || state.planning;
   const live = state.liveLocation;
+  const hud = walkHud(state);
 
   return (
     <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.sm }]} pointerEvents="box-none">
+      {hud ? (
+        <View style={styles.hud} accessibilityRole="text">
+          <Text style={styles.hudText}>{hud}</Text>
+        </View>
+      ) : null}
       {canCapture && (
         <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]}>
           <Button
@@ -164,6 +171,17 @@ const styles = StyleSheet.create({
   issChip: { fontFamily: fonts.black, fontSize: 11, letterSpacing: 1, color: colors.ice, marginLeft: 4 },
   pillText: { fontFamily: fonts.bold, fontSize: 13, color: colors.ink },
   bottomBar: { position: "absolute", left: space.md, right: space.md, gap: space.sm },
+  hud: {
+    alignSelf: "stretch",
+    backgroundColor: colors.navy,
+    borderRadius: radius.pill,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    minHeight: 36,
+    justifyContent: "center",
+    ...shadow.soft,
+  },
+  hudText: { fontFamily: fonts.bold, fontSize: 13, color: colors.white, textAlign: "center" },
   capture: { alignSelf: "stretch" },
   tools: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm },
   iconRow: { flexDirection: "row", alignItems: "center", gap: 8 },

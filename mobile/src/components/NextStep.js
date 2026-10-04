@@ -1,11 +1,22 @@
 // One-line coach for the sheet: what to do next in the walk loop.
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { nextStep } from "./nextCoach.js";
 import { colors, fonts, radius, space } from "../theme.js";
 
 export { followNext, nextStep } from "./nextCoach.js";
 
+function useTick(active) {
+  const [, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return undefined;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [active]);
+}
+
 export function NextStepCard({ state, onPress }) {
+  useTick(Boolean(state.expedition) || state.walking);
   const step = nextStep(state);
   const tappable = Boolean(step.cta && onPress);
   return (

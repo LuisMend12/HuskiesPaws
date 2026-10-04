@@ -9,6 +9,7 @@ import { hashString } from "../core/geo.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { PetSvg } from "./PetArt.js";
 import { Button, Hint } from "./ui.js";
+import { tapFeel } from "../feel.js";
 
 const SCENE_HEIGHT = 170;
 const FACT_LINES = 5;
@@ -79,14 +80,20 @@ export function PostcardModal({ visible, discovery, pet, onClose, onGo, onReplay
               )}
               <View style={styles.meta}>
                 <Hint>{`${Math.round(place.distance)} m away`}</Hint>
-                <Text style={styles.link} onPress={() => Linking.openURL(summary.url)} accessibilityRole="link">
-                  Source: Wikipedia
-                </Text>
+                {summary.url ? (
+                  <Text
+                    style={styles.link}
+                    onPress={() => Linking.openURL(summary.url).catch(() => {})}
+                    accessibilityRole="link"
+                  >
+                    Source: Wikipedia
+                  </Text>
+                ) : null}
               </View>
             </View>
           </ScrollView>
           <View style={styles.actions}>
-            <Button title={demoMode ? "Start the walk" : "I'll walk there"} size="large" onPress={onGo} />
+            <Button title={demoMode ? "Start the walk" : "I'll walk there"} size="large" onPress={() => { tapFeel(); onGo(); }} />
             <View style={styles.row}>
               <Button title="🔊 Replay" variant="secondary" onPress={onReplay} style={styles.half} />
               <Button title="Later" variant="secondary" onPress={onClose} style={styles.half} />

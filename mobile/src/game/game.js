@@ -262,8 +262,17 @@ export function createGame() {
 
   function arrive(place, meters) {
     if (get().resetting) return;
-    const arrived = get().found.find((p) => p.id === place.id) ?? null;
-    set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
+    const existing = get().found.find((p) => p.id === place.id);
+    const arrived = existing ?? { id: place.id, title: place.title, lat: place.lat, lon: place.lon, photo: place.photo ?? null };
+    set({
+      visited: [...get().visited, place.id],
+      found: existing ? get().found : [...get().found, arrived],
+      discovery: null,
+      capturable: arrived,
+      captureOpen: true,
+      guide: null,
+      route: null,
+    });
     notePlace(place);
     say(`You made it to ${place.title}! Capture it to add a postcard.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));

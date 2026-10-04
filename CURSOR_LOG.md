@@ -4,7 +4,7 @@
 
 **Prompt (summary).** Upgrade the app UI/UX a lot; think of ways and implement.
 
-**Decisions.** Next card is now a real tap (capture, hatch, postcard, Squad). Four equal sheet tabs with a gold hatch-ready badge. Rank progress sits under Next. Ready eggs jump to the top of Pets. Indoor capture leads with a drawn postcard. Light haptics on tabs, capture, and hatch. Welcome copy points at Next.
+**Decisions.** Next card is now a real tap (capture, hatch, postcard, Squad). Four equal sheet tabs with a gold hatch-ready badge. Rank progress sits under Next. Ready eggs jump to the top of Pets. Indoor capture leads with a drawn postcard. Light haptics on tabs, capture, and hatch. Welcome copy points at Next. Arriving at a place opens capture. Map shows meters left. Album cards open full-size; empty album has an Open Squad button. Scout countdown ticks on Next.
 
 ## 2026-10-04 — Deck uses real app screenshots
 
