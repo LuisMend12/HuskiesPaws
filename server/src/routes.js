@@ -7,7 +7,7 @@ import { MAX_SPEECH_CHARS, VOICES, petPrompt, postcardPrompt } from "./grok.js";
 import { HttpError, clientIp, readJson, sendError, sendJson } from "./http.js";
 import { createRateLimiter } from "./rateLimit.js";
 import { grokVoiceFor } from "./tts.js";
-import { currentHp, decideClaim } from "./turf.js";
+import { currentHp, decideClaim, startHpOf } from "./turf.js";
 import { validateClaim, validateImagine, validateLeaderboardQuery, validateRecall, validateScore, validateSpeech } from "./validate.js";
 import { boardWithBots, defenderAt, withBots } from "./bots.js";
 
@@ -142,6 +142,7 @@ export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir
             ownerName: t.ownerName,
             claimedAt: t.claimedAt,
             hp,
+            startHp: startHpOf(t),
             maxHp: t.maxHp ?? pet.power ?? hp,
             mine: t.ownerId === me,
             pet: {

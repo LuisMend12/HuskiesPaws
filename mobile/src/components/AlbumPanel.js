@@ -21,7 +21,7 @@ export function AlbumPanel({ album, onExplore }) {
     <View style={styles.grid}>
       {album.map((card) => (
         <Pressable
-          key={card.id}
+          key={`${card.id}-${card.date}`} // older saves can hold two cards for one place
           onPress={() => setOpen(card)}
           accessibilityRole="button"
           accessibilityLabel={`Postcard of ${card.title}`}

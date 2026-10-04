@@ -10,7 +10,7 @@ import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
 import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
-import { MAX_HP, READY_HP, healMinutes, landmarksView, reachOf, ringOf } from "./landmarks.js";
+import { GUARD_DRAIN_PER_HOUR, MAX_HP, READY_HP, healMinutes, hpNow, landmarksView, reachOf, ringOf } from "./landmarks.js";
 import { FoodSvg, PetArt } from "./PetArt.js";
 import { SLOT_UNLOCKS, squadSizeFor, squadStatuses } from "./petStatus.js";
 import { DirectionsIcon, ExploreIcon, StoryIcon, TerritoryIcon } from "./GameIcons.js";
@@ -98,7 +98,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
           <View style={[styles.status, { backgroundColor: look.bg }]}>
             <Text style={[styles.statusText, { color: look.color }]}>
               {guarding
-                ? `${look.label} ${guarding.title}`
+                ? `${look.label} ${guarding.title} · ${Math.round(hpNow(guarding))} HP ▼${GUARD_DRAIN_PER_HOUR}/h`
                 : secondsLeft !== null
                   ? `${look.label} · back in ${secondsLeft} s`
                   : status === "resting"

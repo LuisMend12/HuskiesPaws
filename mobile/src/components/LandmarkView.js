@@ -21,7 +21,7 @@ import { FrameTicker } from "./Pet3D.js";
 import { GlCanvas } from "./GlCanvas.js";
 import { diag } from "../diag.js";
 import {
-  FIGHT_RANGE_M, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
+  FIGHT_RANGE_M, GUARD_DRAIN_PER_HOUR, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
 } from "./landmarks.js";
 import { PetSvg } from "./PetArt.js";
 import { squadStatuses } from "./petStatus.js";
@@ -47,12 +47,17 @@ function scratchPerHit(winnerPower, loserPower) {
   return Math.round(Math.min(18, Math.max(4, (loserPower / winnerPower) * 12)));
 }
 
+// The winner's HP after `round` hits of a fight it wins.
+const winnerHpAfter = (start, winnerPower, loserPower, round = BATTLE_ROUNDS) =>
+  Math.max(8, start - scratchPerHit(winnerPower, loserPower) * round);
+
 // HP for both sides after `round` hits (round = BATTLE_ROUNDS at the end).
 function hpAfter(b, round) {
   const youWin = b.outcome.won;
-  const scratch = youWin ? scratchPerHit(b.power, b.defender.power) : scratchPerHit(b.defender.power, b.power);
   const loser = (start) => Math.max(0, start - (start / BATTLE_ROUNDS) * round);
-  const winner = (start) => Math.max(8, start - scratch * round);
+  const winner = (start) => (youWin
+    ? winnerHpAfter(start, b.power, b.defender.power, round)
+    : winnerHpAfter(start, b.defender.power, b.power, round));
   return youWin ? { you: winner(b.start.you), them: loser(b.start.them) } : { you: loser(b.start.you), them: winner(b.start.them) };
 }
 
@@ -173,11 +178,11 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
       let turf = outcome.turf;
       if (turf && outcome.won) {
         const hp = after ? after.you : petHpOf(state, attacker.id, now);
-        turf = turf.map((t) => (t.mine && String(t.landmarkId) === landmark.landmarkId ? { ...t, hp, hpAt: now } : t));
+        turf = turf.map((t) => (t.mine && String(t.landmarkId) === landmark.landmarkId ? { ...t, startHp: hp, decaysAt: now } : t));
       }
       if (after && !outcome.won) {
         turf = petsView(state).turf.map((t) =>
-          String(t.landmarkId) === landmark.landmarkId ? { ...t, hp: after.them, maxHp: t.maxHp ?? MAX_HP, hpAt: now } : t,
+          String(t.landmarkId) === landmark.landmarkId ? { ...t, startHp: after.them, maxHp: t.maxHp ?? MAX_HP, decaysAt: now } : t,
         );
       }
       if (turf) patch.turf = turf;
@@ -217,7 +222,12 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     // With a server, it decides; if it can't be reached nothing changes (no fake
     // local win). Without a configured server (offline play, or before the deploy),
     // the same rules run on the phone, in demo mode and on real walks.
-    const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark) : null;
+    // The pet guards with the HP it will have left: scratched if it beats a rival,
+    // and still short if it was healing from an earlier fight.
+    const startHp = petHpOf(state, picked.id);
+    const rival = guard && !guard.mine ? guard : null;
+    const hpLeft = rival && power > rival.pet.power ? winnerHpAfter(startHp, power, rival.pet.power) : startHp;
+    const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark, hpLeft / MAX_HP) : null;
     if (game.store.getState().generation !== state.generation) { setBusy(false); return; }
     const outcome = online ?? (!apiAvailable() ? { ...claimLocally(state, landmark, picked, power), local: true } : null);
     if (!outcome) {
@@ -287,7 +297,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
             <View style={styles.guardCard}>
               <Text style={styles.guardText}>{`🛡️ ${guard.mine ? "Your" : `${guard.ownerName}'s`} ${guard.pet.name} · ⚡${guard.pet.power}`}</Text>
               {guard.maxHp ? (
-                <HpBar name={`Guard HP · ${Math.round(hpNow(guard))}/${guard.maxHp}`} power={guard.pet.power} hp={(100 * hpNow(guard)) / guard.maxHp} color={RING_COLORS[ring]} />
+                <HpBar name={`Guard HP · ${Math.round(hpNow(guard))}/${guard.maxHp} · −${GUARD_DRAIN_PER_HOUR}/h`} power={guard.pet.power} hp={(100 * hpNow(guard)) / guard.maxHp} color={RING_COLORS[ring]} />
               ) : null}
             </View>
           )}

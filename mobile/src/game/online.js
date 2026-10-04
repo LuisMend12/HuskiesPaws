@@ -5,6 +5,7 @@ import { dayFingerprint } from "../core/dayLog.js";
 
 import { apiAvailable, claimTurf, fetchLeaderboard, fetchTurf, recallGuard, submitDayLog, submitScore } from "../api.js";
 import { scoreOf } from "./state.js";
+import { hpNow } from "../components/landmarks.js";
 
 // The squad's names and classes, sent with the day log so the iMessage agent
 // can call your pets by name (your Scout explores, your Storyteller tells stories).
@@ -51,8 +52,7 @@ export function createOnline({ get, set, persist, say }) {
   function expireTurf() {
     if (!apiAvailable() || !get().turf) return;
     const now = Date.now();
-    const alive = get().turf.filter((t) => !Number.isFinite(t.decaysAt)
-      || (t.maxHp ?? t.pet.power) - Math.floor(Math.max(0, now - t.decaysAt) / 3_600_000 * 10) > 0);
+    const alive = get().turf.filter((t) => !Number.isFinite(t.decaysAt) || hpNow(t, now) > 0);
     if (alive.length !== get().turf.length) applyTurf(alive);
   }
 
@@ -132,7 +132,8 @@ export function createOnline({ get, set, persist, say }) {
   // { result, won, message } for the landmark screen's battle, or null when the
   // there is no configured server. Online failures return an explicit outcome.
   // landmark: { title, lat, lon } when it isn't one of your found places (a rival's turf).
-  async function claimLandmark(landmarkId, petId, landmark = null) {
+  // hpShare: 0..1, the HP the pet will have left once this claim's fight is over.
+  async function claimLandmark(landmarkId, petId, landmark = null, hpShare = 1) {
     const state = get();
     const generation = state.generation;
     if (state.resetting) return null;
@@ -159,6 +160,7 @@ export function createOnline({ get, set, persist, say }) {
       title: place.title,
       lat: place.lat,
       lon: place.lon,
+      hpShare, // the pet guards with the HP it has left, not a fresh 100%
       pet: {
         id: pet.id,
         name: pet.name,

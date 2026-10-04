@@ -11,16 +11,24 @@ export function hoursHeld(turf, now = Date.now()) {
 
 export const maxHpOf = (pet) => Math.max(1, Math.floor(pet?.power ?? 1));
 
-export function currentHp(turf, now = Date.now()) {
+// HP the guard started with: full, or what it had left after a fight. Kept on the
+// pet snapshot so both stores save it without a schema change.
+export function startHpOf(turf) {
   const maxHp = turf.maxHp ?? maxHpOf(turf.pet);
+  const start = turf.pet?.startHp;
+  return Number.isFinite(start) ? Math.min(maxHp, Math.max(1, start)) : maxHp;
+}
+
+export function currentHp(turf, now = Date.now()) {
   const lost = Math.floor(hoursHeld(turf, now) * HP_DECAY_PER_HOUR);
-  return Math.max(0, maxHp - lost);
+  return Math.max(0, startHpOf(turf) - lost);
 }
 
 export const isAlive = (turf, now) => currentHp(turf, now) > 0;
 
-function petSnapshot(pet) {
+function petSnapshot(pet, startHp) {
   return {
+    startHp,
     id: pet.id,
     name: pet.name,
     rarity: pet.rarity,
@@ -40,17 +48,21 @@ function livingHeldBy(allTurf, ownerId, now) {
 // Returns { result, message, claim? }. `claim` is the new turf record when it succeeds.
 export function decideClaim({ defender, allTurf, attempt, now = Date.now() }) {
   const maxHp = maxHpOf(attempt.pet);
-  const newClaim = {
+  // attempt.hpShare: the share of its HP the pet has left (after this fight, or
+  // still healing from an earlier one). Clamped, so a client can only lower it.
+  const share = Math.min(1, Math.max(0, attempt.hpShare ?? 1));
+  const claimWith = (startHp) => ({
     landmarkId: attempt.landmarkId,
     title: attempt.title,
     lat: attempt.lat,
     lon: attempt.lon,
     ownerId: attempt.playerId,
     ownerName: attempt.playerName,
-    pet: petSnapshot(attempt.pet),
+    pet: petSnapshot(attempt.pet, startHp),
     claimedAt: new Date(now).toISOString(),
     maxHp,
-  };
+  });
+  const newClaim = claimWith(Math.max(1, Math.round(maxHp * share)));
 
   const liveDefender = defender && isAlive(defender, now) ? defender : null;
 
@@ -59,7 +71,7 @@ export function decideClaim({ defender, allTurf, attempt, now = Date.now() }) {
     return {
       result: "reinforced",
       message: `${attempt.pet.name} topped up at ${attempt.title}.`,
-      claim: newClaim,
+      claim: claimWith(maxHp),
     };
   }
 

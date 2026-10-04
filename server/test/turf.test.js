@@ -57,3 +57,24 @@ test("the owner walking back refills HP", () => {
   assert.equal(outcome.claim.claimedAt, new Date(now).toISOString());
   assert.equal(currentHp(outcome.claim, now), 30);
 });
+
+test("a guard keeps the HP it had left after a fight, then keeps losing HP", () => {
+  const defender = {
+    landmarkId: "L1", ownerId: "player-owner1", ownerName: "Olivia",
+    claimedAt: new Date(0).toISOString(), maxHp: 30, pet: pet(30),
+  };
+  const won = decideClaim({ defender, allTurf: [defender], attempt: { ...attempt("player-rival1", 80), hpShare: 0.4 }, now: 0 });
+  assert.equal(won.result, "captured");
+  assert.equal(won.claim.pet.startHp, 32);
+  assert.equal(currentHp(won.claim, 0), 32);
+  assert.equal(currentHp(won.claim, 2 * hour), 12);
+});
+
+test("hpShare can only lower HP, and walking back refills it", () => {
+  const claimed = decideClaim({ defender: null, allTurf: [], attempt: { ...attempt("player-owner1", 50), hpShare: 5 }, now: 0 });
+  assert.equal(currentHp(claimed.claim, 0), 50);
+  const hurt = { ...claimed.claim, pet: { ...claimed.claim.pet, startHp: 10 } };
+  const topped = decideClaim({ defender: hurt, allTurf: [hurt], attempt: { ...attempt("player-owner1", 50), hpShare: 0.2 }, now: 0 });
+  assert.equal(topped.result, "reinforced");
+  assert.equal(currentHp(topped.claim, 0), 50);
+});
