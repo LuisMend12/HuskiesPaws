@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Judges tech briefing (TeX)
+
+**Prompt (summary).** Put the technologies-and-how-to-present briefing into a TeX file.
+
+**Decisions.** Wrote `docs/ideas/judges-tech-briefing.tex` in the existing idea-sheet style (`ideastyle`). Same claims as the verbal brief: Phone → API → World, no Nessie, no live Render unless health is green, Grok credit fallbacks.
+
 ## 2026-10-04 — Judges README rewrite
 
 **Prompt (summary).** Improve the root README for hackathon judges: logo, tagline, Navigation hook, real demo GIF, accurate screenshots and architecture, Cursor highlights, limitations, verified setup. Docs only.

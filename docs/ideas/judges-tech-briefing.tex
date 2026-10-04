@@ -1,0 +1,125 @@
+\documentclass[11pt]{article}
+\usepackage{ideastyle}
+
+\begin{document}
+
+\ideatitle{HuskiesPaws}{How to present the stack: Phone $\rightarrow$ API $\rightarrow$ World.}
+
+Lead with the product, then name three layers. Judges remember a loop better than a
+laundry list of libraries.
+
+\section{What to say in one breath}
+HuskiesPaws is a \textbf{phone app}. Shared game rules live in plain JavaScript.
+A small Node API holds secrets and talks to Grok. Place facts come from Wikipedia;
+walks come from real routing. If Grok is out of credits, the app still plays.
+
+That is the architecture. Everything else is detail.
+
+\section{The stack, in the order you should tell it}
+
+\subsection{The thing they hold --- Expo / React Native (SDK 57)}
+Expo Go on iPhone. Map, GPS, camera, step counter, on-device speech. Demo Walk for
+the indoor table. If they ask ``native or web?'': \textbf{native phone app}. The web
+prototype was dropped.
+
+\subsection{The rules --- \texttt{core/} (plain JS)}
+Pets, eggs, ranks, turf, ISS rarity, geo. Same files for the phone and iMessage.
+Not an LLM deciding the game.
+
+\subsection{The world --- tools, not vibes}
+\begin{itemize}
+  \item \textbf{Wikipedia} for nearby places and the postcard fact.
+  \item \textbf{OpenStreetMap / OSRM} for the walking path.
+  \item \textbf{wheretheiss.at} for ``ISS overhead $\rightarrow$ rarer hatch.''
+\end{itemize}
+Agents only speak what those tools return.
+
+\subsection{The API --- Node (\texttt{server/})}
+No extra runtime dependencies. Keys stay here: \texttt{XAI\_API\_KEY},
+\texttt{ELEVENLABS\_API\_KEY}. Rate limits and cached Imagine images. The phone never
+embeds keys.
+
+\subsection{Voice and pictures (optional, credit-dependent)}
+\begin{itemize}
+  \item \textbf{Grok Voice} for Pip and Fern when the key and credits work.
+  \item \textbf{ElevenLabs} for Moss's stories.
+  \item \textbf{Grok Imagine} for postcards and hatch art.
+  \item Fallback: \textbf{expo-speech} plus original SVG art.
+\end{itemize}
+Say the fallback \emph{before} they hear on-device TTS.
+
+\subsection{Extra, only if they ask}
+\begin{itemize}
+  \item \textbf{Photon Spectrum} --- same squad over iMessage.
+  \item \textbf{MapLibre / OpenFreeMap} --- garden 3D map, \textbf{iOS development
+        build only}; Expo Go is Apple Maps.
+  \item \textbf{Supabase / Render} --- written; do not claim live unless
+        \texttt{/api/health} is green.
+  \item \textbf{Cursor} --- SpaceX track: built in Agent mode, logged in
+        \texttt{CURSOR\_LOG.md}.
+\end{itemize}
+
+Do \textbf{not} pitch Nessie, background tracking, or a live cloud host unless you
+have just checked health.
+
+\section{How to present it at the table (about 2 minutes)}
+Keep the pitch deck on \textbf{slide 4} (Demo Walk on). Hand them the phone.
+
+\begin{tabular}{@{}P{0.12\textwidth}P{0.28\textwidth}P{0.54\textwidth}@{}}
+\toprule
+\textbf{Time} & \textbf{You do} & \textbf{You say (tech, lightly)} \\
+\midrule
+0:00 & Title / map & Everyday walks, creature adventure.
+  \textbf{Navigation} $=$ curiosity, not shortest path. \\
+0:15 & Squad $\rightarrow$ Pip $\rightarrow$ Explore & Pip is a \textbf{Scout role}.
+  Wikipedia finds a real place. \\
+0:35 & Postcard $\rightarrow$ Start the walk & Fern \textbf{routes} you. Flowers are
+  the trail. Demo Walk is simulated. \\
+1:05 & Capture / egg & Walking earns the collectible. ISS can make hatches rarer. \\
+1:25 & One sentence of architecture & Phone $\rightarrow$ our API $\rightarrow$
+  Wikipedia, maps, optional Grok. Secrets not in the app. \\
+1:40 & Cursor & Built in \textbf{Cursor}; Grok Imagine/Voice when credits allow. \\
+1:50 & Close & Hand them the phone. ``Ask us anything.'' \\
+\bottomrule
+\end{tabular}
+
+If Grok is slow or silent: ``That's the fallback. Game still runs.'' Then keep moving.
+
+\section{Tracks, in one line each}
+\begin{tabular}{@{}P{0.28\textwidth}P{0.66\textwidth}@{}}
+\toprule
+\req{BigRed / theme}{Navigation as ``go look,'' not ``arrive faster.''}
+\req{SpaceX}{Cursor-built + Grok Voice/Imagine in the server (plus ISS data).}
+\req{Photon}{iMessage agent, same \texttt{core/} roles.}
+\req{Software}{Shared logic, API with validation, tests in \texttt{core/},
+  \texttt{server/}, \texttt{mobile/}, \texttt{imessage-agent/}.}
+\req{Design}{Original pets, cream/forest UI, real screenshots on the deck.}
+\req{Not Capital One}{Banking was removed.}
+\bottomrule
+\end{tabular}
+
+\section{Answers they will actually ask}
+
+\paragraph{Does the AI make up buildings?}
+No. Scout and story only use Wikipedia. The postcard can show the source link.
+
+\paragraph{Where is the model?}
+Not in the phone. Optional Grok on the server. Game rules are ordinary code.
+
+\paragraph{Why Expo?}
+iPhone demo this weekend without a full App Store build. Camera, location, and
+speech are Expo modules.
+
+\paragraph{Is it deployed?}
+\texttt{render.yaml} is ready. Default is local file storage. Do not say ``it's live
+on Render'' unless health is true.
+
+\paragraph{What did Cursor do?}
+Walk-loop UX, art, Cloudflare tunnel for guest Wi-Fi, deck from real captures, ISS
+cues --- see \texttt{CURSOR\_LOG.md} if they want proof.
+
+\section{The one diagram to remember}
+Memorize the three boxes: \textbf{Phone $\rightarrow$ API $\rightarrow$ World.}
+If you only remember one picture from the deck, that is the one.
+
+\end{document}
