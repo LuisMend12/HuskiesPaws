@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Tell a story used Google speech, not ElevenLabs
+
+**Prompt (summary).** Tell a story sounded like Google Maps / Google TTS; use ElevenLabs instead.
+
+**Decisions.** Android still draws the trail with Google Maps; that is not the story voice. `expo-speech` (Google on Android) was the fallback because Expo's Cloudflare tunnel never reached `/api/voice`. `npm run tunnel` now also tunnels port 8765 and sets `EXPO_PUBLIC_API_URL`. Moss requests omit a Grok voice id so the server stays on ElevenLabs.
+
 ## 2026-10-03 — Landmark / 3D freeze
 
 **Prompt (summary).** The app freezes when opening a landmark or the AR/3D squad view.

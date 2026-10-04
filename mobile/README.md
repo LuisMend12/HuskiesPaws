@@ -27,7 +27,7 @@ You need:
    npm run tunnel
    ```
 
-   This runs [`scripts/tunnel.mjs`](scripts/tunnel.mjs): a free **Cloudflare quick tunnel** (no account), then Expo pointed at it.
+   This runs [`scripts/tunnel.mjs`](scripts/tunnel.mjs): a free **Cloudflare quick tunnel** (no account) for Expo **and** the local API (`:8765`), then Expo pointed at them. Start the server first (`npm --prefix server start`) so Tell a story can use ElevenLabs instead of on-device (Google) speech.
 
    - Wait for **Tunnel ready**. The QR code's address should look like `exp://….trycloudflare.com`. The first load takes about 30 seconds.
    - The address changes every time you start it, so scan the new QR code each time.

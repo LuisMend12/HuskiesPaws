@@ -93,13 +93,21 @@ export async function fetchVoice(text, { voice, agent, signal } = {}) {
       body: JSON.stringify({
         text: text.slice(0, 600),
         ...(agent ? { agent } : {}),
-        ...(voice ? { voice } : {}),
+        // Moss uses ElevenLabs; sending a Grok voice id would not change that,
+        // but omitting it keeps the request clearly on the storyteller path.
+        ...(agent === "storyteller" ? {} : voice ? { voice } : {}),
       }),
       signal: controller.signal,
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`/api/voice failed: ${response.status}`);
+      return null;
+    }
     return new Uint8Array(await response.arrayBuffer());
-  } catch { return null; }
+  } catch (error) {
+    console.warn("/api/voice failed:", error);
+    return null;
+  }
   finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", abort);

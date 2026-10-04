@@ -45,12 +45,16 @@ export async function speakMemo(text, agent) {
   };
   try {
     const bytes = await fetchVoice(text, {
-      voice: agent?.grokVoice,
+      voice: agent?.id === "storyteller" ? undefined : agent?.grokVoice,
       agent: agent?.id,
       signal: controller.signal,
     });
     if (token !== generation) return;
-    if (!bytes?.length) { fallback(); return; }
+    if (!bytes?.length) {
+      console.warn("Server voice unavailable; using on-device speech.");
+      fallback();
+      return;
+    }
     file = new File(Paths.cache, `memo-${Date.now()}-${token}.mp3`);
     file.create();
     file.write(bytes);

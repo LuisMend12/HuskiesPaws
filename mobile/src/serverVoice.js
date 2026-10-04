@@ -32,7 +32,11 @@ async function fetchVoiceFile(text, agent) {
     const response = await fetch(`${apiBase()}/api/voice`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, agent: agentId, voice: agent.grokVoice }),
+      body: JSON.stringify({
+        text,
+        agent: agentId,
+        ...(agentId === "storyteller" ? {} : { voice: agent.grokVoice }),
+      }),
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`/api/voice returned ${response.status}`);

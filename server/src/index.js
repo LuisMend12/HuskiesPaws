@@ -34,7 +34,7 @@ const elevenlabs = createElevenLabs({
 const tts = createSquadTts({ grok, elevenlabs });
 const voiceLabel = tts.summary === "mixed" ? "ElevenLabs (Moss) + Grok Voice (Pip, Fern)" : tts.summary === "elevenlabs" ? "ElevenLabs" : tts.summary === "grok" ? "Grok Voice" : "off (set ELEVENLABS_API_KEY or XAI_API_KEY)";
 
-createApp({ config, store, grok, elevenlabs, tts }).listen(config.port, () => {
+createApp({ config, store, grok, elevenlabs, tts }).listen(config.port, "0.0.0.0", () => {
   console.log(`HuskiesPaws running at http://localhost:${config.port}`);
   console.log(`  Grok: ${grok.enabled ? "on" : "off (set XAI_API_KEY)"} · voice: ${voiceLabel} · storage: ${store.kind}`);
 });
