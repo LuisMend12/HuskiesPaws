@@ -200,6 +200,16 @@ export function createOnline({ get, set, persist, say }) {
     return current(generation);
   }
 
+  // Reset: free every landmark this player guards on the server, or the next
+  // turf refresh brings the old guards back. Asks for each pet id we know (the
+  // local turf list can be stale); a failed call just leaves that guard to drain.
+  async function recallAll(petIds) {
+    const me = player();
+    if (!apiAvailable() || !me?.id) return;
+    const ids = [...new Set(petIds.filter(Boolean))];
+    await Promise.all(ids.map((petId) => recallGuard({ playerId: me.id, petId })));
+  }
+
   function invalidate() {
     turfRequest += 1;
     boardRequest += 1;
@@ -217,5 +227,5 @@ export function createOnline({ get, set, persist, say }) {
     return true;
   }
 
-  return { refreshTurf, refreshLeaderboard, pushScore, pushDay, claimLandmark, recallPet, expireTurf, invalidate, rename };
+  return { refreshTurf, refreshLeaderboard, pushScore, pushDay, claimLandmark, recallPet, recallAll, expireTurf, invalidate, rename };
 }
