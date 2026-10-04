@@ -41,13 +41,10 @@ export function RanksPanel({ state, game }) {
         <View style={styles.meter}>
           <View style={[styles.meterFill, { width: `${Math.round(progress * 100)}%` }]} />
         </View>
-        <Text style={styles.rankNext}>
-          {next ? `${score} XP · ${next.min - score} XP to ${next.name}` : `${score} XP · Top rank reached!`}
-        </Text>
         <Hint>
           {`${state.progress.steps.toLocaleString()} steps${state.pedometer ? " (step counter)" : ""} · ${state.progress.landmarksFound} found · ${state.progress.landmarksCaptured} captured`}
         </Hint>
-      </View>
+      </Card>
 
       <SectionTitle>Your trail</SectionTitle>
       <View style={styles.chips}>

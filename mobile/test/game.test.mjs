@@ -87,7 +87,7 @@ test("legacy bank keys are removed from phone storage and state", async () => {
   } finally { r.game.dispose(); }
 });
 
-test("Moss's stories request ElevenLabs via agent; failed requests fall back to speech", async () => {
+test("only stories use the server voice (ElevenLabs); other lines and failures speak on-device", async () => {
   let fail = false;
   const calls = [];
   const r = await runtime({ api: "https://fake.invalid", fetchImpl: async (url, options) => {
@@ -99,16 +99,17 @@ test("Moss's stories request ElevenLabs via agent; failed requests fall back to 
   } });
   try {
     const voice = await r.module("src/voice.js");
-    await voice.speakMemo("Once upon a trail", { id: "storyteller", grokVoice: "rex" });
+    await voice.speakMemo("Once upon a trail", { id: "storyteller", grokVoice: "rex" }, { story: true });
     assert.equal(calls[0].agent, "storyteller");
     assert.equal(calls[0].voice, undefined, "Moss uses ElevenLabs; the server picks his Grok fallback voice itself");
     assert.equal(r.audio.length, 1);
     assert.equal(r.speech.length, 0);
     await voice.speakMemo("Hi from Pip", { id: "scout", grokVoice: "ara" });
-    assert.equal(calls[1].agent, "scout");
+    assert.equal(calls.length, 1, "non-story lines don't call the server");
+    assert.equal(r.speech.at(-1), "Hi from Pip");
     fail = true;
-    await voice.speakMemo("Fallback memo");
-    assert.equal(r.speech.at(-1), "Fallback memo");
+    await voice.speakMemo("Fallback story", { id: "storyteller" }, { story: true });
+    assert.equal(r.speech.at(-1), "Fallback story");
   } finally { r.game.dispose(); }
 });
 

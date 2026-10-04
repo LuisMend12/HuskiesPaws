@@ -204,7 +204,7 @@ export function createGame() {
       const memo = storyMemo(nearest, await getPlaceSummary(nearest.title));
       if (!current(token)) return;
       set({ status: memo, ...gainXp(agent.id) });
-      speakMemo(memo, agent);
+      speakMemo(memo, agent, { story: true }); // the only line voiced by ElevenLabs
       persist();
     } catch (error) {
       console.error("Story failed:", error);

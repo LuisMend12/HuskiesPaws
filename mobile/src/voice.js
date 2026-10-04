@@ -1,5 +1,6 @@
-// Server memos (ElevenLabs for Moss's stories, Grok Voice for Pip/Fern) play from
-// a temporary file. On-device speech is the fallback when the API is missing.
+// Voice memos. Only stories ("Tell a story") use the server voice (ElevenLabs),
+// played from a temporary file; every other line uses on-device speech to save
+// voice credits. On-device speech is also the fallback when the server fails.
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { File, Paths } from "expo-file-system";
 import * as Speech from "expo-speech";
@@ -20,7 +21,8 @@ export function stopMemo() {
   Speech.stop();
 }
 
-export async function speakMemo(text, agent) {
+// story: true for "Tell a story" (server voice); anything else speaks on-device.
+export async function speakMemo(text, agent, { story = false } = {}) {
   stopMemo();
   const token = generation;
   controller = new AbortController();
@@ -29,6 +31,10 @@ export async function speakMemo(text, agent) {
     const voice = agent?.voice ?? DEFAULT_VOICE;
     Speech.speak(text, { pitch: voice.pitch, rate: voice.rate });
   };
+  if (!story) {
+    fallback();
+    return;
+  }
   let file;
   let player;
   let subscription;
@@ -44,11 +50,8 @@ export async function speakMemo(text, agent) {
     if (cleanup === dispose) cleanup = null;
   };
   try {
-    const bytes = await fetchVoice(text, {
-      voice: agent?.id === "storyteller" ? undefined : agent?.grokVoice,
-      agent: agent?.id,
-      signal: controller.signal,
-    });
+    // Stories always ask for the storyteller voice, which the server serves with ElevenLabs.
+    const bytes = await fetchVoice(text, { agent: "storyteller", signal: controller.signal });
     if (token !== generation) return;
     if (!bytes?.length) {
       fallback();
