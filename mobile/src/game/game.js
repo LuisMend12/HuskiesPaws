@@ -3,12 +3,10 @@ import { AGENTS, choosePlace, expeditionDuration, routeMemo, scoutMemo, storyMem
 import { ALBUM_MAX_CARDS } from "../core/config.js";
 import { distanceMeters, pathLength } from "../core/geo.js";
 import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
-import { estimateRideFare, formatDollars, totalSaved, treeStage } from "../core/savings.js";
 import { findNearbyPlaces, getPlaceSummary, getRegion, getWalkingRoute, setRequestHeaders } from "../core/services.js";
 import { clearKeys, loadAll, saveAll } from "../storage.js";
 import { speakMemo, stopMemo } from "../voice.js";
 import { fetchPostcard } from "../api.js";
-import { createBanking } from "./banking.js";
 import { createOnline } from "./online.js";
 import { createPetsLoop } from "./petsLoop.js";
 import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFields, scoreOf } from "./state.js";
@@ -45,7 +43,6 @@ export function createGame() {
   };
   const pets = createPetsLoop({ get, set, persist, say, squadSize });
   const online = createOnline({ get, set, persist, say });
-  const banking = createBanking({ get, set, persist, say });
 
   const walking = createWalking(store, {
     onArrive: (place, meters) => arrive(place, meters),
@@ -219,8 +216,7 @@ export function createGame() {
     if (get().resetting) return;
     const arrived = get().found.find((p) => p.id === place.id) ?? null;
     set({ visited: [...get().visited, place.id], discovery: null, capturable: arrived, guide: null, route: null });
-    const savings = recordWalkSavings(place.title, meters);
-    say(`You made it to ${place.title}! 🌸 ${savings} Tap 📸 Capture to add it to your album.`);
+    say(`You made it to ${place.title}! 🌸 Tap 📸 Capture to add it to your album.`);
     speakMemo(`We made it to ${place.title}! Quick, take a picture!`, agentById("pathfinder"));
     checkRankUp(null);
     pets.tickPets();
@@ -243,26 +239,12 @@ export function createGame() {
       if (!current(token)) return;
       const rankBefore = get().rankName;
       if (!(await walking.walkAlong(route.points)) || !current(token)) return;
-      const savings = recordWalkSavings(target.title, route.distance ?? pathLength(route.points));
       checkRankUp(null);
-      if (get().rankName === rankBefore) say(`Walked to ${target.title}. ${savings} Send Pip to explore from here!`);
+      if (get().rankName === rankBefore) say(`Walked to ${target.title}. Send Pip to explore from here!`);
     } catch (error) {
       console.error("Demo walk failed:", error);
       if (current(token)) say("Couldn't plan a walk (network problem).");
     }
-  }
-
-  function recordWalkSavings(title, meters) {
-    const amount = estimateRideFare(meters);
-    if (amount === null) return "";
-    const stageBefore = treeStage(totalSaved(get().trips)).current;
-    const trip = { id: `${Date.now()}`, title, meters, amount, date: new Date().toISOString(), nessieId: null };
-    set({ trips: [trip, ...get().trips] });
-    persist();
-    banking.syncTrip(trip);
-    const stageAfter = treeStage(totalSaved(get().trips)).current;
-    const grew = stageAfter.name !== stageBefore.name ? ` Your tree grew into a ${stageAfter.emoji} ${stageAfter.name}!` : "";
-    return `You skipped a ~${formatDollars(amount)} ride, and it went into savings 🌳.${grew}`;
   }
 
   function saveCapture(image) {
@@ -335,7 +317,6 @@ export function createGame() {
     guideToDiscovery,
     demoWalk,
     startLiveLocation: walking.startLiveLocation,
-    connectBank: banking.connect,
     saveCapture,
     resetProgress,
     setSquad: pets.setSquad,

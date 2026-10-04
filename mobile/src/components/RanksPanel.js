@@ -21,7 +21,7 @@ export function RanksPanel({ state, game }) {
   );
 
   const confirmReset = () =>
-    Alert.alert("Reset progress?", "This clears your steps, landmarks, album, savings, and agent levels.", [
+    Alert.alert("Reset progress?", "This clears your steps, landmarks, album, pets, and eggs.", [
       { text: "Cancel", style: "cancel" },
       { text: "Reset", style: "destructive", onPress: game.resetProgress },
     ]);

@@ -8,10 +8,9 @@ We demo **on an iPhone in Expo Go** (Android is the backup phone). The judge hol
 
 | Time | Say | Do |
 |---|---|---|
-| 0:00 | "How we navigate today is shortest path, alone, staring at a phone. HuskiesPaws makes walking an adventure, and it pays you to skip the ride." | App open on the tilted map: your squad of husky pups standing behind your dot |
+| 0:00 | "How we navigate today is shortest path, alone, staring at a phone. HuskiesPaws turns every walk into an adventure with your own squad of pets." | App open on the tilted map: your squad of husky pups standing behind your dot |
 | 0:15 | "Your squad scouts real places." | **Squad → Pip → Explore.** Pip's status turns 🧭 Exploring; his voice memo plays (**Grok Voice**) and the postcard appears with a **Grok Imagine** illustration |
-| 0:35 | "Fern walks you there, and your trail blooms." | **Take me there**: the trail blooms on the map, and the pop-up says "You skipped a ~$8 ride" |
-| 0:50 | "That fare moves into a savings account through **Capital One's Nessie API**, and it grows your tree." | **Savings** tab: the tree and the trip list |
+| 0:35 | "Fern walks you there, and your trail blooms." | **Take me there**: the trail blooms on the map as you walk |
 | 1:05 | "Walking is your XP. You climb from Bronze to Crystal, and every league unlocks a new flower trail." | Tap the rank pill → **Ranks**: the badge, the meter, the trails |
 | 1:15 | "Walking also hatches eggs. Rare pets are more likely when the **ISS is passing overhead**, using live orbital data." | **Pets** tab: the egg filling up → the **hatch reveal** (rarity flash) |
 | 1:30 | "Leave a pet to guard a landmark. Each one boosts your XP, but its HP drains unless you walk back, and stronger pets can take it." | Point at the guard pets on the map (HP bars). **Claim** a landmark if turf is live |
@@ -40,7 +39,6 @@ We demo **on an iPhone in Expo Go** (Android is the backup phone). The judge hol
 | The app shows an old version | Shake → **Reload**. If the QR code is from an earlier run, scan the new one. |
 | Grok slow or failing | The app falls back on its own: phone voice and drawn art. Keep going and mention Grok in words. |
 | Wi-Fi down | Switch to the hotspot. If everything is down, play the backup video. |
-| Nessie unreachable | Savings still work locally ("local" next to each walk). Say the transfer is mirrored when Nessie responds. |
 | Android map slow or blank | Demo on the iPhone. |
 
 ## Backup video (record Saturday night)
@@ -55,7 +53,7 @@ Record the 2-minute script above as one take, with sound, on the iPhone's screen
 ## Talking points for Q&A
 
 - **"Doesn't the AI make up facts?"** No. Agents only say what Wikipedia and OpenStreetMap return, and every postcard links to its source.
-- **"Isn't buying eggs gambling?"** Eggs come **only from walking**, never from Nessie money.
+- **"Isn't buying eggs gambling?"** Eggs come **only from walking**; nothing in the app can be bought.
 - **"Can one player hold everything?"** No: three landmarks at most, each guard's HP drains unless you walk back, and guards still use a squad slot, so holding more means fewer pets with you.
 - **"Is the fare real?"** It's an estimate: base fare, per mile, per minute and an $8 minimum. Uber has no public pricing API.
 - **"How's the Grok key protected?"** It lives on our server. The app never has it, it can't send its own prompts, and there are per-IP and daily limits.
