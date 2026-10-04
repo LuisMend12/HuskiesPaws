@@ -26,6 +26,7 @@ function petSnapshot(pet) {
     rarity: pet.rarity,
     petClass: pet.petClass,
     color: pet.color ?? "snowy",
+    species: pet.species ?? null,
     spaceBorn: Boolean(pet.spaceBorn),
     power: pet.power,
     art: pet.art ?? null,
