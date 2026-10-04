@@ -46,13 +46,13 @@ if (process.env.EXPO_PUBLIC_API_URL) {
   try {
     api = await quickTunnel(`http://127.0.0.1:${API_PORT}`, "API");
     console.log(`API tunnel: ${api.url}`);
-    console.log("Keep `npm --prefix server start` running so Moss can use ElevenLabs.");
+    console.log("Keep the server (`npm --prefix ../server start`) running so Moss can use ElevenLabs.");
   } catch (error) {
     console.warn(`API tunnel failed (${error.message}). The app will play offline.`);
   }
 } else {
   console.log(`No local API on port ${API_PORT}: the app plays offline (local claims, on-device voices).`);
-  console.log("For Grok/ElevenLabs voices and shared turf, run `npm --prefix server start` first, then restart this.");
+  console.log("For Grok/ElevenLabs voices and shared turf, run `npm --prefix ../server start` (from mobile/) in another terminal first, then restart this.");
 }
 
 // Expo Go loads exp:// links over plain HTTP, which the quick tunnel also serves.
