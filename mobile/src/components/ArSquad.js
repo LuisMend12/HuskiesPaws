@@ -50,7 +50,7 @@ function useDeviceRotation() {
       if (!(await DeviceMotion.isAvailableAsync())) return;
       const { granted } = await DeviceMotion.requestPermissionsAsync();
       if (!granted || cancelled) return;
-      DeviceMotion.setUpdateInterval(80);
+      DeviceMotion.setUpdateInterval(33); // 30 Hz: smooth camera turns in AR
       subscription = DeviceMotion.addListener(({ rotation, orientation }) => {
         if (rotation) latest.current = { rotation, orientation: orientation ?? 0 };
       });
