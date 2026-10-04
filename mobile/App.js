@@ -27,8 +27,7 @@ import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
 import { WelcomeOverlay } from "./src/components/WelcomeOverlay.js";
-import { NextStepCard } from "./src/components/NextStep.js";
-import { eggIsReady, followNext } from "./src/components/nextCoach.js";
+import { eggIsReady } from "./src/components/nextCoach.js";
 import { AlbumIcon, PetsIcon, RanksIcon, SquadIcon } from "./src/components/GameIcons.js";
 import { AppTabs, Hint } from "./src/components/ui.js";
 import { tapFeel } from "./src/feel.js";
@@ -228,7 +227,6 @@ function Main() {
         </View>
         {tipsOpen && (
         <View style={styles.sheetHeader}>
-          <NextStepCard state={state} onPress={() => { tapFeel(); followNext(state, game, openLandmark); }} />
           {!state.demoMode && !state.liveLocation && (
             <View style={[styles.banner, state.locationIssue === "denied" ? styles.bannerWarn : styles.bannerInfo]}>
               <Text style={styles.bannerTitle}>{state.locationIssue === "denied" ? "Location is off" : "Walk live to bloom the trail"}</Text>
