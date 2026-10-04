@@ -1,6 +1,6 @@
 # HuskiesPaws — 3-minute speaker notes
 
-Judging table is often **2 minutes pitch + 2 minutes Q&A**. These notes fill **~3 minutes**; skip slide 5 detail if you are short.
+Judging table is often **2 minutes pitch + 2 minutes Q&A**. These notes fill **~3.5 minutes**; skip slide 6 detail if you are short.
 
 ## Slide 1 — Title (~25s)
 
@@ -27,12 +27,18 @@ If Grok is slow, keep going (on-device speech and drawn art). Hide the Expo tool
 
 ## Slide 5 — How we built it (~25s)
 
-Expo phone app → Node `/api` (secrets stay on the server) → Wikipedia, OSM, optional Grok/ElevenLabs, Photon iMessage. Shared `core/` logic. Built in Cursor. Do not claim Render is live unless `/api/health` is green.
+Expo phone app → Node `/api` (secrets stay on the server) → Wikipedia, OSM, optional Grok/ElevenLabs. Text path: iMessage ↔ Photon Spectrum ↔ Node.js companion ↔ shared backend (`core/` and `/api`). Scout, Storyteller, and Pathfinder are roles. Built in Cursor. Do not claim Render is live unless `/api/health` is green.
 
-## Slide 6 — What’s special (~25s)
+## Slide 6 — iMessage (~25s)
 
-Point at the three captures: an egg filling as you walk, Mochi (rare Storyteller) from a hatch, Nova holding Bailey Hall. Navigation is play. Walking earns creatures. The squad can continue in iMessage. ISS rare-hatch boost is in the game logic. Not claims: live Grok without a key, cloud deploy, background tracking.
+Photon extends HuskiesPaws into iMessage. Players can interact with the squad by text, and walking updates connect the mobile adventure back to the conversation.
 
-## Slide 7 — Close (~25s)
+Point at the real Explore screenshot (Pip, Risley). The sequence on the slide is `explore` → `take me there` → `arrived`. That sequence is tested in the companion. Milestone texts and story voice notes are implemented; do not claim live iMessage delivery was verified. The squad is role-based, not models collaborating.
+
+## Slide 7 — What’s special (~25s)
+
+Point at the three captures: an egg filling as you walk, Mochi (rare Storyteller) from a hatch, Nova holding Bailey Hall. Navigation is play. Walking earns creatures. ISS rare-hatch boost is in the game logic. Not claims: live Grok without a key, cloud deploy, background tracking.
+
+## Slide 8 — Close (~25s)
 
 Campus and hometown blocks, same loop. Next (planned): background tracking, accessibility, a deploy that stays awake, richer social play. Line: **Everyday walks. Extraordinary company.** Hand them the phone.

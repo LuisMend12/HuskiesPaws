@@ -60,6 +60,7 @@ const FILE = {
   league: path.join(SHOTS, "ED702DFD-F3B0-4517-8C60-E4FEB548C8EB.jpg"),
   egg: path.join(SHOTS, "C2EA70B0-0CD6-4D92-AAFE-8EC1C33A2133.jpg"),
   mochi: path.join(SHOTS, "0B82DD1F-6522-46CD-8774-F7C4336505D4.jpg"),
+  imessage: path.join(SHOTS, "imessage-pip-explore.jpg"),
 };
 
 const SIZE = {
@@ -68,6 +69,7 @@ const SIZE = {
   league: { w: 1206, h: 1227 },
   egg: { w: 1206, h: 1069 },
   mochi: { w: 1206, h: 1499 },
+  imessage: { w: 470, h: 1024 },
 };
 
 function notes(text) {
@@ -444,13 +446,13 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
   ];
   boxes.forEach((b, i) => {
     const x = 0.55 + i * 4.25;
-    card(s, x, 1.2, 3.7, 2.45, b.dark ? HEX.navy : HEX.white, `arch-${i}`);
+    card(s, x, 1.05, 3.7, 1.95, b.dark ? HEX.navy : HEX.white, `arch-${i}`);
     s.addText(b.t, {
       x: x + 0.22,
-      y: 1.4,
+      y: 1.18,
       w: 3.25,
-      h: 0.5,
-      fontSize: 24,
+      h: 0.42,
+      fontSize: 22,
       bold: true,
       color: b.dark ? C.accent3 : C.text1,
       margin: 0,
@@ -458,10 +460,10 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
     });
     s.addText(b.d, {
       x: x + 0.22,
-      y: 2.05,
+      y: 1.68,
       w: 3.25,
-      h: 1.3,
-      fontSize: 18,
+      h: 1.05,
+      fontSize: 16,
       color: b.dark ? HEX.white : C.accent6,
       margin: 0,
       isTextBox: true,
@@ -469,11 +471,56 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
     if (i < 2) {
       s.addText("→", {
         x: x + 3.55,
-        y: 2.1,
+        y: 1.7,
         w: 0.7,
-        h: 0.55,
+        h: 0.5,
         align: "center",
-        fontSize: 28,
+        fontSize: 26,
+        bold: true,
+        color: C.accent1,
+        margin: 0,
+        isTextBox: true,
+      });
+    }
+  });
+  const chain = [
+    { t: "iMessage", d: "The player's chat" },
+    { t: "Photon Spectrum", d: "The iMessage line", dark: true },
+    { t: "Node.js companion", d: "Role-based replies" },
+    { t: "Shared backend", d: "core/ and /api" },
+  ];
+  chain.forEach((b, i) => {
+    const x = 0.5 + i * 3.18;
+    card(s, x, 3.22, 2.78, 1.48, b.dark ? HEX.navy : HEX.white, `chain-${i}`);
+    s.addText(b.t, {
+      x: x + 0.12,
+      y: 3.36,
+      w: 2.54,
+      h: 0.58,
+      fontSize: 15,
+      bold: true,
+      color: b.dark ? C.accent3 : C.text1,
+      margin: 0,
+      isTextBox: true,
+    });
+    s.addText(b.d, {
+      x: x + 0.12,
+      y: 4.0,
+      w: 2.54,
+      h: 0.46,
+      fontSize: 13,
+      color: b.dark ? HEX.white : C.accent6,
+      margin: 0,
+      isTextBox: true,
+    });
+    if (i < 3) {
+      s.addText("↔", {
+        x: x + 2.74,
+        y: 3.72,
+        w: 0.46,
+        h: 0.4,
+        align: "center",
+        fontSize: 16,
         bold: true,
         color: C.accent1,
         margin: 0,
@@ -483,14 +530,14 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
   });
   const facts = [
     "Facts and routes come from tools, not the model.",
-    "Photon carries the same squad into iMessage.",
+    "Scout, Storyteller, and Pathfinder are roles, not collaborating models.",
     "Designed and iterated in Cursor.",
   ];
   facts.forEach((line, i) => {
-    const y = 4.0 + i * 0.85;
+    const y = 5.02 + i * 0.62;
     s.addShape(pres.shapes.OVAL, {
       x: 0.65,
-      y: y + 0.18,
+      y: y + 0.16,
       w: 0.32,
       h: 0.32,
       fill: { color: C.accent2 },
@@ -500,8 +547,8 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
       x: 1.15,
       y,
       w: 11.5,
-      h: 0.7,
-      fontSize: 20,
+      h: 0.62,
+      fontSize: 18,
       color: C.text1,
       margin: 0,
       valign: "middle",
@@ -510,7 +557,155 @@ Keep this slide visible. Hand the phone over if they want it. Demo Walk ON — s
   });
   s.addNotes(
     notes(`
-About 25 seconds. Phone talks to our Node API. Secrets never ship in the app. Wikipedia and OSM ground the adventure. Speech and Imagine are optional. Shared core keeps pets, ranks, and walks consistent. Photon is iMessage. Built in Cursor. Do not say Render is live unless health is green.
+About 25 seconds. Phone talks to our Node API. Secrets never ship in the app. Wikipedia and OSM ground the adventure. The text path is iMessage, Photon Spectrum, the Node.js companion, and the same shared backend. Scout, Storyteller, and Pathfinder are roles. Built in Cursor. Do not say Render is live unless health is green.
+`)
+  );
+}
+
+// 6 iMessage companion
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Build" });
+  s.addText("Your adventure continues in iMessage", {
+    placeholder: "title",
+    isTextBox: true,
+  });
+  const points = [
+    {
+      t: "Text the squad",
+      d: "Explore nearby landmarks, hear stories, and get walking directions.",
+    },
+    {
+      t: "Updates from the walk",
+      d: "When the app records a new landmark or a step milestone.",
+    },
+    {
+      t: "Photon Spectrum",
+      d: "Same game logic as the phone. Scout, Storyteller, and Pathfinder are roles.",
+    },
+  ];
+  points.forEach((p, i) => {
+    const y = 1.02 + i * 1.28;
+    card(s, 0.5, y, 8.85, 1.16, HEX.white, `im-${i}`);
+    s.addShape(pres.shapes.OVAL, {
+      x: 0.7,
+      y: y + 0.28,
+      w: 0.58,
+      h: 0.58,
+      fill: { color: C.accent1 },
+      objectName: `im-n-${i}`,
+    });
+    s.addText(String(i + 1), {
+      x: 0.7,
+      y: y + 0.34,
+      w: 0.58,
+      h: 0.46,
+      align: "center",
+      fontSize: 16,
+      bold: true,
+      color: HEX.white,
+      margin: 0,
+      isTextBox: true,
+    });
+    s.addText(p.t, {
+      x: 1.5,
+      y: y + 0.12,
+      w: 7.6,
+      h: 0.36,
+      fontSize: 18,
+      bold: true,
+      color: C.text1,
+      margin: 0,
+      isTextBox: true,
+    });
+    s.addText(p.d, {
+      x: 1.5,
+      y: y + 0.5,
+      w: 7.6,
+      h: 0.52,
+      fontSize: 15,
+      color: C.accent6,
+      margin: 0,
+      isTextBox: true,
+    });
+  });
+  card(s, 0.5, 4.9, 8.85, 1.7, HEX.white, "seq-card");
+  s.addText("A supported sequence", {
+    x: 0.7,
+    y: 5.02,
+    w: 8.45,
+    h: 0.32,
+    fontSize: 14,
+    bold: true,
+    color: C.text1,
+    margin: 0,
+    isTextBox: true,
+  });
+  const cmds = ["explore", "take me there", "arrived"];
+  cmds.forEach((cmd, i) => {
+    const x = 0.7 + i * 2.85;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+      x,
+      y: 5.4,
+      w: 2.35,
+      h: 0.48,
+      fill: { color: HEX.navy },
+      rectRadius: 0.1,
+      objectName: `cmd-${i}`,
+    });
+    s.addText(cmd, {
+      x,
+      y: 5.46,
+      w: 2.35,
+      h: 0.36,
+      align: "center",
+      fontSize: 14,
+      bold: true,
+      color: HEX.white,
+      margin: 0,
+      isTextBox: true,
+    });
+    if (i < 2) {
+      s.addText("→", {
+        x: x + 2.28,
+        y: 5.44,
+        w: 0.55,
+        h: 0.4,
+        align: "center",
+        fontSize: 16,
+        bold: true,
+        color: C.accent1,
+        margin: 0,
+        isTextBox: true,
+      });
+    }
+  });
+  s.addText("Tested in the companion. Milestone texts are built; live iMessage delivery is not verified.", {
+    x: 0.7,
+    y: 6.02,
+    w: 8.45,
+    h: 0.4,
+    fontSize: 13,
+    color: C.accent6,
+    margin: 0,
+    isTextBox: true,
+  });
+  const phone = addShot(s, "imessage", 9.85, 1.05, 2.95, 5.35, { frame: true, name: "imessage-shot" });
+  s.addText("Real iMessage · Explore", {
+    x: 9.85 + (phone.w - 2.9) / 2,
+    y: 1.05 + phone.h + 0.22,
+    w: 2.9,
+    h: 0.3,
+    align: "center",
+    fontSize: 12,
+    color: C.accent6,
+    margin: 0,
+    isTextBox: true,
+  });
+  s.addNotes(
+    notes(`
+Photon extends HuskiesPaws into iMessage. Players can interact with the squad by text, and walking updates connect the mobile adventure back to the conversation.
+
+Scout explores, the Storyteller tells the story, and the Pathfinder sends walking directions. Those are roles with template replies filled from Wikipedia and maps, not models collaborating. The explore, take me there, arrived sequence is covered by companion tests. This screenshot is a real Explore reply. Story voice notes and unprompted milestone texts are implemented; live iMessage delivery is not verified here.
 `)
   );
 }

@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-04 — Photon iMessage slide on the judging deck
+
+**Prompt (summary).** Update the existing judging deck to highlight the Photon iMessage companion. One slide titled “Your adventure continues in iMessage,” Photon on the architecture slide, real screenshot if available, speaker notes, PPTX and PDF. No application code.
+
+**Decisions.** Added slide 6 and a four-step text path on the architecture slide: iMessage ↔ Photon Spectrum ↔ Node.js companion ↔ shared backend. Used the redacted Explore capture (`imessage-pip-explore.jpg`); it shows Pip and Risley, not a phone number. Command sequence matches `imessage-agent` (`explore` → `take me there` → `arrived`), covered by companion tests. Milestone texts and story voice notes are labeled implemented, not live-verified on iMessage. Squad described as roles (Scout, Storyteller, Pathfinder), not collaborating models. Deck is 8 slides. PPTX and PDF rebuilt.
+
 ## 2026-10-04 — Tech-use cheat sheet in judges TeX
 
 **Prompt (summary).** On the judges TeX file, only add a cheat sheet of how we used each technology.
