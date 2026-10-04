@@ -98,6 +98,7 @@ function Main() {
   const state = useStore(game.store);
   const insets = useSafeAreaInsets();
   const [squadOpen, setSquadOpen] = useState(false);
+  const [tipsOpen, setTipsOpen] = useState(true); // hide the coach cards to give the tabs more room
   const [LandmarkScreen, setLandmarkScreen] = useState(null);
   const [SquadScreen, setSquadScreen] = useState(null);
   const hideMap = Boolean(state.landmarkOpen) || squadOpen;
@@ -183,13 +184,25 @@ function Main() {
       </View>
 
       <View style={styles.sheet}>
-        <View style={styles.handle} />
+        <Pressable
+          onPress={() => setTipsOpen((open) => !open)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: tipsOpen }}
+          accessibilityLabel={tipsOpen ? "Hide tips" : "Show tips"}
+          hitSlop={8}
+        >
+          <View style={styles.handle} />
+          <Text style={styles.toggle}>{tipsOpen ? "Hide tips ▴" : "Show tips ▾"}</Text>
+        </Pressable>
         <View style={styles.sheetHeader}>
-          <NextStepCard state={state} onPress={() => { tapFeel(); followNext(state, game, openLandmark); }} />
           <ProgressStrip rank={current} next={next} progress={progress} steps={state.progress.steps} blooms={state.blooms.length} places={state.progress.landmarksFound} />
           {state.issOverhead && (
             <Text style={styles.issLine}>ISS overhead · rarer hatches right now</Text>
           )}
+        </View>
+        {tipsOpen && (
+        <View style={styles.sheetHeader}>
+          <NextStepCard state={state} onPress={() => { tapFeel(); followNext(state, game, openLandmark); }} />
           {!state.demoMode && !state.liveLocation && (
             <View style={[styles.banner, state.locationIssue === "denied" ? styles.bannerWarn : styles.bannerInfo]}>
               <Text style={styles.bannerTitle}>{state.locationIssue === "denied" ? "Location is off" : "Walk live to bloom the trail"}</Text>
@@ -221,6 +234,7 @@ function Main() {
             />
           </Pressable>
         </View>
+        )}
         <AppTabs
           tabs={TABS}
           active={state.tab}
@@ -293,6 +307,7 @@ const styles = StyleSheet.create({
   meterFill: { height: "100%", backgroundColor: colors.green, borderRadius: 4 },
   stats: { ...type.caption },
   issLine: { ...type.label, color: colors.navy, backgroundColor: colors.iceSoft, borderRadius: radius.small, paddingVertical: 6, paddingHorizontal: space.md },
+  toggle: { ...type.caption, color: colors.greenDark, alignSelf: "flex-end", paddingHorizontal: space.lg },
   banner: { borderRadius: radius.small, paddingVertical: space.sm, paddingHorizontal: space.md, gap: 2 },
   bannerWarn: { backgroundColor: "#ffe8e0" },
   bannerInfo: { backgroundColor: colors.iceSoft },
