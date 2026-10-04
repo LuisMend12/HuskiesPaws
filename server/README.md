@@ -29,7 +29,8 @@ HuskiesPaws running at http://localhost:8765
   Grok: on · voice: ElevenLabs · storage: file
 ```
 
-Settings come from the **repo-root `.env`** or `server/.env`. See [.env.example](.env.example):
+Settings come from the **repo-root `.env`** or `server/.env`. You do not need both.
+A missing `server/.env` is fine if the root file has the keys. See [.env.example](.env.example):
 
 | Setting | Needed for |
 |---|---|

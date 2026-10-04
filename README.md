@@ -71,8 +71,10 @@ npm --prefix server start
 The server has no npm dependencies. Check `http://localhost:8765/api/health`.
 The API serves `/api/*` and generated `/images/*`; it does not serve web pages.
 
-The server reads root `.env` and `server/.env`; package settings take precedence.
-Locally `GROK_API_KEY` is accepted as an alias for `XAI_API_KEY`.
+The server reads root `.env` and `server/.env` if they exist. You only need one of
+those files. A Node warning about `.env not found` meant the other copy was missing;
+the server still starts. Locally `GROK_API_KEY` is accepted as an alias for
+`XAI_API_KEY`.
 
 | Server variable | Purpose |
 |---|---|

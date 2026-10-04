@@ -1,6 +1,8 @@
 // HuskiesPaws server entry point. Reads settings from .env (repo root, then server/).
-import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseEnv } from "node:util";
 import { createApp } from "./app.js";
 import { createElevenLabs, voicesFromEnv } from "./elevenlabs.js";
 import { createGrok } from "./grok.js";
@@ -9,6 +11,20 @@ import { createSupabaseStore } from "./store/supabaseStore.js";
 import { createSquadTts } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const serverDir = join(here, "..");
+
+function loadEnvFiles() {
+  // Root first, then server/.env fills any keys still unset (same as the old Node flags).
+  for (const file of [join(serverDir, "..", ".env"), join(serverDir, ".env")]) {
+    if (!existsSync(file)) continue;
+    const parsed = parseEnv(readFileSync(file, "utf8"));
+    for (const [key, value] of Object.entries(parsed)) {
+      if (process.env[key] === undefined) process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFiles();
 const env = process.env;
 
 const config = {
