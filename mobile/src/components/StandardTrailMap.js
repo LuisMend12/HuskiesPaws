@@ -1,5 +1,6 @@
 // Tilted Apple Maps (iOS) / Google Maps (Android) with blooms, routes, and pets.
 import { useEffect, useRef } from "react";
+import { StyleSheet } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { DEFAULT_CENTER } from "../core/config.js";
 import { distanceMeters } from "../core/geo.js";
