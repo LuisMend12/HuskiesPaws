@@ -17,7 +17,7 @@ function squadSummary(state) {
     .map((p) => ({ name: p.name, petClass: p.petClass, species: p.species ?? null }));
 }
 
-const FIGHT_RANGE_M = 150; // same as the landmark screen (components/landmarks.js)
+const FIGHT_RANGE_M = 60; // same as the landmark screen (components/landmarks.js)
 const WINS = ["claimed", "captured", "reinforced"];
 
 export function createOnline({ get, set, persist, say }) {
