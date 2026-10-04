@@ -12,6 +12,7 @@ import { landmarksView } from "./landmarks.js";
 import { squadStatuses } from "./petStatus.js";
 
 const TILT = 50;
+const HEADING = 45; // turn the view 45° to the right
 const ZOOM = 17;
 const ALTITUDE = 600;
 const toCoord = (p) => ({ latitude: p.lat, longitude: p.lon });
@@ -21,7 +22,7 @@ const LANDMARK_ID = "landmark:";
 const cameraAt = (p, meters = 0) => ({
   center: toCoord(p),
   pitch: TILT,
-  heading: 0,
+  heading: HEADING,
   zoom: meters > 450 ? ZOOM - 1.5 : meters > 200 ? ZOOM - 0.7 : ZOOM,
   altitude: Math.max(ALTITUDE, meters * 2.4),
 });

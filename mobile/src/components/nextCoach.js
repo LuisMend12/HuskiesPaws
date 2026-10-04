@@ -36,8 +36,8 @@ export function formatMeters(m) {
 }
 
 export function walkHud(state) {
-  if (!state.walking && !state.guide && !state.planning) return null;
-  if (state.planning) return "Planning a route…";
+  // No "planning" line here: the map toast already says who is planning the route.
+  if (!state.walking && !state.guide) return null;
   const left = formatMeters(remainingWalkMeters(state));
   const dest = state.guide?.place?.title ?? state.discovery?.place?.title;
   if (left && dest) return `${dest} · ${left} left`;

@@ -10,12 +10,13 @@ import { LIBERTY_STYLE_URL, loadGardenStyle } from "./gardenStyle.js";
 import { boundsOf } from "./geojson.js";
 
 const PITCH = 56;
+const BEARING = 45; // turn the view 45° to the right
 const ZOOM = 16.15;
 const toLngLat = (p) => [p.lon, p.lat];
 
 function cameraFor(point, meters = 0) {
   const zoom = meters > 450 ? 14.6 : meters > 200 ? 15.3 : ZOOM;
-  return { center: toLngLat(point), zoom, pitch: PITCH, bearing: 0, duration: 650, easing: "ease" };
+  return { center: toLngLat(point), zoom, pitch: PITCH, bearing: BEARING, duration: 650, easing: "ease" };
 }
 
 export default function StylizedIosMap({ state, onOpenLandmark, onUserExplore }) {
@@ -64,7 +65,7 @@ export default function StylizedIosMap({ state, onOpenLandmark, onUserExplore })
     if (!state.route || state.route.length < 2 || !styleReady) return;
     const box = boundsOf(state.route);
     if (!box) return;
-    cameraRef.current?.fitBounds(box, { padding: { top: 80, right: 56, bottom: 120, left: 56 }, pitch: PITCH, duration: 700 });
+    cameraRef.current?.fitBounds(box, { padding: { top: 80, right: 56, bottom: 120, left: 56 }, pitch: PITCH, bearing: BEARING, duration: 700 });
   }, [state.route, styleReady]);
 
   const mapStyle = styleJson || (styleError ? LIBERTY_STYLE_URL : null);
@@ -101,7 +102,7 @@ export default function StylizedIosMap({ state, onOpenLandmark, onUserExplore })
             center: toLngLat(state.position || DEFAULT_CENTER),
             zoom: ZOOM,
             pitch: PITCH,
-            bearing: 0,
+            bearing: BEARING,
           }}
           minZoom={3}
           maxZoom={18}

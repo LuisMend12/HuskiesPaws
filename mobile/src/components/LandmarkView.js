@@ -30,6 +30,8 @@ import { Button, Hint } from "./ui.js";
 
 // Event handlers read the clock through this (not while drawing the screen).
 const clockNow = () => Date.now();
+const MODAL_CLOSE_MS = 600; // the slide-out animation, plus a margin
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Re-renders every few seconds so healing HP bars move.
 function useTicker(ms) {
@@ -188,16 +190,24 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
   };
 
   // Walk to the landmark; in demo mode the walk is simulated, then this screen reopens.
+  // iOS shows one Modal at a time: presenting this one again while it is still sliding
+  // out, or while the hatch Modal is up, fails silently and leaves an invisible layer
+  // that eats every touch (the map is hidden too, so the app looks frozen).
   const walkThere = async () => {
     const place = { id: landmark.landmarkId, title: landmark.title, lat: landmark.lat, lon: landmark.lon, distance: reach.meters };
     onClose();
+    await wait(MODAL_CLOSE_MS);
     if (game.walkTo) {
       await game.walkTo(place);
     } else {
       game.set({ discovery: { place, summary: { extract: "", photo: null, url: "" }, memo: "", agentId: "pathfinder" } });
       await game.guideToDiscovery();
     }
-    if (state.demoMode) game.set({ landmarkOpen: landmark.landmarkId });
+    if (!state.demoMode) return;
+    await wait(MODAL_CLOSE_MS);
+    const now = game.store.getState();
+    if (now.landmarkOpen || now.hatching || now.captureOpen || now.postcardOpen) return;
+    game.set({ landmarkOpen: landmark.landmarkId });
   };
 
   const go = async () => {
