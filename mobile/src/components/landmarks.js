@@ -7,6 +7,9 @@ import { petsView } from "./fakeData.js";
 
 export const MAX_TURF = 3; // server/src/turf.js MAX_TURF_PER_PLAYER
 export const FIGHT_RANGE_M = 150; // routes end on the nearest path, a bit off the landmark
+const SAME_SPOT_M = 40; // two landmarks closer than this are the same place on the map
+// "Bailey Hall (Ithaca, New York)" and "Bailey Hall" are the same place.
+const baseName = (title) => title.replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
 export const XP_BOOST_PER_LANDMARK = 0.1;
 
 // HP: everyone has 100. Damage from a fight stays, then heals slowly
@@ -52,6 +55,18 @@ export function landmarksView(state) {
     byId.set(String(t.landmarkId), {
       landmarkId: String(t.landmarkId), title: t.title, lat: t.lat, lon: t.lon, photo: known?.photo ?? t.photo ?? null, guard: free ? null : t,
     });
+  }
+  // Real landmarks near you, unguarded, unless that spot is already on the map
+  // (same id, same name, or within SAME_SPOT_M: bots use their own ids).
+  const taken = [...byId.values()];
+  for (const place of state.nearbyPlaces ?? []) {
+    const id = String(place.id);
+    const name = baseName(place.title);
+    const clash = byId.has(id) || taken.some((l) => baseName(l.title) === name || distanceMeters(l, place) < SAME_SPOT_M);
+    if (clash) continue;
+    const landmark = { landmarkId: id, title: place.title, lat: place.lat, lon: place.lon, photo: null, guard: null };
+    byId.set(id, landmark);
+    taken.push(landmark);
   }
   return [...byId.values()].map((l) => ({ ...l, food: foodOf(l.landmarkId) }));
 }

@@ -14,6 +14,9 @@ import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFiel
 import { createStore } from "./store.js";
 import { createWalking } from "./walking.js";
 
+const NEARBY_LANDMARKS = 25; // nearest real landmarks shown as food bags
+const NEARBY_REFRESH_M = 400;
+
 const agentById = (id) => AGENTS.find((a) => a.id === id);
 setRequestHeaders({ "User-Agent": "HuskiesPaws/1.0 (BigRed//Hacks 2026 demo app)" });
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -45,6 +48,26 @@ export function createGame() {
   const pets = createPetsLoop({ get, set, persist, say, squadSize });
   const online = createOnline({ get, set, persist, say });
 
+  // Real landmarks near you (Wikipedia geosearch, like Explore), shown as food
+  // bags so the map isn't empty; refreshed after you've moved NEARBY_REFRESH_M.
+  let nearbyFrom = null;
+  async function refreshNearby() {
+    const position = get().position;
+    if (nearbyFrom && distanceMeters(nearbyFrom, position) < NEARBY_REFRESH_M) return;
+    nearbyFrom = position;
+    try {
+      const places = (await findNearbyPlaces(position))
+        .map((p) => ({ ...p, distance: distanceMeters(position, p) }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, NEARBY_LANDMARKS)
+        .map(({ id, title, lat, lon }) => ({ id, title, lat, lon }));
+      set({ nearbyPlaces: places });
+    } catch (error) {
+      nearbyFrom = null; // try again next time
+      console.warn("Nearby landmarks unavailable:", error.message);
+    }
+  }
+
   const walking = createWalking(store, {
     onArrive: (place, meters) => arrive(place, meters),
     onRegionFound: async (position) => {
@@ -61,6 +84,7 @@ export function createGame() {
       if (get().resetting) return;
       online.expireTurf();
       pets.tickPets();
+      refreshNearby();
       if (final) {
         online.pushScore();
         online.pushDay();
@@ -82,6 +106,7 @@ export function createGame() {
     });
     persist();
     walking.stepTo(get().position, { countDistance: false, countSteps: false, notifyWalk: false });
+    refreshNearby();
     stopIss?.();
     stopIss = pets.startIssWatch();
     online.refreshTurf();

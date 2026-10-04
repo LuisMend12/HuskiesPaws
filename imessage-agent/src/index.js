@@ -37,7 +37,8 @@ const app = useTerminal
 // Without a key, tts.enabled is false and stories stay text-only.
 const grok = createGrok({ apiKey: process.env.XAI_API_KEY || process.env.GROK_API_KEY, baseUrl: process.env.XAI_BASE_URL });
 const elevenlabs = createElevenLabs({ apiKey: process.env.ELEVENLABS_API_KEY, voices: voicesFromEnv(process.env) });
-const tts = createSquadTts({ grok, elevenlabs });
+const ttsPrefer = ["elevenlabs", "grok"].includes(process.env.TTS_PROVIDER) ? process.env.TTS_PROVIDER : null;
+const tts = createSquadTts({ grok, elevenlabs, prefer: ttsPrefer });
 const dayApi = createDayClient(process.env.HUSKIESPAWS_API_URL || process.env.API_URL);
 const demoPhone = process.env.DEMO_PHONE_NUMBER;
 
