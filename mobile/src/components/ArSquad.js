@@ -50,7 +50,7 @@ function useDeviceRotation() {
       if (!(await DeviceMotion.isAvailableAsync())) return;
       const { granted } = await DeviceMotion.requestPermissionsAsync();
       if (!granted || cancelled) return;
-      DeviceMotion.setUpdateInterval(16);
+      DeviceMotion.setUpdateInterval(80);
       subscription = DeviceMotion.addListener(({ rotation, orientation }) => {
         if (rotation) latest.current = { rotation, orientation: orientation ?? 0 };
       });

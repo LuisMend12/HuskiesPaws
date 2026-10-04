@@ -32,7 +32,7 @@ export const Flat = ({ color }) => <meshBasicMaterial color={color} />;
 
 // On Expo every GL call runs on the JS thread, so drawing at 60 fps starved taps
 // and the app felt frozen. Canvases use frameloop="demand" plus this ticker.
-export const FPS_3D = 30;
+export const FPS_3D = 12;
 export function FrameTicker({ fps = FPS_3D }) {
   const invalidate = useThree((state) => state.invalidate);
   const frames = useRef(0);
