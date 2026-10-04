@@ -174,8 +174,9 @@ describe("HuskiesPaws API", () => {
     const petArt = await json(await post(app.base, "/api/imagine", { kind: "pet", petId: "pet-123456", rarity: "rare", petClass: "Scout", color: "mint" }));
     assert.equal(petArt.success, true);
     const petCall = xai.calls.findLast((c) => c.path === "/v1/images/generations");
-    assert.match(petCall.body.prompt, /rounded-cube husky pup/);
+    assert.match(petCall.body.prompt, /collectible husky-inspired pup/);
     assert.match(petCall.body.prompt, /leaf sprout/);
+    assert.match(petCall.body.prompt, /diamond badge/);
   });
 
   test("leaderboard marks you without exposing player ids", async () => {
