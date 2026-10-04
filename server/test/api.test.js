@@ -183,11 +183,16 @@ describe("HuskiesPaws API", () => {
     await post(app.base, "/api/score", { playerId: "player-bbbbbb", name: "Ben", score: 900, region });
     await post(app.base, "/api/score", { playerId: "player-aaaaaa", name: "Ana", score: 1200, region }); // update
     const board = await json(await fetch(`${app.base}/api/leaderboard?scope=state&region=New%20York&me=player-aaaaaa`));
-    assert.deepEqual(board.data.players, [
-      { position: 1, name: "Ana", score: 1200, isYou: true },
-      { position: 2, name: "Ben", score: 900, isYou: false },
-    ]);
-    assert.doesNotMatch(JSON.stringify(board), /player-/);
+    // Sample players rank alongside real ones, so check the real rows' order and marks.
+    const rows = board.data.players;
+    const ana = rows.find((r) => r.name === "Ana");
+    const ben = rows.find((r) => r.name === "Ben");
+    assert.equal(ana.isYou, true, "your row is always included, even outside the top 10");
+    if (ben) assert.ok(ana.position < ben.position && !ben.isYou, "higher score ranks higher");
+    assert.equal(rows.filter((r) => r.isYou).length, 1);
+    assert.ok(rows.length > 2, "sample players fill the board");
+    rows.slice(0, 10).forEach((r, i) => assert.equal(r.position, i + 1));
+    assert.doesNotMatch(JSON.stringify(board), /player-|demo-/);
   });
 
   test("score validation", async () => {

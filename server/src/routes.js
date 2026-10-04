@@ -9,7 +9,7 @@ import { createRateLimiter } from "./rateLimit.js";
 import { grokVoiceFor } from "./tts.js";
 import { currentHp, decideClaim } from "./turf.js";
 import { validateClaim, validateImagine, validateLeaderboardQuery, validateRecall, validateScore, validateSpeech } from "./validate.js";
-import { defenderAt, withBots } from "./bots.js";
+import { boardWithBots, defenderAt, withBots } from "./bots.js";
 
 const LEADERBOARD_LIMIT = 10;
 const IMAGE_FETCH_TIMEOUT_MS = 30_000;
@@ -123,11 +123,7 @@ export function createRoutes({ store, grok, elevenlabs = TTS_OFF, tts, imagesDir
       const me = url.searchParams.get("me");
       const players = await store.topPlayers(scope, region, LEADERBOARD_LIMIT);
       // Player ids stay private: they're what lets someone update a score.
-      sendJson(res, 200, {
-        scope,
-        region,
-        players: players.map((p, i) => ({ position: i + 1, name: p.name, score: p.score, isYou: p.id === me })),
-      });
+      sendJson(res, 200, { scope, region, players: boardWithBots(players, { scope, region, me, limit: LEADERBOARD_LIMIT }) });
     },
 
     async listTurf(req, res, url) {
