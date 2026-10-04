@@ -27,13 +27,32 @@ async function quickTunnel(origin, label) {
 
 console.log("Starting the Cloudflare tunnels...");
 const metro = await quickTunnel(`http://localhost:${METRO_PORT}`, "Expo");
+// Only front the local API when it's actually running. Pointing the app at a
+// tunnel with nothing behind it made every server call fail (claims did nothing,
+// voices fell back) instead of letting the app play offline.
+async function localApiUp() {
+  try {
+    const response = await fetch(`http://127.0.0.1:${API_PORT}/api/health`, { signal: AbortSignal.timeout(1500) });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 let api = null;
-try {
-  api = await quickTunnel(`http://127.0.0.1:${API_PORT}`, "API");
-  console.log(`API tunnel: ${api.url}`);
-  console.log("Keep `npm --prefix server start` running so Moss can use ElevenLabs.");
-} catch (error) {
-  console.warn(`API tunnel failed (${error.message}). Tell a story will use on-device speech.`);
+if (process.env.EXPO_PUBLIC_API_URL) {
+  // A deployed API is configured (see below); no local API tunnel needed.
+} else if (await localApiUp()) {
+  try {
+    api = await quickTunnel(`http://127.0.0.1:${API_PORT}`, "API");
+    console.log(`API tunnel: ${api.url}`);
+    console.log("Keep `npm --prefix server start` running so Moss can use ElevenLabs.");
+  } catch (error) {
+    console.warn(`API tunnel failed (${error.message}). The app will play offline.`);
+  }
+} else {
+  console.log(`No local API on port ${API_PORT}: the app plays offline (local claims, on-device voices).`);
+  console.log("For Grok/ElevenLabs voices and shared turf, run `npm --prefix server start` first, then restart this.");
 }
 
 // Expo Go loads exp:// links over plain HTTP, which the quick tunnel also serves.
