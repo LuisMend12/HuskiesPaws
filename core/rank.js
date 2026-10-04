@@ -4,7 +4,7 @@ import { POINTS, STEP_LENGTH_M } from "./config.js";
 
 // Leagues, like Clash of Clans: Bronze -> Silver -> Gold -> Diamond -> Crystal,
 // each split into divisions III, II, I. Each league unlocks a flower trail;
-// `metal` and `gem` color the league's wood-and-grass badge in the app.
+// `metal` and `gem` color each league's badge in the phone app.
 export const LEAGUES = Object.freeze([
   { id: "bronze", name: "Bronze", emoji: "🥉", metal: "#cd7f32", gem: "#f6c79a", mins: [0, 100, 200],
     trail: { id: "sprouts", name: "Sprout Path", flowers: ["🌱", "🌿", "☘️"], color: "#81c784" } },
