@@ -78,3 +78,13 @@ test("hpShare can only lower HP, and walking back refills it", () => {
   assert.equal(topped.result, "reinforced");
   assert.equal(currentHp(topped.claim, 0), 50);
 });
+
+test("a drained guard loses to a slightly weaker pet", () => {
+  const defender = {
+    landmarkId: "L1", ownerId: "player-owner1", ownerName: "Olivia",
+    claimedAt: new Date(0).toISOString(), maxHp: 60, pet: pet(60),
+  };
+  const later = 3 * hour; // 30 of 60 HP left: fights at power 30
+  assert.equal(decideClaim({ defender, allTurf: [defender], attempt: attempt("player-rival1", 55), now: later }).result, "captured");
+  assert.equal(decideClaim({ defender, allTurf: [defender], attempt: attempt("player-rival1", 30), now: later }).result, "defended");
+});
