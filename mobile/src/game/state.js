@@ -17,8 +17,8 @@ export const SAVED_DEFAULTS = Object.freeze({
   album: [], // [{ id, title, image, date, agentId }]
   xp: Object.fromEntries(AGENTS.map((a) => [a.id, 0])),
   trailChoice: "auto",
-  trips: [], // [{ id, title, meters, amount, date, nessieId }]
-  bank: null, // { customerId, checkingId, savingsId }
+  trips: [],
+  bank: null, // dropped; old saves are cleared on load
   mapRenderer: "garden", // iOS development build uses MapLibre; Expo Go falls back
   pets: STARTER_PETS, // [{ id, name, species, rarity, petClass, color, basePower, hatchedAtWalked, spaceBorn, art }]
   eggs: [], // [{ id, startWalked, tier }] up to MAX_EGGS, all filling as you walk
@@ -27,7 +27,7 @@ export const SAVED_DEFAULTS = Object.freeze({
   player: null, // { id, name } created on first load
 });
 
-// "Reset my progress" clears these but keeps the Nessie connection and player id.
+// "Reset my progress" clears these but keeps the player id.
 export const RESETTABLE_KEYS = [
   "progress", "dayLog", "found", "album", "xp", "trailChoice", "trips",
   "pets", "eggs", "eggsReceived", "squad",
@@ -80,7 +80,7 @@ function petsFrom(saved) {
 }
 
 export function migrateSaved(saved) {
-  const { nessieKey: _legacyKey, ...safe } = saved;
+  const { nessieKey: _legacyKey, bank: _legacyBank, ...safe } = saved;
   const progress = saved.progress ?? SAVED_DEFAULTS.progress;
   const walkXp = Number.isFinite(progress.walkXp)
     ? progress.walkXp
@@ -88,7 +88,7 @@ export function migrateSaved(saved) {
   const player = saved.player?.id ? saved.player : newPlayer();
   return {
     ...safe,
-    bank: saved.bank?.checkingId ? null : saved.bank ?? null,
+    bank: null,
     progress: { ...progress, walkXp },
     ...petsFrom(saved),
     eggsReceived: saved.eggsReceived ?? 0,

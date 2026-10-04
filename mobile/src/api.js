@@ -1,5 +1,5 @@
 // Talks to the HuskiesPaws server. Base URL comes from EXPO_PUBLIC_API_URL.
-// No API keys live in the app: Grok and bank secrets stay on the server.
+// No API keys live in the app: Grok and ElevenLabs stay on the server.
 // Every helper returns null on any failure so screens can fall back to sample data.
 const TIMEOUT_MS = 15_000;
 const IMAGINE_TIMEOUT_MS = 90_000;
@@ -63,8 +63,6 @@ export async function fetchPetPortrait(body) {
 }
 
 export const recallGuard = (body) => postJson("/api/turf/recall", body);
-export const connectBank = (playerId) => postJson("/api/bank/connect", { playerId });
-export const transferWalk = (body) => postJson("/api/bank/transfer", body);
 export const submitDayLog = (body) => postJson("/api/day", body);
 export const fetchDayLog = ({ playerId, phone } = {}) => {
   const params = new URLSearchParams();

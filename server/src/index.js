@@ -14,7 +14,6 @@ const env = process.env;
 const config = {
   port: Number(env.PORT) || 8765,
   dataDir: env.DATA_DIR || join(here, "..", "data"),
-  nessieKey: env.NESSIE_API_KEY,
   limits: {
     voice: { perMinute: Number(env.VOICE_PER_MINUTE) || 20, perDay: Number(env.VOICE_PER_DAY) || 1000 },
     image: { perMinute: Number(env.IMAGES_PER_MINUTE) || 6, perDay: Number(env.IMAGES_PER_DAY) || 200 },

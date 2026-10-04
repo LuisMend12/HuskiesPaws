@@ -16,8 +16,6 @@ services:
         sync: false
       - key: ELEVENLABS_API_KEY # Moss story voice (ElevenLabs)
         sync: false
-      - key: NESSIE_API_KEY
-        sync: false
       - key: SUPABASE_URL # optional: keeps leaderboards and turf across redeploys
         sync: false
       - key: SUPABASE_SERVICE_KEY

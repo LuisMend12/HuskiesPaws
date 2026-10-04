@@ -3,15 +3,13 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { HttpError, sendError, serveStatic } from "./http.js";
 import { createRoutes } from "./routes.js";
-import { createBankRoutes } from "./bank.js";
 import { attachDayLogs, createDayRoutes } from "./day.js";
 
 // elevenlabs and tts (per-agent voice choice) come from index.js; without them
 // every agent falls back to Grok Voice.
-export function createApp({ config, store, grok, elevenlabs, tts, bankClient }) {
+export function createApp({ config, store, grok, elevenlabs, tts }) {
   const gameStore = attachDayLogs(store);
   const routes = createRoutes({ store: gameStore, grok, elevenlabs, tts, imagesDir: join(config.dataDir, "images"), limits: config.limits });
-  const bank = createBankRoutes({ store: gameStore, key: config.nessieKey, client: bankClient });
   const day = createDayRoutes({ store: gameStore });
 
   const table = {
@@ -23,8 +21,6 @@ export function createApp({ config, store, grok, elevenlabs, tts, bankClient }) 
     "GET /api/turf": routes.listTurf,
     "POST /api/turf/claim": routes.claimTurf,
     "POST /api/turf/recall": routes.recallGuard,
-    "POST /api/bank/connect": bank.connect,
-    "POST /api/bank/transfer": bank.transfer,
     "POST /api/day": day.putDay,
     "GET /api/day": day.getDay,
   };

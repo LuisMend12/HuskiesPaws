@@ -64,14 +64,14 @@ test("maybeNewEgg never hands out an egg while you already carry one", () => {
   assert.equal(eggsReceived, MAX_EGGS);
 });
 
-test("migrateSaved keeps server bank handles and drops legacy checking ids", async () => {
+test("migrateSaved drops bank data and restores starter pets", async () => {
   const kept = migrateSaved({
     progress: { walked: 0, steps: 0, landmarksFound: 0, landmarksCaptured: 0 },
     bank: { savingsId: "sav-1" },
     pets: [],
     player: { id: "p-abc123", name: "Luis" },
   });
-  assert.deepEqual(kept.bank, { savingsId: "sav-1" });
+  assert.equal(kept.bank, null);
   assert.equal(kept.pets.length, 3, "empty pet list is restored to starters");
   assert.equal(kept.player.id, "p-abc123");
 
