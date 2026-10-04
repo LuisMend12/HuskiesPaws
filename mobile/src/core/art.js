@@ -10,26 +10,37 @@ const PALETTES = [
   { sky: ["#caf0f8", "#90e0ef"], hills: ["#a7c957", "#6a994e"], sun: "#fefae0" },
 ];
 
+const KIT = {
+  scout: `<path d="M32 16 C30 6 22 4 20 3 C26 3 33 8 32 16" fill="#43a047"/><ellipse cx="38" cy="9" rx="6" ry="4" fill="#7cc96b"/>`,
+  storyteller: `<rect x="18" y="46" width="28" height="5" rx="2.5" fill="#e53935"/><path d="M40 51 L46 60 L38 58 Z" fill="#c62828"/>`,
+  pathfinder: `<ellipse cx="32" cy="16" rx="14" ry="3" fill="#c8a165"/><path d="M22 16 Q24 8 32 8 Q40 8 42 16 Z" fill="#d9b77e"/>`,
+};
+
 export function creatureSvg(agent, level = 1) {
-  const hat = level >= 2
-    ? `<g transform="translate(32 9)">
-         <circle r="4" fill="#ff8fab"/><circle cx="-5" cy="2" r="3" fill="#ffc2d1"/>
-         <circle cx="5" cy="2" r="3" fill="#ffc2d1"/><circle r="2" fill="#ffe066"/>
+  const kit = KIT[agent.id] ?? KIT.scout;
+  const bloom = level >= 2
+    ? `<g transform="translate(32 8)">
+         <circle r="3.5" fill="#ff8fab"/><circle cx="-4.5" cy="2" r="2.6" fill="#ffc2d1"/>
+         <circle cx="4.5" cy="2" r="2.6" fill="#ffd54f"/><circle r="1.6" fill="#ffe066"/>
        </g>`
     : "";
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="${agent.name}">
-      <path d="M32 18 C30 8 22 6 20 4 C26 4 33 8 32 18" fill="${agent.leaf}"/>
-      <ellipse cx="32" cy="40" rx="18" ry="20" fill="${agent.color}"/>
-      <ellipse cx="32" cy="46" rx="10" ry="8" fill="#ffffff" opacity="0.25"/>
-      <circle cx="25" cy="36" r="3.2" fill="#2c3a2a"/>
-      <circle cx="39" cy="36" r="3.2" fill="#2c3a2a"/>
-      <circle cx="26" cy="35" r="1" fill="#fff"/>
-      <circle cx="40" cy="35" r="1" fill="#fff"/>
-      <path d="M28 44 Q32 47 36 44" stroke="#2c3a2a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="32" cy="58" rx="14" ry="3" fill="#0b1f3a" opacity="0.12"/>
+      ${kit}
+      <ellipse cx="32" cy="40" rx="18" ry="19" fill="${agent.color}" stroke="#0b1f3a" stroke-width="1.6"/>
+      <ellipse cx="32" cy="34" rx="14" ry="6" fill="#ffffff" opacity="0.28"/>
+      <ellipse cx="32" cy="44" rx="10" ry="8" fill="#ffffff" opacity="0.35"/>
+      <circle cx="25" cy="36" r="3.4" fill="#0b1f3a"/>
+      <circle cx="39" cy="36" r="3.4" fill="#0b1f3a"/>
+      <circle cx="25" cy="36" r="2.2" fill="#6ec6ff"/>
+      <circle cx="39" cy="36" r="2.2" fill="#6ec6ff"/>
+      <circle cx="26" cy="35" r="0.9" fill="#fff"/>
+      <circle cx="40" cy="35" r="0.9" fill="#fff"/>
+      <path d="M28 44 Q32 47 36 44" stroke="#0b1f3a" stroke-width="2" fill="none" stroke-linecap="round"/>
       <ellipse cx="22" cy="42" rx="3" ry="2" fill="#ff8a8a" opacity="0.5"/>
       <ellipse cx="42" cy="42" rx="3" ry="2" fill="#ff8a8a" opacity="0.5"/>
-      ${hat}
+      ${bloom}
     </svg>`;
 }
 
@@ -48,9 +59,10 @@ export function postcardSvg(placeTitle, agent) {
       <path d="M0 120 Q100 70 200 115 T400 105 V180 H0 Z" fill="${palette.hills[0]}"/>
       <path d="M0 150 Q120 110 240 145 T400 140 V180 H0 Z" fill="${palette.hills[1]}"/>
       <path d="M120 180 Q190 150 210 128" stroke="#f1e3c6" stroke-width="10" fill="none" stroke-linecap="round"/>
-      <text x="200" y="166" text-anchor="middle" font-size="12" fill="#fff" font-family="system-ui">
-        🌸 🌼 🌷 Wish you were here! 🌷 🌼 🌸
-      </text>
+      <ellipse cx="80" cy="168" rx="6" ry="8" fill="#f48fb1"/>
+      <ellipse cx="96" cy="168" rx="6" ry="8" fill="#ffd54f"/>
+      <ellipse cx="304" cy="168" rx="6" ry="8" fill="#f48fb1"/>
+      <ellipse cx="320" cy="168" rx="6" ry="8" fill="#2e9d4f"/>
       <g transform="translate(36 70) scale(1.3)">${creatureSvg(agent)}</g>
     </svg>`;
 }

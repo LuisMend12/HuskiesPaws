@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Path } from "react-native-svg";
 import { RankBadge } from "./RankBadge.js";
 import { canUseNativeMapLibre } from "../map/availability.js";
 import { colors, fonts, radius, shadow, space } from "../theme.js";
+import { CaptureIcon, GardenIcon, LiveIcon, MapGlyphIcon, PawIcon, RecenterIcon, WalkIcon } from "./GameIcons.js";
 import { Button } from "./ui.js";
 
 // The 3D squad view pulls in three.js, so it loads only when opened.
@@ -51,13 +51,12 @@ function RoundButton({ label, icon, onPress, disabled, active, round }) {
   );
 }
 
-function Crosshair() {
+function ActionLabel({ icon, text, active }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.navy} strokeWidth={2.2} strokeLinecap="round">
-      <Circle cx={12} cy={12} r={6.5} />
-      <Circle cx={12} cy={12} r={2} fill={colors.navy} />
-      <Path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22" />
-    </Svg>
+    <View style={styles.actionInner}>
+      {icon}
+      <Text style={[styles.pillText, active && styles.actionActiveText]}>{text}</Text>
+    </View>
   );
 }
 
@@ -96,14 +95,14 @@ export function MapControls({ state, game, onSquadOpen }) {
     <View style={[styles.bottomBar, { bottom: SHEET_OVERLAP + space.md }]} pointerEvents="box-none">
       <View style={styles.row}>
         <RoundButton
-          icon={state.liveLocation ? "📍 Live" : "📍 Go live"}
+          icon={<ActionLabel icon={<LiveIcon size={16} color={state.liveLocation ? colors.greenDark : colors.navy} />} text={state.liveLocation ? "Live" : "Go live"} active={state.liveLocation} />}
           label={state.liveLocation ? "Live location is on" : "Turn on live location"}
           onPress={game.startLiveLocation}
           disabled={state.liveLocation}
           active={state.liveLocation}
         />
         <RoundButton
-          icon={state.walking || state.planning ? "🚶 Walking" : "🚶 Demo"}
+          icon={<ActionLabel icon={<WalkIcon size={16} />} text={state.walking || state.planning ? "Walking" : "Demo"} />}
           label={state.walking || state.planning ? "A demo walk is in progress" : "Start a demo walk nearby"}
           onPress={game.demoWalk}
           disabled={state.walking || state.planning}
@@ -111,24 +110,25 @@ export function MapControls({ state, game, onSquadOpen }) {
       </View>
       <View style={styles.column}>
         <Pressable onPress={() => onSquadOpen(true)} hitSlop={12} accessibilityRole="button" accessibilityLabel="See your squad in 3D" style={({ pressed }) => [styles.paw, pressed && styles.pressed]}>
-          <Text style={styles.pawIcon}>🐾</Text>
+          <PawIcon size={22} color={colors.white} />
           <Text style={styles.pawLabel}>3D</Text>
         </Pressable>
         {gardenCapable && (
           <RoundButton
-            icon={gardenOn ? "🌿 Garden" : "🗺️ Map"}
+            icon={<ActionLabel icon={gardenOn ? <GardenIcon size={16} /> : <MapGlyphIcon size={16} />} text={gardenOn ? "Garden" : "Map"} active={gardenOn} />}
             label={gardenOn ? "Switch to the standard map" : "Switch to the garden map"}
             onPress={() => game.setMapRenderer(gardenOn ? "standard" : "garden")}
             active={gardenOn}
           />
         )}
-        <RoundButton icon={<Crosshair />} label="Center the map on me" onPress={recenter} round />
+        <RoundButton icon={<RecenterIcon />} label="Center the map on me" onPress={recenter} round />
       </View>
       {canCapture && (
         <Animated.View style={[styles.capture, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
           <Button
-            title={`📸 Capture ${state.capturable.title}`}
+            title={`Capture ${state.capturable.title}`}
             size="large"
+            icon={({ color, size }) => <CaptureIcon size={size} color={color} />}
             onPress={() => game.set({ captureOpen: true })}
             style={shadow.raised}
           />
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   bottomBar: { position: "absolute", left: space.md, right: space.md, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   row: { flexDirection: "row", gap: space.sm },
   column: { alignItems: "center", gap: space.sm },
+  actionInner: { flexDirection: "row", alignItems: "center", gap: 6 },
   paw: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.green, borderWidth: 3, borderColor: colors.white, alignItems: "center", justifyContent: "center", ...shadow.raised },
-  pawIcon: { fontSize: 18, lineHeight: 20 },
   pawLabel: { fontFamily: fonts.black, fontSize: 10, color: colors.white, marginTop: -2 },
   action: { minHeight: 40 },
   round: { width: 44, height: 44, paddingHorizontal: 0, paddingVertical: 0, justifyContent: "center" },

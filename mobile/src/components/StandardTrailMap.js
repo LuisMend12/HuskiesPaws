@@ -1,9 +1,10 @@
 // Tilted Apple Maps (iOS) / Google Maps (Android) with blooms, routes, and pets.
 import { useEffect, useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { DEFAULT_CENTER } from "../core/config.js";
 import { distanceMeters } from "../core/geo.js";
+import { BloomIcon, YouMarker } from "./GameIcons.js";
 import { colors } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { MapPets, useSettled } from "./MapPets.js";
@@ -29,7 +30,7 @@ function Bloom({ bloom }) {
   const tracking = useSettled();
   return (
     <Marker coordinate={toCoord(bloom)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracking}>
-      <Text style={styles.bloom}>{bloom.emoji}</Text>
+      <BloomIcon size={16} color={bloom.color ?? colors.pink} />
     </Marker>
   );
 }
@@ -121,20 +122,8 @@ export function StandardTrailMap({ state, onOpenLandmark }) {
         onOpenLandmark={onOpenLandmark}
       />
       <Marker coordinate={toCoord(state.position)} anchor={{ x: 0.5, y: 0.5 }} title="You" tracksViewChanges={false}>
-        <View style={styles.me} />
+        <YouMarker size={28} />
       </Marker>
     </MapView>
   );
 }
-
-const styles = StyleSheet.create({
-  bloom: { fontSize: 16 },
-  me: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.leafDark,
-    borderWidth: 3,
-    borderColor: "#fff",
-  },
-});

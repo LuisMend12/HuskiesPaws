@@ -13,13 +13,21 @@ import { petsView } from "./fakeData.js";
 import { MAX_HP, READY_HP, healMinutes, landmarksView, reachOf, ringOf } from "./landmarks.js";
 import { FoodSvg, PetArt } from "./PetArt.js";
 import { SLOT_UNLOCKS, squadSizeFor, squadStatuses } from "./petStatus.js";
+import { DirectionsIcon, ExploreIcon, StoryIcon, TerritoryIcon } from "./GameIcons.js";
 import { Button, Card, Hint, SectionTitle } from "./ui.js";
 
 const STATUS = {
-  "with-you": { label: "🐾 With you", color: colors.greenDark, bg: colors.greenSoft },
-  exploring: { label: "🧭 Exploring", color: "#1f6fa8", bg: colors.iceSoft },
-  defending: { label: "🛡️ Defending", color: colors.white, bg: colors.navy },
-  resting: { label: "💤 Resting", color: colors.muted, bg: colors.stripe },
+  "with-you": { label: "With you", color: colors.greenDark, bg: colors.greenSoft },
+  exploring: { label: "Exploring", color: "#1f6fa8", bg: colors.iceSoft },
+  defending: { label: "Defending", color: colors.white, bg: colors.navy },
+  resting: { label: "Healing", color: colors.muted, bg: colors.stripe },
+};
+
+const CLASS_ICON = {
+  Scout: ExploreIcon,
+  Storyteller: StoryIcon,
+  Pathfinder: DirectionsIcon,
+  Guardian: TerritoryIcon,
 };
 
 // Seconds until an exploring pet is back, ticking once a second.
@@ -73,7 +81,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
               : secondsLeft !== null
                 ? `${look.label} · back in ${secondsLeft} s`
                 : status === "resting"
-                  ? `💤 Healing · ${Math.floor(hp)} HP · ready in ${healMinutes(hp, READY_HP)} min`
+                  ? `Healing · ${Math.floor(hp)} HP · ready in ${healMinutes(hp, READY_HP)} min`
                   : hp < MAX_HP
                     ? `${look.label} · ${Math.floor(hp)} HP`
                     : look.label}
@@ -84,7 +92,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
         <ActivityIndicator color={colors.green} />
       ) : agent ? (
         <View style={styles.action}>
-          <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery} />
+          <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery} icon={CLASS_ICON[pet.petClass]} />
           {whyDisabled ? <Hint style={styles.why}>{whyDisabled}</Hint> : null}
         </View>
       ) : (

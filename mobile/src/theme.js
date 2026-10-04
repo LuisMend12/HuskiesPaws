@@ -13,11 +13,14 @@ const palette = {
   iceSoft: "#e8f5ff",
   pink: "#f48fb1",
   yellow: "#ffd54f",
+  gold: "#e8a317",
   coral: "#ff7a59",
+  cream: "#f6f1e4",
   white: "#ffffff",
-  page: "#f3f6fa",
+  page: "#f6f1e4",
   line: "#e4e9f0",
-  stripe: "#f7f9fc",
+  stripe: "#fbf6ea",
+  forest: "#163528",
 };
 
 export const colors = Object.freeze({

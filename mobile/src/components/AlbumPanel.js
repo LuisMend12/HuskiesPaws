@@ -1,13 +1,14 @@
 // Album of captured landmark postcards.
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius } from "../theme.js";
+import { AlbumIcon } from "./GameIcons.js";
 import { EmptyState } from "./ui.js";
 
 export function AlbumPanel({ album }) {
   if (album.length === 0) {
     return (
       <EmptyState
-        emoji="📸"
+        icon={<AlbumIcon size={40} />}
         title="No postcards yet"
         body="Squad → Explore, then Take me there. When you arrive, tap Capture to save a photo here."
       />

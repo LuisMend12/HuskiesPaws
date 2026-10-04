@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Modal, StyleSheet, Text, View } from "react-native";
 import { petPower, rarityOf } from "../core/pets.js";
 import { colors, fonts, space, type } from "../theme.js";
+import { RarityMark } from "./GameIcons.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { Button } from "./ui.js";
 
@@ -79,6 +80,7 @@ function Reveal({ pet, walked, onClose }) {
           </View>
           <Animated.View style={[styles.center, { opacity: pop }]}>
             <Text style={[styles.rarity, { color: rarity.color }]}>{rarity.label}</Text>
+            <RarityMark mark={rarity.mark} color={rarity.color} size={28} label={rarity.label} />
             <Text style={styles.name}>{pet.name}</Text>
             <Text style={styles.detail}>{`${pet.petClass} · ⚡ ${petPower(pet, walked)} power`}</Text>
             {pet.spaceBorn && <Text style={styles.space}>🛰️ Hatched while the ISS was overhead!</Text>}
@@ -110,7 +112,7 @@ export function HatchModal({ pet, walked, onClose }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: "rgba(11,31,58,0.92)", alignItems: "center", justifyContent: "center", padding: space.xl },
+  backdrop: { flex: 1, backgroundColor: "rgba(22,53,40,0.94)", alignItems: "center", justifyContent: "center", padding: space.xl },
   center: { alignItems: "center", gap: space.sm },
   stage: { width: 240, height: 240, alignItems: "center", justifyContent: "center" },
   ring: { position: "absolute", width: 220, height: 220, borderRadius: 110 },

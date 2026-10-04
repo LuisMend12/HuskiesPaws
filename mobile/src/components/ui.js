@@ -11,10 +11,11 @@ function usePressScale() {
 }
 
 // variant: "primary" (green) | "secondary" (white with a border); size: "normal" | "large"
-export function Button({ title, onPress, disabled = false, variant = "primary", size = "normal", style, accessibilityLabel }) {
+export function Button({ title, onPress, disabled = false, variant = "primary", size = "normal", style, accessibilityLabel, icon }) {
   const press = usePressScale();
   const secondary = variant === "secondary";
   const large = size === "large";
+  const ink = secondary ? colors.ink : colors.white;
   return (
     <Animated.View style={[{ transform: [{ scale: press.scale }] }, style]}>
       <Pressable
@@ -33,7 +34,14 @@ export function Button({ title, onPress, disabled = false, variant = "primary", 
           disabled && styles.disabled,
         ]}
       >
-        <Text style={[styles.buttonText, large && styles.largeText, secondary && styles.secondaryText]}>{title}</Text>
+        {icon ? (
+          <View style={styles.buttonRow}>
+            {typeof icon === "function" ? icon({ color: ink, size: large ? 22 : 18 }) : icon}
+            <Text style={[styles.buttonText, large && styles.largeText, secondary && styles.secondaryText]}>{title}</Text>
+          </View>
+        ) : (
+          <Text style={[styles.buttonText, large && styles.largeText, secondary && styles.secondaryText]}>{title}</Text>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -53,10 +61,10 @@ export function Chip({ label, active = false, disabled = false, outlined = false
   );
 }
 
-export function EmptyState({ emoji, title, body }) {
+export function EmptyState({ emoji, icon, title, body }) {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyEmoji}>{emoji}</Text>
+      {icon ?? (emoji ? <Text style={styles.emptyEmoji}>{emoji}</Text> : null)}
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
     </View>
@@ -95,8 +103,9 @@ export function PillTabs({ tabs, active, onChange }) {
             accessibilityState={{ selected }}
             style={[styles.tab, selected && styles.tabActive]}
           >
+            {tab.Icon ? <tab.Icon size={16} color={selected ? colors.white : colors.muted} /> : null}
             <Text style={[styles.tabText, selected && styles.tabTextActive]}>
-              {tab.icon ? `${tab.icon} ${tab.label}` : tab.label}
+              {tab.icon && !tab.Icon ? `${tab.icon} ${tab.label}` : tab.label}
             </Text>
           </Pressable>
         );
@@ -135,7 +144,8 @@ const styles = StyleSheet.create({
   chipTextActive: { color: colors.white },
   tabsScroll: { flexGrow: 0 }, // a ScrollView grows to fill by default; the tab row shouldn't
   tabs: { alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
-  tab: { borderRadius: radius.pill, paddingVertical: 7, paddingHorizontal: 18 },
+  buttonRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  tab: { borderRadius: radius.pill, paddingVertical: 7, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 6 },
   tabActive: { backgroundColor: colors.green },
   tabText: { fontFamily: fonts.bold, fontSize: 15, color: colors.muted },
   tabTextActive: { color: colors.white },

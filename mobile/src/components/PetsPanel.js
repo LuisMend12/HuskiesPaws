@@ -11,11 +11,12 @@ import {
 } from "../core/pets.js";
 import { LEAGUES, leagueOf, rankFor } from "../core/rank.js";
 import { scoreOf } from "../game/state.js";
-import { colors, fonts, radius, shadow, space, type } from "../theme.js";
+import { colors, fonts, radius, space, type } from "../theme.js";
 import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { recallLocally } from "./landmarks.js";
 import { squadSizeFor } from "./petStatus.js";
+import { PetsIcon, RarityMark } from "./GameIcons.js";
 import { Button, Card, EmptyState, Hint } from "./ui.js";
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
@@ -113,8 +114,10 @@ function RarityDots({ filter, onChange }) {
             accessibilityLabel={`Show only ${rarity.label} pets`}
             accessibilityState={{ selected }}
             hitSlop={8}
-            style={[styles.dot, { backgroundColor: rarity.color }, selected && styles.dotSelected]}
-          />
+            style={[styles.dotWrap, selected && styles.dotSelected]}
+          >
+            <RarityMark mark={rarity.mark} color={rarity.color} size={18} label={rarity.label} />
+          </Pressable>
         );
       })}
     </View>
@@ -189,7 +192,7 @@ export function PetsPanel({ state, game }) {
       </View>
       <Hint>{`Tap a pet to add it to your squad or take it out · ${squadIds.length}/${size} in your squad`}</Hint>
       {pets.length === 0 ? (
-        <EmptyState emoji="🐾" title="No pets yet" body="Keep walking to earn an egg, then walk a bit farther to hatch it." />
+        <EmptyState icon={<PetsIcon size={40} />} title="No pets yet" body="Keep walking to earn an egg, then walk a bit farther to hatch it." />
       ) : (
         <View style={styles.grid}>
           {shown.map((pet) => (
@@ -211,7 +214,7 @@ export function PetsPanel({ state, game }) {
       </Card>
 
       {sample && <Hint>Sample pets and eggs for now. Yours appear here once hatching is connected.</Hint>}
-      {__DEV__ && <Button title="🥚 Preview hatch (dev only)" variant="secondary" onPress={previewHatch} />}
+      {__DEV__ && <Button title="Preview hatch (dev only)" icon={PetsIcon} variant="secondary" onPress={previewHatch} />}
     </View>
   );
 }
@@ -222,9 +225,9 @@ const styles = StyleSheet.create({
   iss: { backgroundColor: colors.navy },
   issText: { ...type.label, color: colors.white },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: space.sm },
-  dots: { flexDirection: "row", gap: 10 },
-  dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.white, ...shadow.soft },
-  dotSelected: { borderColor: colors.navy, transform: [{ scale: 1.15 }] },
+  dots: { flexDirection: "row", gap: 10, alignItems: "center" },
+  dotWrap: { width: 24, height: 24, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: 2, borderColor: "transparent" },
+  dotSelected: { borderColor: colors.navy, backgroundColor: colors.cream },
   grid: { flexDirection: "row", flexWrap: "wrap", rowGap: space.md, marginHorizontal: "-1%", marginTop: space.xs },
   tile: { width: "31.33%", marginHorizontal: "1%", alignItems: "center", paddingVertical: space.sm, borderRadius: radius.card, borderWidth: 2, borderColor: "transparent" },
   tileSquad: { borderColor: colors.green, backgroundColor: colors.greenSoft },

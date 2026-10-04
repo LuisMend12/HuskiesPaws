@@ -59,10 +59,17 @@ export function createGrok({ apiKey, baseUrl = DEFAULT_BASE_URL }) {
 
 // Prompts are built here from fixed templates, never taken from the browser,
 // so the API key can't be used as a general-purpose image generator.
-const STYLE = "cozy storybook watercolor illustration, soft pastel colors, gentle light, no text, no words, no letters";
+const STYLE = "original HuskiesPaws game art, cozy creature-collecting adventure, expressive faces, rounded silhouettes, bold clean outlines, soft cel shading, forest green and warm cream and sky blue with small coral and gold accents, no text, no words, no letters, not a Pokémon, not Nintendo";
+
+const RARITY_MARK = Object.freeze({
+  common: "a simple circular badge",
+  rare: "a diamond badge",
+  epic: "a hexagonal badge",
+  legendary: "a star badge",
+});
 
 export function postcardPrompt({ title, fact }) {
-  return `A postcard scene of ${title}. ${fact} ${STYLE}. A small round leafy creature waves in the corner.`;
+  return `A postcard scene of ${title}. ${fact} ${STYLE}. A small round leafy original creature (not a Pokémon) waves in the corner beside a blooming paw-print compass.`;
 }
 
 const PET_LOOKS = Object.freeze({
@@ -74,5 +81,6 @@ const PET_LOOKS = Object.freeze({
 
 export function petPrompt({ rarity, petClass, color }) {
   const accessory = PET_LOOKS[petClass] ?? PET_LOOKS.Scout;
-  return `a chunky rounded-cube husky pup in the style of a Roblox simulator pet, big glossy ice-blue eyes, white face mask, ${color} fur, ${accessory}, ${rarity} rarity, soft studio lighting, plain light background`;
+  const mark = RARITY_MARK[rarity] ?? RARITY_MARK.common;
+  return `an original collectible husky-inspired pup (not a Pokémon), rounded body, big glossy ice-blue eyes, white face mask, ${color} fur, ${accessory}, ${rarity} rarity shown with ${mark}, standing on a warm cream studio background, ${STYLE}`;
 }

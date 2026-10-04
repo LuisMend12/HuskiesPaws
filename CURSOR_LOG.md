@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Pokémon-inspired original mobile art refresh
+
+**Prompt (summary).** Redesign HuskiesPaws mobile icons and image assets in a polished Pokémon-inspired adventure style while keeping original characters/branding; no copied Pokémon art. Refresh launcher/splash, cohesive UI icons, pets/eggs/markers, Grok prompts, modest theme.
+
+**Decisions.** Generated original husky-mascot launcher, splash, and map badge (JPG from image tool, converted to PNG for Expo). New SVG `GameIcons` for tabs, map actions, blooms, you-marker, rarity shapes. Pets are rounded collectible creatures (not Roblox cubes). Meadow/forest/crystal eggs have distinct silhouettes. Rarity adds circle/diamond/hex/star marks in `core/pets.js`. Grok Imagine prompts now ask for cel-shaded original HuskiesPaws art. Cream/forest tokens in `theme.js`. Launcher/splash/adaptive icon colors need a new native build (Expo Go keeps the old homescreen icon until then).
+
 ## 2026-10-03 — Drop Nessie; Grok deploy is for the phone
 
 **Prompt (summary).** Deploy the server for Grok on the mobile app. Do not use Nessie. Update READMEs.

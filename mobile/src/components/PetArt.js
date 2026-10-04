@@ -1,9 +1,9 @@
-// Pets drawn like Roblox simulator pets: a chunky rounded-cube body with big
-// glossy eyes. Ears, markings and tail come from the species (species.js), fur
-// color from the pet's color, an accessory from its class, and an effect from
-// its rarity. A Grok Imagine portrait (pet.art) wins.
+// Pets as original collectible creatures: rounded silhouettes, bold outlines,
+// and cel shading. Ears, markings and tail come from the species (species.js),
+// fur from the pet's color, an accessory from its class, and a rarity mark.
+// A Grok Imagine portrait (pet.art) wins.
 import { Image, StyleSheet } from "react-native";
-import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
+import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from "react-native-svg";
 import { hashString } from "../core/geo.js";
 import { colorOf, rarityOf } from "../core/pets.js";
 import { colors } from "../theme.js";
@@ -51,6 +51,19 @@ const ACCESSORIES = {
   ),
 };
 
+function RarityChip({ mark, color }) {
+  if (mark === "diamond") {
+    return <Polygon points="88,8 96,16 88,24 80,16" fill={color} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />;
+  }
+  if (mark === "hex") {
+    return <Polygon points="88,6 96,11 96,21 88,26 80,21 80,11" fill={color} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />;
+  }
+  if (mark === "star") {
+    return <Path d="M88 6 L90 12 H96 L91 16 L93 22 L88 18 L83 22 L85 16 L80 12 H86 Z" fill={color} stroke={INK} strokeWidth={1.4} strokeLinejoin="round" />;
+  }
+  return <Circle cx={88} cy={16} r={7} fill={color} stroke={INK} strokeWidth={1.6} />;
+}
+
 function Sparkles({ color }) {
   const star = (x, y, s) => `M${x} ${y - s} L${x + s * 0.3} ${y - s * 0.3} L${x + s} ${y} L${x + s * 0.3} ${y + s * 0.3} L${x} ${y + s} L${x - s * 0.3} ${y + s * 0.3} L${x - s} ${y} L${x - s * 0.3} ${y - s * 0.3} Z`;
   return (
@@ -80,14 +93,14 @@ export function PetSvg({ pet, size = 96 }) {
       <kind.Ears fur={fur} />
 
       {/* Feet */}
-      <Rect x={28} y={80} width={16} height={11} rx={5} fill={fur} stroke={INK} strokeWidth={2} />
-      <Rect x={56} y={80} width={16} height={11} rx={5} fill={fur} stroke={INK} strokeWidth={2} />
+      <Ellipse cx={36} cy={86} rx={9} ry={6} fill={fur} stroke={INK} strokeWidth={2} />
+      <Ellipse cx={64} cy={86} rx={9} ry={6} fill={fur} stroke={INK} strokeWidth={2} />
 
-      {/* The rounded-cube body, lit from above */}
-      <Rect x={16} y={28} width={68} height={58} rx={18} fill={fur} stroke={INK} strokeWidth={2.5} />
-      <Rect x={20} y={31} width={60} height={14} rx={10} fill="#ffffff" opacity={0.28} />
-      <Rect x={18} y={70} width={64} height={14} rx={12} fill={INK} opacity={0.08} />
-      {rarity.id !== "common" && <Path d="M24 40 L32 36 L28 62 L22 64 Z" fill="#ffffff" opacity={0.35} />}
+      {/* Rounded collectible body, lit from above */}
+      <Ellipse cx={50} cy={58} rx={32} ry={30} fill={fur} stroke={INK} strokeWidth={2.5} />
+      <Ellipse cx={50} cy={44} rx={24} ry={10} fill="#ffffff" opacity={0.28} />
+      <Ellipse cx={50} cy={74} rx={22} ry={10} fill={INK} opacity={0.08} />
+      {rarity.id !== "common" && <Path d="M26 42 L34 36 L30 64 L24 66 Z" fill="#ffffff" opacity={0.32} />}
 
       {/* Species markings and face */}
       <kind.Mask />
@@ -101,6 +114,7 @@ export function PetSvg({ pet, size = 96 }) {
 
       {Accessory && <Accessory />}
       {rarity.id !== "common" && <Sparkles color={rarity.id === "rare" ? "#ffffff" : rarity.color} />}
+      <RarityChip mark={rarity.mark} color={rarity.color} />
       {pet.spaceBorn && (
         <G>
           <Ellipse cx={84} cy={78} rx={11} ry={3.5} fill="none" stroke={colors.ice} strokeWidth={2} />
@@ -127,21 +141,44 @@ export function PetArt({ pet, size = 96 }) {
 
 // Shell and spot colors per egg tier (core/pets.js EGG_TIERS): meadow, forest, crystal.
 const EGG_LOOKS = {
-  short: { shell: "#fff6e0", spots: ["#7cc96b", colors.yellow, "#a5d6a7", colors.pink] },
-  medium: { shell: "#e3f2fd", spots: [colors.ice, "#3f8fd2", "#7cc96b", "#b3e5fc"] },
-  long: { shell: "#efe4ff", spots: ["#9b59d0", "#d6b4ff", colors.ice, "#ffffff"] },
+  short: { shell: "#fff6e0", spots: ["#7cc96b", colors.yellow, "#a5d6a7", colors.pink], label: "Meadow egg" },
+  medium: { shell: "#d7f0c8", spots: ["#3f9d4a", colors.gold, "#8d6e3f", "#fff6e0"], label: "Forest egg" },
+  long: { shell: "#efe4ff", spots: ["#9b59d0", "#d6b4ff", colors.ice, "#ffffff"], label: "Crystal egg" },
 };
-const DEFAULT_LOOK = { shell: "#fff6e0", spots: ["#7cc96b", colors.ice, colors.pink, colors.yellow] };
+const DEFAULT_LOOK = EGG_LOOKS.short;
 
-// A speckled egg; its tier sets the colors and `seed` (the egg id) shuffles the spots.
+function EggShell({ tier, shell }) {
+  if (tier === "medium") {
+    return (
+      <G>
+        <Path d="M50 6 Q76 12 78 52 Q76 92 50 92 Q24 92 22 52 Q24 12 50 6 Z" fill={shell} stroke={INK} strokeWidth={2.5} />
+        <Path d="M50 6 L54 16 L50 22 L46 16 Z" fill={colors.green} stroke={INK} strokeWidth={1.6} />
+      </G>
+    );
+  }
+  if (tier === "long") {
+    return (
+      <Path
+        d="M50 8 L72 22 L80 52 L64 86 L36 86 L20 52 L28 22 Z"
+        fill={shell}
+        stroke={INK}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
+    );
+  }
+  return <Path d="M50 8 Q78 10 80 56 Q80 90 50 90 Q20 90 20 56 Q22 10 50 8 Z" fill={shell} stroke={INK} strokeWidth={2.5} />;
+}
+
+// Speckled egg; tier sets silhouette and colors, `seed` (the egg id) shuffles spots.
 export function EggArt({ size = 64, seed = "", tier }) {
   const look = EGG_LOOKS[tier] ?? DEFAULT_LOOK;
   const start = hashString(seed) % look.spots.length;
   const spot = (i) => look.spots[(start + i) % look.spots.length];
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel="Your egg">
+    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel={look.label}>
       <Ellipse cx={50} cy={92} rx={24} ry={4} fill={INK} opacity={0.12} />
-      <Path d="M50 8 Q78 10 80 56 Q80 90 50 90 Q20 90 20 56 Q22 10 50 8 Z" fill={look.shell} stroke={INK} strokeWidth={2.5} />
+      <EggShell tier={tier} shell={look.shell} />
       <Path d="M30 30 Q42 20 50 22" stroke="#ffffff" strokeWidth={5} strokeLinecap="round" fill="none" />
       <Circle cx={38} cy={50} r={6} fill={spot(0)} />
       <Circle cx={62} cy={40} r={4.5} fill={spot(1)} />

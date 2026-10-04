@@ -8,10 +8,10 @@ export const MAX_LEVEL = 10;
 const POWER_PER_LEVEL = 4;
 
 export const RARITIES = Object.freeze([
-  { id: "common", label: "Common", weight: 60, power: [10, 20], color: "#8d9a87" },
-  { id: "rare", label: "Rare", weight: 25, power: [20, 35], color: "#3f8fd2" },
-  { id: "epic", label: "Epic", weight: 12, power: [35, 55], color: "#9b59d0" },
-  { id: "legendary", label: "Legendary", weight: 3, power: [55, 80], color: "#e8a317" },
+  { id: "common", label: "Common", weight: 60, power: [10, 20], color: "#8d9a87", mark: "circle" },
+  { id: "rare", label: "Rare", weight: 25, power: [20, 35], color: "#3f8fd2", mark: "diamond" },
+  { id: "epic", label: "Epic", weight: 12, power: [35, 55], color: "#9b59d0", mark: "hex" },
+  { id: "legendary", label: "Legendary", weight: 3, power: [55, 80], color: "#e8a317", mark: "star" },
 ]);
 
 export const PET_CLASSES = Object.freeze(["Scout", "Storyteller", "Pathfinder", "Guardian"]);

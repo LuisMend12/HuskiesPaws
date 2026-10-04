@@ -26,6 +26,7 @@ import { RanksPanel } from "./src/components/RanksPanel.js";
 import { SquadPanel } from "./src/components/SquadPanel.js";
 import { StatusToast } from "./src/components/StatusToast.js";
 import { TrailMap } from "./src/components/TrailMap.js";
+import { AlbumIcon, PetsIcon, RanksIcon, SquadIcon } from "./src/components/GameIcons.js";
 import { Hint, PillTabs } from "./src/components/ui.js";
 import { rankFor } from "./src/core/rank.js";
 import { createGame } from "./src/game/game.js";
@@ -33,7 +34,7 @@ import { scoreOf } from "./src/game/state.js";
 import { useStore } from "./src/game/store.js";
 import { colors, radius, shadow, space, type } from "./src/theme.js";
 
-SplashScreen.preventAutoHideAsync(); // keep the navy splash up until the fonts load
+SplashScreen.preventAutoHideAsync(); // keep the splash up until the fonts load
 LogBox.ignoreLogs(["Server voice unavailable"]); // expected fallback when /api/voice is unreachable
 
 // The landmark screen pulls in three.js, so it loads only when opened.
@@ -42,10 +43,10 @@ const REOPEN_GUARD_MS = 1500; // see openLandmark below
 const PRELOAD_3D_MS = 4000; // after start-up, fetch the 3D screens' code so their first open is quick
 
 const TABS = [
-  { id: "squad", label: "Squad", icon: "🐾" },
-  { id: "pets", label: "Pets", icon: "🥚" },
-  { id: "ranks", label: "Ranks", icon: "🏅" },
-  { id: "album", label: "Album", icon: "📸" },
+  { id: "squad", label: "Squad", Icon: SquadIcon },
+  { id: "pets", label: "Pets", Icon: PetsIcon },
+  { id: "ranks", label: "Ranks", Icon: RanksIcon },
+  { id: "album", label: "Album", Icon: AlbumIcon },
 ];
 const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 

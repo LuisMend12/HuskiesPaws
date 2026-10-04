@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Marker, Polyline } from "react-native-maps";
+import { MysteryMarker } from "./GameIcons.js";
 import { colors, fonts, radius } from "../theme.js";
 import { hpNow, ringOf } from "./landmarks.js";
 import { FoodSvg, PetSvg } from "./PetArt.js";
@@ -60,9 +61,7 @@ function ExplorerPet({ pet, expedition, home }) {
     <>
       <Polyline coordinates={[{ latitude: home.lat, longitude: home.lon }, target]} strokeColor={colors.ice} strokeWidth={3} lineDashPattern={[2, 8]} />
       <Marker coordinate={target} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracking} title="Somewhere new…">
-        <View style={styles.mystery}>
-          <Text style={styles.mysteryText}>?</Text>
-        </View>
+        <MysteryMarker size={30} />
       </Marker>
       <Marker coordinate={placeOnTrip(expedition, home, now)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={tracking} title={`${pet.name} is exploring`}>
         <PetSvg pet={pet} size={46} />
@@ -147,8 +146,6 @@ export function MapPets({ position, squad, landmarks, expedition, onOpenLandmark
 }
 
 const styles = StyleSheet.create({
-  mystery: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.navy, borderWidth: 3, borderColor: colors.ice, alignItems: "center", justifyContent: "center" },
-  mysteryText: { fontFamily: fonts.black, fontSize: 16, color: colors.white },
   landmark: { alignItems: "center", width: 96 },
   landmarkRow: { flexDirection: "row", alignItems: "flex-end" },
   owner: { borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 1, maxWidth: 84 },

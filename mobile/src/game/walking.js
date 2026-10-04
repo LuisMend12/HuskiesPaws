@@ -9,6 +9,7 @@ import { currentTrail } from "./state.js";
 
 const WALK_TICK_MS = 100; // 10 updates a second is smooth enough and cheap to render
 const MAX_BLOOMS = 150; // keep the map fast: oldest flowers fade out
+const BLOOM_COLORS = ["#f48fb1", "#ffd54f", "#2e9d4f", "#6ec6ff", "#ff7a59"];
 const ARRIVAL_RADIUS_M = 40;
 const MID_WALK_EVERY = 10; // ticks: check eggs about once a second during a simulated walk
 
@@ -49,8 +50,9 @@ export function createWalking(store, { onArrive, onRegionFound, persist, onWalk 
     if (lastBloom && distanceMeters(lastBloom, position) < BLOOM_EVERY_M) return blooms;
     lastBloom = position;
     const emoji = trail.flowers[bloomCount % trail.flowers.length];
+    const color = BLOOM_COLORS[bloomCount % BLOOM_COLORS.length];
     bloomCount += 1;
-    return [...blooms, { id: `${bloomCount}`, ...position, emoji }].slice(-MAX_BLOOMS);
+    return [...blooms, { id: `${bloomCount}`, ...position, emoji, color }].slice(-MAX_BLOOMS);
   }
 
   function withWalkXp(progress, addedSteps, boost) {
