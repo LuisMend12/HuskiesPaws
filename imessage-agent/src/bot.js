@@ -1,4 +1,6 @@
-// HuskiesPaws squad over iMessage: Pip (Scout), Moss (Storyteller), Fern (Pathfinder).
+// HuskiesPaws squad over iMessage. Roles: Scout explores, Storyteller tells stories,
+// Pathfinder guides. Each role uses the name of your squad pet of that class in the
+// app (synced through /api/day), else the starter (Pip, Moss, Fern).
 // Platform-independent: handleMessage() gets the text and a send() callback, so it
 // runs the same under Photon iMessage, the terminal provider, and tests.
 // Optional { tts } (createSquadTts: ElevenLabs for Moss, Grok Voice for Pip and Fern)
@@ -8,24 +10,52 @@ import { DEFAULT_CENTER } from "../../core/config.js";
 import { addDayPlace, addDaySteps, emptyDay, formatDayUpdate, rollDay } from "../../core/dayLog.js";
 import { distanceMeters, pathLength } from "../../core/geo.js";
 import { stepsFromMeters } from "../../core/rank.js";
-import { MIN_TRIP_M, estimateRideFare, formatDollars, totalSaved, treeStage } from "../../core/savings.js";
 import { findNearbyPlaces, getPlaceSummary, getWalkingRoute, searchPlace } from "../../core/services.js";
 
 const [pip, moss, fern] = ["scout", "storyteller", "pathfinder"].map((id) => AGENTS.find((a) => a.id === id));
 const DEFAULT_PLACE_NAME = "the Physical Sciences Building at Cornell";
 export const VOICE_NOTE_NAME = "moss-story.mp3";
 
-export const HELP = [
-  "🐾 HuskiesPaws squad here! Text:",
-  "• \"I'm at <place>\" to tell us where you are",
-  "• \"explore\": Pip scouts somewhere new",
-  "• \"story\": Moss tells you about what's nearby (ElevenLabs voice note)",
-  "• \"pip story\" / \"fern story\": Pip or Fern tell the same facts in Grok Voice",
-  "• \"take me there\": Fern plans the walk",
-  "• \"arrived\": log the walk, and the Uber you skipped grows your savings tree",
-  "• \"today\": Pip lists places you passed and today's step count",
-  "• \"savings\": see your tree",
-].join("\n");
+const SQUAD_REFRESH_MS = 30_000;
+
+// The squad as the bot speaks it: each role named after your squad pet of that
+// class (session.squad comes from the app), with the role's own voice.
+export function crewOf(session = {}) {
+  const squad = session.squad ?? [];
+  const named = (agent, petClass) => {
+    const pet = squad.find((p) => p.petClass === petClass);
+    return pet ? { ...agent, name: pet.name } : agent;
+  };
+  return { scout: named(pip, "Scout"), storyteller: named(moss, "Storyteller"), pathfinder: named(fern, "Pathfinder") };
+}
+
+export function helpText(crew = crewOf()) {
+  const { scout, storyteller, pathfinder } = crew;
+  return [
+    "🐾 HuskiesPaws squad here! Text:",
+    "• \"I'm at <place>\" to tell us where you are",
+    `• "explore": ${scout.name} scouts somewhere new`,
+    `• "story": ${storyteller.name} tells you about what's nearby (voice note)`,
+    `• "${scout.name.toLowerCase()} story" / "${pathfinder.name.toLowerCase()} story": ${scout.name} or ${pathfinder.name} tell it instead`,
+    `• "take me there": ${pathfinder.name} plans the walk`,
+    "• \"arrived\": log the walk",
+    `• "today": ${scout.name} lists places you passed and today's step count`,
+  ].join("\n");
+}
+
+// The starter squad's help (before any app data arrives).
+export const HELP = helpText();
+
+// Picks up the app's squad (names) from the server, at most every 30 s.
+async function withSquad(session, dayApi, phone) {
+  if (!dayApi?.getDay || !phone || Date.now() - (session.squadAt ?? 0) < SQUAD_REFRESH_MS) return session;
+  try {
+    const remote = await dayApi.getDay(phone);
+    return { ...session, squad: remote?.squad ?? session.squad ?? null, squadAt: Date.now() };
+  } catch {
+    return { ...session, squadAt: Date.now() };
+  }
+}
 
 export function newSession() {
   return {
@@ -34,8 +64,9 @@ export function newSession() {
     visited: [],
     discovery: null,
     pendingTrip: null,
-    trips: [],
     dayLog: emptyDay(),
+    squad: null, // [{ name, petClass, species }] from the app
+    squadAt: 0,
   };
 }
 
@@ -44,25 +75,26 @@ const walkingLink = (p) => `https://maps.apple.com/?daddr=${p.lat},${p.lon}&dirf
 
 // Returns the updated session. send({ text }), send({ imageUrl }) or
 // send({ audio: Buffer, mimeType, name }) delivers replies.
-export async function handleMessage(rawText, session, send, { tts, dayApi, phone } = {}) {
+export async function handleMessage(rawText, rawSession, send, { tts, dayApi, phone } = {}) {
+  const session = await withSquad(rawSession, dayApi, phone);
+  const crew = crewOf(session);
   const text = rawText.trim();
   const lower = text.toLowerCase();
   try {
     const location = text.match(/^(?:i'?m at|im at|i am at|at|location:?)\s+(.+)$/i);
-    if (location) return await setLocation(location[1], session, send);
+    if (location) return await setLocation(location[1], session, send, crew);
     if (/^(hi|hey|hello|start|help|\?)\b/.test(lower)) {
-      await send({ text: `${HELP}\n\n(Right now I think you're near ${session.placeName}.)` });
+      await send({ text: `${helpText(crew)}\n\n(Right now I think you're near ${session.placeName}.)` });
       return session;
     }
     if (/^(today|steps|tally)\b/.test(lower) || /how many steps/.test(lower)) {
       return await todayTally(session, send, dayApi, phone);
     }
-    if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send);
-    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts, lower);
-    if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send);
-    if (/\b(arrived|made it|i'?m there)\b/.test(lower)) return await arrive(session, send, dayApi, phone);
-    if (/\b(saved|savings|tree)\b/.test(lower)) return await showSavings(session, send);
-    await send({ text: `Hmm, I didn't catch that.\n\n${HELP}` });
+    if (/\b(explore|scout|find|discover)\b/.test(lower)) return await explore(session, send, crew);
+    if (/\b(story|history|tell me)\b/.test(lower)) return await tellStory(session, send, tts, lower, crew);
+    if (/\b(take me|go there|route|directions|guide)\b/.test(lower)) return await guide(session, send, crew);
+    if (/\b(arrived|made it|i'?m there)\b/.test(lower)) return await arrive(session, send, dayApi, phone, crew);
+    await send({ text: `Hmm, I didn't catch that.\n\n${helpText(crew)}` });
     return session;
   } catch (error) {
     console.error("Agent failed:", error);
@@ -71,21 +103,22 @@ export async function handleMessage(rawText, session, send, { tts, dayApi, phone
   }
 }
 
-async function setLocation(query, session, send) {
+async function setLocation(query, session, send, crew) {
   const found = await searchPlace(query, session.position);
   if (!found) {
     await send({ text: `I couldn't find "${query}" on the map. Try a building or street name.` });
     return session;
   }
-  await send({ text: `📍 Got it, you're near ${found.name}. Text "explore" and Pip will scout somewhere new!` });
+  await send({ text: `📍 Got it, you're near ${found.name}. Text "explore" and ${crew.scout.name} will scout somewhere new!` });
   return { ...session, position: { lat: found.lat, lon: found.lon }, placeName: found.name };
 }
 
-async function explore(session, send) {
+const WALK_WORTHY_M = 300; // prefer places that make a real walk
+
+async function explore(session, send, { scout: pip } = crewOf(session)) {
   const places = await findNearbyPlaces(session.position);
   const known = new Set([...session.visited, ...(session.discovery ? [session.discovery.place.id] : [])]);
-  // Prefer places far enough that you'd otherwise ride there, so walking saves money.
-  const place = choosePlace(places, session.position, known, { minDistance: MIN_TRIP_M })
+  const place = choosePlace(places, session.position, known, { minDistance: WALK_WORTHY_M })
     ?? choosePlace(places, session.position, known);
   if (!place) {
     await send({ text: `${pip.name} couldn't find anywhere new nearby. Tell me a new spot with "I'm at <place>".` });
@@ -100,14 +133,17 @@ async function explore(session, send) {
   return { ...session, discovery: { place, summary } };
 }
 
-function storyAgent(lower) {
-  if (/\b(pip|scout)\b/.test(lower)) return pip;
-  if (/\b(fern|pathfinder)\b/.test(lower)) return fern;
-  return moss;
+// "pip story" / "<your scout's name> story" / "scout story" pick who tells it.
+const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function storyAgent(lower, crew) {
+  const said = (agent, words) => new RegExp(`\\b(${escapeRe(agent.name.toLowerCase())}|${words})\\b`).test(lower);
+  if (said(crew.scout, "scout|pip")) return crew.scout;
+  if (said(crew.pathfinder, "pathfinder|fern")) return crew.pathfinder;
+  return crew.storyteller;
 }
 
-async function tellStory(session, send, tts, lower = "") {
-  const agent = storyAgent(lower);
+async function tellStory(session, send, tts, lower = "", crew = crewOf(session)) {
+  const agent = storyAgent(lower, crew);
   const [nearest] = (await findNearbyPlaces(session.position))
     .map((p) => ({ ...p, distance: distanceMeters(session.position, p) }))
     .sort((a, b) => a.distance - b.distance);
@@ -131,7 +167,7 @@ async function sendVoiceNote(story, tts, send, agent) {
   }
 }
 
-async function guide(session, send) {
+async function guide(session, send, { pathfinder: fern } = crewOf(session)) {
   const place = session.discovery?.place;
   if (!place) {
     await send({ text: `🫐 ${fern.name}: Nothing to guide you to yet. Text "explore" first!` });
@@ -139,24 +175,18 @@ async function guide(session, send) {
   }
   const route = await getWalkingRoute(session.position, place);
   const meters = route.distance ?? pathLength(route.points);
-  const fare = estimateRideFare(meters);
-  const savings = fare ? `\n💰 Walking instead of taking an Uber saves about ${formatDollars(fare)}. Text "arrived" when you get there!` : "";
-  await send({ text: `🫐 ${fern.name}: ${routeMemo(place, route)}\n🗺️ ${walkingLink(place)}${savings}` });
+  await send({ text: `🫐 ${fern.name}: ${routeMemo(place, route)}\n🗺️ ${walkingLink(place)}\nText "arrived" when you get there!` });
   return { ...session, pendingTrip: { place, meters } };
 }
 
-async function arrive(session, send, dayApi, phone) {
+async function arrive(session, send, dayApi, phone, { pathfinder: fern } = crewOf(session)) {
   const trip = session.pendingTrip;
   if (!trip) {
     await send({ text: `🫐 ${fern.name}: Arrived where? Text "explore", then "take me there" first.` });
     return session;
   }
-  const amount = estimateRideFare(trip.meters);
-  const trips = amount ? [...session.trips, { title: trip.place.title, amount }] : session.trips;
-  const stage = treeStage(totalSaved(trips)).current;
-  const saved = amount ? ` You skipped a ~${formatDollars(amount)} ride, so your savings tree is now a ${stage.emoji} ${stage.name}.` : "";
   const dayLog = addDaySteps(addDayPlace(rollDay(session.dayLog), trip.place), stepsFromMeters(trip.meters));
-  await send({ text: `🌸 You made it to ${trip.place.title}!${saved}` });
+  await send({ text: `🌸 You made it to ${trip.place.title}!` });
   await send({ text: formatDayUpdate(dayLog) });
   const next = {
     ...session,
@@ -165,7 +195,6 @@ async function arrive(session, send, dayApi, phone) {
     visited: [...session.visited, trip.place.id],
     discovery: null,
     pendingTrip: null,
-    trips,
     dayLog,
   };
   await syncDay(next, dayApi, phone);
@@ -186,12 +215,4 @@ async function syncDay(session, dayApi, phone) {
     steps: session.dayLog?.steps ?? 0,
     places: session.dayLog?.places ?? [],
   });
-}
-
-async function showSavings(session, send) {
-  const saved = totalSaved(session.trips);
-  const { current, next } = treeStage(saved);
-  const nextText = next ? ` ${formatDollars(next.min - saved)} more to ${next.emoji} ${next.name}.` : " Fully grown!";
-  await send({ text: `🌳 You've saved ${formatDollars(saved)} by walking. Your tree: ${current.emoji} ${current.name}.${nextText}` });
-  return session;
 }

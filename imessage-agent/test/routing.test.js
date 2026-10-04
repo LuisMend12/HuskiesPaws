@@ -62,7 +62,17 @@ test("arrived twice does not log a second walk", async () => {
   assert.match(first.all, /You made it to Library/);
   const second = await chat("arrived", first.session);
   assert.match(second.all, /Arrived where/);
-  assert.equal(second.session.trips.length, first.session.trips.length);
+  assert.equal(second.session.dayLog.places.length, first.session.dayLog.places.length);
+});
+
+test("the squad from the app names each role; missing classes keep the starter", async () => {
+  const { crewOf, helpText } = await import("../src/bot.js");
+  const crew = crewOf({ squad: [{ name: "Nova", petClass: "Scout" }, { name: "Biscuit", petClass: "Guardian" }] });
+  assert.equal(crew.scout.name, "Nova");
+  assert.equal(crew.scout.grokVoice, "ara", "keeps the role's voice");
+  assert.equal(crew.storyteller.name, "Moss");
+  assert.match(helpText(crew), /Nova scouts/);
+  assert.doesNotMatch(helpText(crew), /savings/i);
 });
 
 test("whitespace-only messages get help, not a crash", async () => {

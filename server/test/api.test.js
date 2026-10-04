@@ -238,6 +238,16 @@ describe("HuskiesPaws API", () => {
     assert.doesNotMatch(JSON.stringify(list), /player-/);
   });
 
+  test("day log carries the app's squad for the iMessage agent, and keeps it", async () => {
+    const phone = "+16075550199";
+    const squad = [{ name: "Nova", petClass: "Scout", species: "cat" }, { name: "Clover", petClass: "Storyteller", species: "bunny" }];
+    assert.equal((await post(app.base, "/api/day", { phone, steps: 10, squad })).status, 200);
+    await post(app.base, "/api/day", { phone, steps: 20 }); // an update without a squad keeps the old one
+    const day = await json(await fetch(`${app.base}/api/day?phone=${encodeURIComponent(phone)}`));
+    assert.deepEqual(day.data.squad, squad);
+    assert.equal((await post(app.base, "/api/day", { phone, squad: [{ name: "X", petClass: "Wizard" }] })).status, 400);
+  });
+
   test("day log merges phone steps with iMessage places", async () => {
     const phone = "+18609890738";
     const first = await json(await post(app.base, "/api/day", {

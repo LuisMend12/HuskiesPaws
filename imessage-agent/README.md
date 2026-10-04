@@ -8,14 +8,15 @@ The HuskiesPaws squad as an iMessage agent, built on [Photon Spectrum](https://p
 | `I'm at Klarman Hall` | 📍 Sets where you are (looked up on OpenStreetMap) |
 | `explore` | 🍊 Pip heads out, then texts back with a real nearby place, a fact and a photo |
 | `story` | 🍇 Moss tells the history of the closest landmark, then sends a voice note reading it aloud (ElevenLabs) |
-| `take me there` | 🫐 Fern sends walking directions (an Apple Maps link) and the Uber fare you'll skip |
-| `arrived` | 🌸 Logs the walk; the skipped fare grows your savings tree; Pip then texts today's steps and places you passed |
+| `take me there` | 🫐 Fern sends walking directions (an Apple Maps link) |
+| `arrived` | 🌸 Logs the walk; Pip then texts today's steps and places you passed |
 | `today` / `steps` | 🍊 Pip lists today's step count and the landmarks already logged |
-| `savings` | 🌳 Shows your tree and total saved |
 
 Pip can also **text first** when the phone (or an iMessage `arrived`) records a new place or a step milestone (1,000 / 2,500 / 5,000 / 10,000…). Small step bumps stay quiet. Place names come from the day log, not an LLM.
 
-It uses the same game logic as the phone app (`../core/`), so places, facts, routes, savings and the daily walk log work identically everywhere.
+It uses the same game logic as the phone app (`../core/`), so places, facts, routes and the daily walk log work identically everywhere.
+
+**Your squad's names:** the names above are the starters. When the phone app syncs its day log (set `EXPO_PUBLIC_PHOTON_PHONE` in the app and `HUSKIESPAWS_API_URL` here), it also sends your current squad, and each role uses your pet of that class: your Scout explores, your Storyteller tells stories, your Pathfinder guides. Each role keeps its voice.
 
 ## 1. Try it without Photon (terminal mode)
 
@@ -80,11 +81,11 @@ With `ELEVENLABS_API_KEY` in `.env` (create a key at [elevenlabs.io](https://ele
 npm test
 ```
 
-This runs a full conversation (locate → explore → take me there → arrived → savings) against live Wikipedia, OpenStreetMap and routing data. No Photon keys needed. `test/voice.test.js` checks the story voice notes offline with stubbed Wikipedia and a fake ElevenLabs client (no ElevenLabs key needed).
+This runs a full conversation (locate → explore → take me there → arrived) against live Wikipedia, OpenStreetMap and routing data. No Photon keys needed. `test/voice.test.js` checks the story voice notes offline with stubbed Wikipedia and a fake ElevenLabs client (no ElevenLabs key needed).
 
 ## Notes and limits
 
-- **Sessions live in memory,** so restarting the agent forgets everyone's location and savings. The **day log** on the server survives if you posted it to `/api/day`. Fine for a demo; a real version would store chats in the shared backend.
+- **Sessions live in memory,** so restarting the agent forgets everyone's location. The **day log** on the server survives if you posted it to `/api/day`. Fine for a demo; a real version would store chats in the shared backend.
 - **Pip prefers places at least 300 m away,** far enough that you'd otherwise take a ride, so walking there saves money.
 - Wikipedia and OpenStreetMap require an identifying User-Agent. `src/index.js` sets one; without it, they return 403.
 - **Verified:** terminal mode and the conversation tests. **Not verified:** the live iMessage connection (needs your Photon keys and a phone line), including how the voice note arrives on a real iPhone.

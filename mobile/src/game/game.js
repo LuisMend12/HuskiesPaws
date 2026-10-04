@@ -336,7 +336,10 @@ export function createGame() {
     startLiveLocation: walking.startLiveLocation,
     saveCapture,
     resetProgress,
-    setSquad: pets.setSquad,
+    setSquad: (ids) => {
+      pets.setSquad(ids);
+      online.pushDay({ immediate: true }); // the iMessage agent picks up the new names
+    },
     closeHatch: pets.closeHatch,
     hatchEgg: pets.hatchEggNow,
     claimTurf: online.claimLandmark,

@@ -28,7 +28,7 @@ test("unknown text gets help", async () => {
   assert.match((await chat(newSession(), "banana")).all, /didn't catch that/);
 });
 
-test("full walk: locate, explore, guide, arrive, savings", { timeout: 60_000 }, async () => {
+test("full walk: locate, explore, guide, arrive", { timeout: 60_000 }, async () => {
   let step = await chat(newSession(), "I'm at Klarman Hall, Ithaca");
   assert.match(step.all, /Got it, you're near/);
   assert.ok(Math.abs(step.session.position.lat - 42.449) < 0.01, "geocoded near Klarman Hall");
@@ -44,9 +44,6 @@ test("full walk: locate, explore, guide, arrive, savings", { timeout: 60_000 }, 
 
   step = await chat(step.session, "arrived");
   assert.match(step.all, /You made it to/);
-  assert.match(step.all, /You skipped a ~\$\d+\.\d\d ride/, "a walk worth a ride grows savings");
-
-  step = await chat(step.session, "how much have I saved?");
-  assert.doesNotMatch(step.all, /saved \$0\.00/);
+  assert.doesNotMatch(step.all, /savings|ride/i, "savings were removed");
   console.log(step.all);
 });

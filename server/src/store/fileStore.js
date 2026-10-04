@@ -128,11 +128,11 @@ export function createFileStore(dataDir) {
       await update((db) => ({ ...db, images: { ...db.images, [key]: path } }));
     },
 
-    async upsertDayLog({ playerId, phone, incoming, now = new Date() }) {
+    async upsertDayLog({ playerId, phone, incoming, squad = null, now = new Date() }) {
       let saved = null;
       await update((db) => {
         const { owner, next, dayPhones } = nextDayRecord(db.days ?? {}, db.dayPhones ?? {}, {
-          playerId, phone, incoming, now,
+          playerId, phone, incoming, squad, now,
         });
         saved = next;
         return { ...db, days: { ...(db.days ?? {}), [owner]: next }, dayPhones };

@@ -2,8 +2,20 @@ import { distanceMeters } from "../core/geo.js";
 import { petPower } from "../core/pets.js";
 import { xpBoostFor } from "../core/rank.js";
 import { dayFingerprint } from "../core/dayLog.js";
+
 import { apiAvailable, claimTurf, fetchLeaderboard, fetchTurf, recallGuard, submitDayLog, submitScore } from "../api.js";
 import { scoreOf } from "./state.js";
+
+// The squad's names and classes, sent with the day log so the iMessage agent
+// can call your pets by name (your Scout explores, your Storyteller tells stories).
+function squadSummary(state) {
+  const pets = state.pets ?? [];
+  return (state.squad ?? [])
+    .map((id) => pets.find((p) => p.id === id))
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((p) => ({ name: p.name, petClass: p.petClass, species: p.species ?? null }));
+}
 
 const FIGHT_RANGE_M = 150; // same as the landmark screen (components/landmarks.js)
 const WINS = ["claimed", "captured", "reinforced"];
@@ -91,13 +103,15 @@ export function createOnline({ get, set, persist, say }) {
     const send = () => {
       const run = dayQueue.catch(() => {}).then(async () => {
         const latest = get();
-        const stampNow = dayFingerprint(latest.dayLog);
+        const squad = squadSummary(latest);
+        const stampNow = `${dayFingerprint(latest.dayLog)}|${squad.map((p) => p.name).join(",")}`;
         if (!current(generation) || stampNow === lastDayStamp) return;
         const saved = await submitDayLog({
           ...(me?.id ? { playerId: me.id } : {}),
           ...(phone ? { phone } : {}),
           steps: latest.dayLog?.steps ?? 0,
           places: latest.dayLog?.places ?? [],
+          squad,
         });
         if (!saved || !current(generation)) return;
         lastDayStamp = stampNow;

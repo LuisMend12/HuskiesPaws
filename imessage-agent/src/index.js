@@ -9,7 +9,7 @@ import { setRequestHeaders } from "../../core/services.js";
 import { createElevenLabs, voicesFromEnv } from "../../server/src/elevenlabs.js";
 import { createGrok } from "../../server/src/grok.js";
 import { createSquadTts } from "../../server/src/tts.js";
-import { HELP, handleMessage, newSession } from "./bot.js";
+import { crewOf, handleMessage, helpText, newSession } from "./bot.js";
 import { createDayClient, startDayWatch } from "./dayWatch.js";
 
 // Wikipedia and OpenStreetMap require an identifying User-Agent.
@@ -75,7 +75,10 @@ async function greetDemoPhone() {
   try {
     const im = imessage(app);
     const space = await im.space.create(await im.user(phone));
-    await space.send(text(`🍊 Pip here! Your HuskiesPaws squad is awake. 🐾\n\n${HELP}`));
+    // Name the squad after the app's pets when the server already has them.
+    const squad = (await dayApi?.getDay?.(phone).catch(() => null))?.squad ?? null;
+    const crew = crewOf({ squad });
+    await space.send(text(`🍊 ${crew.scout.name} here! Your HuskiesPaws squad is awake. 🐾\n\n${helpText(crew)}`));
     console.log(`Sent a welcome text to ${phone}`);
   } catch (error) {
     console.error("Couldn't send the welcome text:", error);

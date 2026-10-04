@@ -101,7 +101,7 @@ test("Moss's stories request ElevenLabs via agent; failed requests fall back to 
     const voice = await r.module("src/voice.js");
     await voice.speakMemo("Once upon a trail", { id: "storyteller", grokVoice: "rex" });
     assert.equal(calls[0].agent, "storyteller");
-    assert.equal(calls[0].voice, "rex");
+    assert.equal(calls[0].voice, undefined, "Moss uses ElevenLabs; the server picks his Grok fallback voice itself");
     assert.equal(r.audio.length, 1);
     assert.equal(r.speech.length, 0);
     await voice.speakMemo("Hi from Pip", { id: "scout", grokVoice: "ara" });
