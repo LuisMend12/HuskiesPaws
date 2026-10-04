@@ -5,7 +5,7 @@
 | `HuskiesPaws-BigRedHacks-2026.pptx` | Present this |
 | `HuskiesPaws-BigRedHacks-2026.pdf` | Backup / handout |
 | `SPEAKER-NOTES.md` | ~3 minute script |
-| `SCREENSHOTS.md` | Missing device captures |
+| `SCREENSHOTS.md` | Which `app_images/` shots are on which slides |
 | `build.mjs` | Rebuild |
 
 ```powershell

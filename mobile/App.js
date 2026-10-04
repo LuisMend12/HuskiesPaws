@@ -212,7 +212,7 @@ function Main() {
         </View>
         <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
         <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
-          {state.tab === "squad" && <SquadPanel state={state} game={game} />}
+          {state.tab === "squad" && <SquadPanel state={state} game={game} onOpenLandmark={openLandmark} />}
           {state.tab === "pets" && <PetsPanel state={state} game={game} />}
           {state.tab === "ranks" && <RanksPanel state={state} game={game} />}
           {state.tab === "album" && <AlbumPanel album={state.album} />}

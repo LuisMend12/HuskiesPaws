@@ -1,5 +1,17 @@
 # Cursor log
 
+## 2026-10-04 — Deck uses real app screenshots
+
+**Prompt (summary).** Update the HuskiesPaws presentation with images in `docs/presentation/app_images/`. Inspect every image, use real shots as main visuals on solution/demo/collectible slides, preserve aspect, phone frames only for full-screen captures, embed images, 5–10 slides, keep verified content and notes, export PPTX+PDF.
+
+**Decisions.** Embedded five Expo captures: Bailey Hall walk (slides 3–4), league-up crop (slide 4, no frame), egg hatch, Meet Mochi, Captured Nova (slide 6). Skipped the battle screenshot — too busy at deck size. Pet SVG accents stay on title/close only. Speaker notes kept. PPTX + PDF exported.
+
+## 2026-10-04 — Squad Explore CTA, indoor capture
+
+**Prompt (summary).** Is there anything else to improve the app?
+
+**Decisions.** Squad tab now has a full-width "Send Pip exploring" button and stacked action buttons so Explore isn't squeezed. Nearby landmark rows use the map's reopen guard. Capture can save a drawn postcard without the camera (indoor judging). Album cards show the capture date.
+
 ## 2026-10-04 — First-run welcome, ISS cue, hatch button
 
 **Prompt (summary).** Improve the HuskiesPaws phone app (open-ended, before judging).

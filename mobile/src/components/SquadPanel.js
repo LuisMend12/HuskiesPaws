@@ -84,40 +84,40 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
 
   return (
     <Card style={styles.card}>
-      <View style={status === "exploring" && styles.away}>
-        <PetArt pet={pet} size={60} />
-      </View>
-      <View style={styles.info}>
-        <Text style={type.heading} numberOfLines={1}>{`${pet.name} · Lv ${petLevel(pet, walked)}`}</Text>
-        <Text style={styles.meta} numberOfLines={1}>
-          <Text style={{ color: rarity.color }}>{rarity.label}</Text>
-          {` ${pet.petClass}`}
-        </Text>
-        <Text style={styles.power}>{`⚡ ${petPower(pet, walked)} power`}</Text>
-        <View style={[styles.status, { backgroundColor: look.bg }]}>
-          <Text style={[styles.statusText, { color: look.color }]}>
-            {guarding
-              ? `${look.label} ${guarding.title}`
-              : secondsLeft !== null
-                ? `${look.label} · back in ${secondsLeft} s`
-                : status === "resting"
-                  ? `Healing · ${Math.floor(hp)} HP · ready in ${healMinutes(hp, READY_HP)} min`
-                  : hp < MAX_HP
-                    ? `${look.label} · ${Math.floor(hp)} HP`
-                    : look.label}
-          </Text>
+      <View style={styles.row}>
+        <View style={status === "exploring" && styles.away}>
+          <PetArt pet={pet} size={60} />
         </View>
+        <View style={styles.info}>
+          <Text style={type.heading} numberOfLines={1}>{`${pet.name} · Lv ${petLevel(pet, walked)}`}</Text>
+          <Text style={styles.meta} numberOfLines={1}>
+            <Text style={{ color: rarity.color }}>{rarity.label}</Text>
+            {` ${pet.petClass}`}
+          </Text>
+          <Text style={styles.power}>{`⚡ ${petPower(pet, walked)} power`}</Text>
+          <View style={[styles.status, { backgroundColor: look.bg }]}>
+            <Text style={[styles.statusText, { color: look.color }]}>
+              {guarding
+                ? `${look.label} ${guarding.title}`
+                : secondsLeft !== null
+                  ? `${look.label} · back in ${secondsLeft} s`
+                  : status === "resting"
+                    ? `Healing · ${Math.floor(hp)} HP · ready in ${healMinutes(hp, READY_HP)} min`
+                    : hp < MAX_HP
+                      ? `${look.label} · ${Math.floor(hp)} HP`
+                      : look.label}
+            </Text>
+          </View>
+        </View>
+        {status === "exploring" ? <ActivityIndicator color={colors.green} /> : null}
+        {status !== "exploring" && !agent ? <Hint style={styles.guardHint}>Defends landmarks</Hint> : null}
       </View>
-      {status === "exploring" ? (
-        <ActivityIndicator color={colors.green} />
-      ) : agent ? (
+      {status !== "exploring" && agent ? (
         <View style={styles.action}>
           <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery || storyWait > 0} icon={CLASS_ICON[pet.petClass]} />
-          {whyDisabled ? <Hint style={styles.why}>{whyDisabled}</Hint> : null}
+          {whyDisabled ? <Hint>{whyDisabled}</Hint> : null}
         </View>
-      ) : (
-        <Hint style={styles.guardHint}>Defends landmarks</Hint>
-      )}
+      ) : null}
     </Card>
   );
 }
@@ -125,7 +125,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
 const NEARBY_LANDMARKS = 5;
 
 // The closest landmarks, as a way into the landmark screen besides tapping the map.
-function NearbyLandmarks({ state, game }) {
+function NearbyLandmarks({ state, game, onOpenLandmark }) {
   const nearby = landmarksView(state)
     .map((l) => ({ ...l, meters: reachOf(state, l).meters }))
     .sort((a, b) => a.meters - b.meters)
@@ -137,7 +137,7 @@ function NearbyLandmarks({ state, game }) {
       {nearby.map((l) => (
         <Pressable
           key={l.landmarkId}
-          onPress={() => game.set({ landmarkOpen: l.landmarkId })}
+          onPress={() => (onOpenLandmark ? onOpenLandmark(l.landmarkId) : game.set({ landmarkOpen: l.landmarkId }))}
           accessibilityRole="button"
           accessibilityLabel={`Open ${l.title}`}
           style={({ pressed }) => [styles.landmark, pressed && styles.pressed]}
@@ -171,16 +171,32 @@ function useTicker(ms) {
   }, [ms]);
 }
 
-export function SquadPanel({ state, game }) {
+export function SquadPanel({ state, game, onOpenLandmark }) {
   useTicker(5000);
   const { squad } = petsView(state);
   const tier = LEAGUES.indexOf(leagueOf(rankFor(scoreOf(state)).current));
   const size = squadSizeFor(state, tier);
   const locked = SLOT_UNLOCKS.filter((u) => tier < u.tier);
   const members = squadStatuses(squad.slice(0, size), state);
+  const scout = members.find((m) => m.pet.petClass === "Scout");
+  const scoutReady = scout?.status === "with-you" && !state.walking && !state.planning;
+  const startExplore = () => {
+    const agent = AGENTS.find((a) => a.id === "scout");
+    if (game.runPet) return game.runPet(scout.pet.id);
+    return game.runAgent({ ...agent, name: scout.pet.name });
+  };
 
   return (
     <View style={styles.list}>
+      {scoutReady ? (
+        <Button
+          title={`Send ${scout.pet.name} exploring`}
+          size="large"
+          icon={ExploreIcon}
+          onPress={startExplore}
+          accessibilityLabel={`Send ${scout.pet.name} to explore nearby places`}
+        />
+      ) : null}
       <View style={styles.header}>
         <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
         <Hint>Guards still use their slot</Hint>
@@ -196,7 +212,7 @@ export function SquadPanel({ state, game }) {
           <Text style={styles.emptyText}>{`🔒 Another slot opens at ${u.name}`}</Text>
         </View>
       ))}
-      <NearbyLandmarks state={state} game={game} />
+      <NearbyLandmarks state={state} game={game} onOpenLandmark={onOpenLandmark} />
     </View>
   );
 }
@@ -204,7 +220,8 @@ export function SquadPanel({ state, game }) {
 const styles = StyleSheet.create({
   list: { gap: space.sm },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
-  card: { flexDirection: "row", alignItems: "center", gap: space.md },
+  card: { gap: space.md },
+  row: { flexDirection: "row", alignItems: "center", gap: space.md },
   away: { opacity: 0.4 },
   info: { flex: 1, gap: 2 },
   meta: { ...type.caption },
@@ -212,8 +229,7 @@ const styles = StyleSheet.create({
   status: { alignSelf: "flex-start", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, marginTop: 2 },
   statusText: { fontFamily: fonts.bold, fontSize: 12 },
   guardHint: { maxWidth: 70, textAlign: "center" },
-  action: { alignItems: "flex-end", maxWidth: 128, gap: 4 },
-  why: { textAlign: "right" },
+  action: { gap: 4 },
   empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center", minHeight: 44, justifyContent: "center" },
   locked: { backgroundColor: colors.stripe },
   emptyText: { ...type.label, color: colors.muted },

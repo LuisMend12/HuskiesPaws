@@ -67,7 +67,11 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
 
         {photo ? (
           <View ref={cardRef} collapsable={false} style={styles.card}>
-            <Image source={{ uri: photo }} style={styles.cardPhoto} />
+            {photo === "art" ? (
+              <View style={[styles.cardPhoto, styles.artBg]} />
+            ) : (
+              <Image source={{ uri: photo }} style={styles.cardPhoto} />
+            )}
             <View style={styles.cardCreature}>
               {pet && <PetSvg pet={pet} size={90} />}
             </View>
@@ -84,13 +88,13 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
           </View>
         ) : (
           <View style={[styles.viewfinder, styles.center]}>
-            <Text style={styles.light}>Camera access is needed to capture landmarks.</Text>
+            <Text style={styles.light}>Camera is optional at the judging table. Allow it, or save a drawn postcard.</Text>
             <Button title="Allow camera" onPress={requestPermission} style={styles.gap} />
           </View>
         )}
 
         {error ? <Text style={styles.error}>{error}</Text> : (
-          <Hint style={styles.hintDark}>{photo ? "Save this postcard to your album to earn progress." : "Line up the landmark, then capture. You can also use the place photo."}</Hint>
+          <Hint style={styles.hintDark}>{photo ? "Save this postcard to your album to earn progress." : "Line up the landmark, or use a photo / drawn postcard if you're indoors."}</Hint>
         )}
 
         <View style={styles.actions}>
@@ -103,6 +107,7 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
             <>
               <Button title="Capture" icon={({ color, size }) => <CaptureIcon size={size} color={color} />} onPress={snap} disabled={busy || !permission?.granted} />
               <Button title="Use landmark photo" variant="secondary" onPress={useLandmarkPhoto} disabled={busy} />
+              <Button title="Use a drawn postcard" variant="secondary" onPress={() => setPhoto("art")} disabled={busy} />
             </>
           )}
           <Button title="Cancel" variant="secondary" onPress={close} disabled={busy} />
@@ -123,6 +128,7 @@ const styles = StyleSheet.create({
   creature: { position: "absolute", left: 10, bottom: 6 },
   card: { width: "100%", aspectRatio: 0.8, backgroundColor: "#fffdf6", padding: 12, borderRadius: 4 },
   cardPhoto: { width: "100%", flex: 1, backgroundColor: "#bde0fe" },
+  artBg: { backgroundColor: "#cfe8b8" },
   cardCreature: { position: "absolute", left: 18, bottom: 70 },
   cardTitle: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink, marginTop: 8 },
   cardCaption: { fontFamily: fonts.semibold, fontSize: 11, color: colors.muted },

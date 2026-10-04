@@ -12,15 +12,15 @@ Typical navigation is shortest path, then put the phone away. Campus is full of 
 
 ## Slide 3 — Solution (~30s)
 
-Loop: **Explore → Walk → Discover → Collect**. Pip scouts with Wikipedia and OpenStreetMap. Fern starts the walk. Moss tells the grounded story. Capture and eggs reward the walk.
+Loop: **Explore → Walk → Discover → Collect**. Pip scouts with Wikipedia and OpenStreetMap. Fern starts the walk. Moss tells the grounded story. Capture and eggs reward the walk. Point at the Bailey Hall screenshot: a real campus place, pick a pet, Walk there.
 
 ## Slide 4 — Live demo (keep this slide up)
 
-**Demo Walk on.** Say walks are simulated at the table.
+**Demo Walk on.** Say walks are simulated at the table. Keep the Gold III / Bailey Hall screenshots up while they hold the phone.
 
-1. Squad → Pip → Explore  
-2. Choose a place  
-3. Start a walk — trail blooms  
+1. Squad → Pip → Explore (league-up toast)  
+2. Choose Bailey Hall  
+3. Start the 161 m walk — trail blooms  
 4. Capture the landmark  
 
 If Grok is slow, keep going (on-device speech and drawn art). Hide the Expo tools button.
@@ -31,7 +31,7 @@ Expo phone app → Node `/api` (secrets stay on the server) → Wikipedia, OSM, 
 
 ## Slide 6 — What’s special (~25s)
 
-Navigation is play. Walking earns creatures. The squad can continue in iMessage. ISS rare-hatch boost is in the game logic. Not claims: live Grok without a key, cloud deploy, background tracking.
+Point at the three captures: an egg filling as you walk, Mochi (rare Storyteller) from a hatch, Nova holding Bailey Hall. Navigation is play. Walking earns creatures. The squad can continue in iMessage. ISS rare-hatch boost is in the game logic. Not claims: live Grok without a key, cloud deploy, background tracking.
 
 ## Slide 7 — Close (~25s)
 

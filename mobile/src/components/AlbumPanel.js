@@ -20,6 +20,7 @@ export function AlbumPanel({ album }) {
         <View key={card.id} style={styles.card}>
           <Image source={{ uri: card.image }} style={styles.image} accessibilityLabel={`Postcard of ${card.title}`} />
           <Text style={styles.caption} numberOfLines={1}>{card.title}</Text>
+          {card.date ? <Text style={styles.date}>{new Date(card.date).toLocaleDateString()}</Text> : null}
         </View>
       ))}
     </View>
@@ -40,5 +41,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
   image: { width: "100%", aspectRatio: 0.8 },
-  caption: { fontFamily: fonts.bold, fontSize: 12, padding: 6, color: colors.ink },
+  caption: { fontFamily: fonts.bold, fontSize: 12, paddingHorizontal: 6, paddingTop: 6, color: colors.ink },
+  date: { fontFamily: fonts.semibold, fontSize: 11, paddingHorizontal: 6, paddingBottom: 6, color: colors.muted },
 });
