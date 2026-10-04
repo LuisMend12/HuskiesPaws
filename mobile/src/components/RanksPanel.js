@@ -48,7 +48,7 @@ export function RanksPanel({ state, game }) {
 
       <SectionTitle>Your trail</SectionTitle>
       <View style={styles.chips}>
-        <Chip label="✨ Auto (follows rank)" active={state.trailChoice === "auto"} onPress={() => game.setTrailChoice("auto")} />
+        <Chip label="Auto (follows rank)" active={state.trailChoice === "auto"} onPress={() => game.setTrailChoice("auto")} />
         {TRAILS.map((trail) => {
           const unlocked = score >= trail.rank.min;
           return (
@@ -91,8 +91,9 @@ export function RanksPanel({ state, game }) {
 }
 
 const styles = StyleSheet.create({
-  rankCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.card, padding: 12 },
+  rankCard: { gap: 4 },
   rankHead: { flexDirection: "row", alignItems: "center", gap: 12 },
+  rankCopy: { flex: 1 },
   rankTitle: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink },
   meter: { height: 10, backgroundColor: colors.soft, borderRadius: 5, marginVertical: 8, overflow: "hidden" },
   meterFill: { height: "100%", backgroundColor: colors.leaf },

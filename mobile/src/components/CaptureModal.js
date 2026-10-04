@@ -113,7 +113,7 @@ export function CaptureModal({ visible, place, pet, onSave, onClose }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#111", paddingTop: 56, paddingHorizontal: 16, gap: 12 },
+  screen: { flex: 1, backgroundColor: "#111", paddingHorizontal: 16, gap: 12 },
   heading: { color: "#fff", fontSize: 18, fontFamily: fonts.bold },
   viewfinder: { width: "100%", aspectRatio: 1, borderRadius: 16, overflow: "hidden", backgroundColor: "#333" },
   center: { alignItems: "center", justifyContent: "center", padding: 16 },

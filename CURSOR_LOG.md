@@ -1,5 +1,11 @@
 # Cursor log
 
+## 2026-10-03 — Mobile UI/UX of the walk loop
+
+**Prompt (summary).** Improve HuskiesPaws Expo UI/UX: obvious explore → landmark → walk → capture flow, clearer map hierarchy, demo vs live walking, consistent tabs, landmark/capture copy, empty/error/success, small-phone safe areas. Implement, don't just plan.
+
+**Decisions.** Added a persistent Next coach in the sheet. Map shows one primary walk control (Practice walk vs Walk live) plus compact 3D/map/recenter; Capture is full-width when in range. Demo vs real is a gold/cream switch with a location banner when live walking is off. `game.walkTo` lets a landmark send you there without a scout postcard. Location denials stay on-screen in plain language. Tabs/chips/empty slots hit 44pt. Status toasts no longer VoiceOver-read entire stories. Trail still capped at 150 blooms.
+
 ## 2026-10-03 — Pokémon-inspired original mobile art refresh
 
 **Prompt (summary).** Redesign HuskiesPaws mobile icons and image assets in a polished Pokémon-inspired adventure style while keeping original characters/branding; no copied Pokémon art. Refresh launcher/splash, cohesive UI icons, pets/eggs/markers, Grok prompts, modest theme.

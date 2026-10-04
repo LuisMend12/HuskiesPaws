@@ -174,7 +174,7 @@ export function createGame() {
         });
     } catch (error) {
       console.error("Expedition failed:", error);
-      if (current(token)) say(`${agent.name} got lost (network problem). Try again in a moment.`);
+      if (current(token)) say(`${agent.name} got lost. Try Explore again in a moment.`);
     } finally {
       if (current(token)) set({ away: get().away.filter((id) => id !== agent.id), expedition: null });
     }
@@ -208,7 +208,7 @@ export function createGame() {
       persist();
     } catch (error) {
       console.error("Story failed:", error);
-      if (current(token)) say(`${agent.name} forgot the story (network problem).`);
+      if (current(token)) say(`${agent.name} forgot the story. Try again in a moment.`);
     }
   }
 
@@ -298,7 +298,7 @@ export function createGame() {
       if (get().rankName === rankBefore) say(`Walked to ${target.title}. Send Pip to explore from here!`);
     } catch (error) {
       console.error("Demo walk failed:", error);
-      if (current(token)) say("Couldn't plan a walk (network problem).");
+      if (current(token)) say("Couldn't plan a walk. Check your connection and try again.");
     }
   }
 
@@ -346,6 +346,8 @@ export function createGame() {
       capturable: null,
       discovery: null,
       hatching: null,
+      liveLocation: false,
+      locationIssue: null,
       turf: undefined, // back to sample rivals until the server answers
       xpBoost: 1,
       leaderboard: null,
