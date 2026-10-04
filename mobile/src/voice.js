@@ -51,7 +51,6 @@ export async function speakMemo(text, agent) {
     });
     if (token !== generation) return;
     if (!bytes?.length) {
-      console.warn("Server voice unavailable; using on-device speech.");
       fallback();
       return;
     }

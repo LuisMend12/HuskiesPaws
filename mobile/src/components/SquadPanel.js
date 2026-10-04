@@ -44,8 +44,15 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
   const needsDiscovery = pet.petClass === "Pathfinder" && !state.discovery;
   const trip = status === "exploring" && state.expedition?.agentId === agentId ? state.expedition : null;
   const secondsLeft = useSecondsLeft(trip);
-  // Until the backend has runPet, run the class's agent under this pet's name.
   const run = () => (game.runPet ? game.runPet(pet.id) : game.runAgent({ ...agent, name: pet.name }));
+  const whyDisabled = needsDiscovery
+    ? "Explore with a Scout first"
+    : state.walking || state.planning
+      ? "Wait until this walk finishes"
+      : status !== "with-you"
+        ? "This pet is busy"
+        : null;
+  const actionTitle = needsDiscovery ? "Explore first" : agent?.action;
 
   return (
     <Card style={styles.card}>
@@ -76,7 +83,10 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
       {status === "exploring" ? (
         <ActivityIndicator color={colors.green} />
       ) : agent ? (
-        <Button title={agent.action} onPress={run} disabled={busy || needsDiscovery} />
+        <View style={styles.action}>
+          <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery} />
+          {whyDisabled ? <Hint style={styles.why}>{whyDisabled}</Hint> : null}
+        </View>
       ) : (
         <Hint style={styles.guardHint}>Defends landmarks</Hint>
       )}
@@ -147,6 +157,12 @@ export function SquadPanel({ state, game }) {
         <Text style={type.heading}>{`Your squad · ${members.length}/${size}`}</Text>
         <Hint>Guards still use their slot</Hint>
       </View>
+      {state.progress.landmarksFound === 0 && state.away.length === 0 && (
+        <Card style={styles.coach}>
+          <Text style={type.label}>Start here</Text>
+          <Hint>Tap Explore on your Scout to find a real place nearby. Then Take me there to bloom the trail.</Hint>
+        </Card>
+      )}
       {members.map(({ pet, status, agentId, hp }) => (
         <SquadCard key={pet.id} pet={pet} status={status} agentId={agentId} hp={hp} state={state} game={game} />
       ))}
@@ -174,6 +190,9 @@ const styles = StyleSheet.create({
   status: { alignSelf: "flex-start", borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2, marginTop: 2 },
   statusText: { fontFamily: fonts.bold, fontSize: 12 },
   guardHint: { maxWidth: 70, textAlign: "center" },
+  action: { alignItems: "flex-end", maxWidth: 128, gap: 4 },
+  why: { textAlign: "right" },
+  coach: { backgroundColor: colors.greenSoft, gap: 4 },
   empty: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.card, padding: space.md, alignItems: "center" },
   locked: { backgroundColor: colors.stripe },
   emptyText: { ...type.label, color: colors.muted },

@@ -16,7 +16,7 @@ import { petsView } from "./fakeData.js";
 import { EggArt, PetArt } from "./PetArt.js";
 import { recallLocally } from "./landmarks.js";
 import { squadSizeFor } from "./petStatus.js";
-import { Button, Card, Hint } from "./ui.js";
+import { Button, Card, EmptyState, Hint } from "./ui.js";
 
 // A fresh random pet for the dev-only hatch preview (uses the real hatching rules).
 const previewPet = (walked) => hatchEgg({ id: "egg-preview", startWalked: walked, tier: rollEggTier().id }, walked);
@@ -189,7 +189,7 @@ export function PetsPanel({ state, game }) {
       </View>
       <Hint>{`Tap a pet to add it to your squad or take it out · ${squadIds.length}/${size} in your squad`}</Hint>
       {pets.length === 0 ? (
-        <Hint>No pets yet. Walk to hatch your first one!</Hint>
+        <EmptyState emoji="🐾" title="No pets yet" body="Keep walking to earn an egg, then walk a bit farther to hatch it." />
       ) : (
         <View style={styles.grid}>
           {shown.map((pet) => (

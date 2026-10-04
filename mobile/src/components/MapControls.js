@@ -103,8 +103,8 @@ export function MapControls({ state, game, onSquadOpen }) {
           active={state.liveLocation}
         />
         <RoundButton
-          icon={state.walking || state.planning ? "🚶 Walking…" : "🚶 Demo walk"}
-          label="Demo walk"
+          icon={state.walking || state.planning ? "🚶 Walking" : "🚶 Demo"}
+          label={state.walking || state.planning ? "A demo walk is in progress" : "Start a demo walk nearby"}
           onPress={game.demoWalk}
           disabled={state.walking || state.planning}
         />

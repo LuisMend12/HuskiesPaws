@@ -53,6 +53,16 @@ export function Chip({ label, active = false, disabled = false, outlined = false
   );
 }
 
+export function EmptyState({ emoji, title, body }) {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyEmoji}>{emoji}</Text>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyBody}>{body}</Text>
+    </View>
+  );
+}
+
 // Sideways-scrolling pill tabs; the active one scrolls into view.
 export function PillTabs({ tabs, active, onChange }) {
   const scrollRef = useRef(null);
@@ -85,7 +95,9 @@ export function PillTabs({ tabs, active, onChange }) {
             accessibilityState={{ selected }}
             style={[styles.tab, selected && styles.tabActive]}
           >
-            <Text style={[styles.tabText, selected && styles.tabTextActive]}>{tab.label}</Text>
+            <Text style={[styles.tabText, selected && styles.tabTextActive]}>
+              {tab.icon ? `${tab.icon} ${tab.label}` : tab.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -106,7 +118,7 @@ export function Hint({ children, style }) {
 }
 
 const styles = StyleSheet.create({
-  button: { borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 18, alignItems: "center" },
+  button: { borderRadius: radius.pill, paddingVertical: 10, paddingHorizontal: 18, alignItems: "center", minHeight: 44, justifyContent: "center" },
   large: { paddingVertical: 15, paddingHorizontal: 26 },
   primary: { backgroundColor: colors.green },
   primaryPressed: { backgroundColor: colors.greenDark },
@@ -130,4 +142,13 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: radius.card, padding: space.md, ...shadow.soft },
   sectionTitle: { ...type.heading, marginTop: space.lg, marginBottom: space.sm },
   hint: { ...type.caption },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: space.xl,
+    paddingHorizontal: space.md,
+    gap: space.sm,
+  },
+  emptyEmoji: { fontSize: 36, lineHeight: 42 },
+  emptyTitle: { ...type.heading, textAlign: "center" },
+  emptyBody: { ...type.caption, textAlign: "center", maxWidth: 280 },
 });

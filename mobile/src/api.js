@@ -97,15 +97,9 @@ export async function fetchVoice(text, { voice, agent, signal } = {}) {
       }),
       signal: controller.signal,
     });
-    if (!response.ok) {
-      console.warn(`/api/voice failed: ${response.status}`);
-      return null;
-    }
+    if (!response.ok) return null;
     return new Uint8Array(await response.arrayBuffer());
-  } catch (error) {
-    console.warn("/api/voice failed:", error);
-    return null;
-  }
+  } catch { return null; }
   finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", abort);

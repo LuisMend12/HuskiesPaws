@@ -9,7 +9,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppState, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AlbumPanel } from "./src/components/AlbumPanel.js";
 import { CaptureModal } from "./src/components/CaptureModal.js";
@@ -41,10 +41,10 @@ const REOPEN_GUARD_MS = 1500; // see openLandmark below
 const PRELOAD_3D_MS = 4000; // after start-up, fetch the 3D screens' code so their first open is quick
 
 const TABS = [
-  { id: "squad", label: "Squad" },
-  { id: "pets", label: "Pets" },
-  { id: "ranks", label: "Ranks" },
-  { id: "album", label: "Album" },
+  { id: "squad", label: "Squad", icon: "🐾" },
+  { id: "pets", label: "Pets", icon: "🥚" },
+  { id: "ranks", label: "Ranks", icon: "🏅" },
+  { id: "album", label: "Album", icon: "📸" },
 ];
 const plural = (count, word) => `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
@@ -162,22 +162,32 @@ function Main() {
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
-          <Text style={styles.stats}>
+          <Text style={styles.stats} accessibilityRole="text">
             {[
               plural(state.progress.steps, "step"),
               plural(state.blooms.length, "bloom"),
               plural(state.progress.landmarksFound, "landmark"),
             ].join(" · ")}
           </Text>
-          <View style={styles.demoRow}>
-            <Hint style={styles.flex}>{state.demoMode ? "Demo mode: walks are simulated" : "Real walks: go to the place"}</Hint>
+          <Pressable
+            onPress={() => game.set({ demoMode: !state.demoMode })}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: state.demoMode }}
+            accessibilityLabel="Demo mode"
+            accessibilityHint="When on, Take me there walks are simulated indoors"
+            style={styles.demoRow}
+          >
+            <View style={styles.flex}>
+              <Text style={styles.demoLabel}>{state.demoMode ? "Demo walks" : "Real walks"}</Text>
+              <Hint>{state.demoMode ? "Indoor judging: the trail blooms for you" : "Walk to the place yourself"}</Hint>
+            </View>
             <Switch
               value={state.demoMode}
               onValueChange={(demoMode) => game.set({ demoMode })}
               trackColor={{ true: colors.green, false: colors.border }}
-              accessibilityLabel="Demo mode"
+              pointerEvents="none"
             />
-          </View>
+          </Pressable>
         </View>
         <PillTabs tabs={TABS} active={state.tab} onChange={(tab) => game.set({ tab })} />
         <ScrollView style={styles.flex} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xl }]}>
@@ -238,7 +248,8 @@ const styles = StyleSheet.create({
   handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginTop: space.sm },
   sheetHeader: { paddingHorizontal: space.lg, paddingTop: space.sm },
   stats: { ...type.label, color: colors.muted },
-  demoRow: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  demoRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.xs },
+  demoLabel: { ...type.label },
   flex: { flex: 1 },
   content: { paddingHorizontal: space.lg, paddingTop: space.xs, gap: space.sm },
 });

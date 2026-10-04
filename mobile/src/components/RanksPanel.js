@@ -68,7 +68,12 @@ export function RanksPanel({ state, game }) {
           <Chip key={s.id} label={s.label} active={state.scope === s.id} onPress={() => game.set({ scope: s.id })} />
         ))}
       </View>
-      <Text style={styles.boardTitle}>{`${scope.label} · ${regionName}`}</Text>
+      <View style={styles.boardHead}>
+        <Text style={styles.boardTitle}>{`${scope.label} · ${regionName}`}</Text>
+        <View style={[styles.badge, live ? styles.badgeLive : styles.badgeSample]}>
+          <Text style={[styles.badgeText, live ? styles.badgeLiveText : styles.badgeSampleText]}>{live ? "LIVE" : "SAMPLE"}</Text>
+        </View>
+      </View>
       {rows.map((row, i) => (
         <View key={row.id ?? `live-${row.position}`} style={[styles.row, i % 2 === 0 && styles.rowStripe, row.isYou && styles.rowYou]}>
           <Text style={styles.pos}>{`#${row.position}`}</Text>
@@ -91,7 +96,14 @@ const styles = StyleSheet.create({
   meterFill: { height: "100%", backgroundColor: colors.leaf },
   rankNext: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink, marginBottom: 2 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  boardTitle: { fontFamily: fonts.bold, marginTop: 10, marginBottom: 4, color: colors.ink },
+  boardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10, marginBottom: 4 },
+  boardTitle: { fontFamily: fonts.bold, color: colors.ink, flex: 1 },
+  badge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeLive: { backgroundColor: colors.greenSoft },
+  badgeSample: { backgroundColor: colors.stripe },
+  badgeText: { fontFamily: fonts.black, fontSize: 10, letterSpacing: 0.6 },
+  badgeLiveText: { color: colors.greenDark },
+  badgeSampleText: { color: colors.muted },
   row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, paddingHorizontal: 8, borderRadius: radius.small },
   rowStripe: { backgroundColor: colors.stripe },
   rowYou: { backgroundColor: colors.you, borderWidth: 1, borderColor: colors.accent },

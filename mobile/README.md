@@ -27,10 +27,11 @@ You need:
    npm run tunnel
    ```
 
-   This runs [`scripts/tunnel.mjs`](scripts/tunnel.mjs): a free **Cloudflare quick tunnel** (no account) for Expo **and** the local API (`:8765`), then Expo pointed at them. Start the server first (`npm --prefix server start`) so Tell a story can use ElevenLabs instead of on-device (Google) speech.
+   This runs [`scripts/tunnel.mjs`](scripts/tunnel.mjs): a free **Cloudflare quick tunnel** (no account) for Expo, then Expo pointed at it. Optional: a second tunnel for a local API on `:8765` if that server is already running.
 
-   - Wait for **Tunnel ready**. The QR code's address should look like `exp://….trycloudflare.com`. The first load takes about 30 seconds.
-   - The address changes every time you start it, so scan the new QR code each time.
+   - Wait until the terminal says **Metro is up** (not only **Tunnel hostname**). Then scan the QR. The first load takes about 30 seconds.
+   - The address changes every time you start it. **Never scan a QR or trycloudflare link from an earlier run** — that is Cloudflare **530 / error 1033** (tunnel hostname exists, laptop is gone).
+   - If you still see 1033: Ctrl+C, wait a few seconds, run `npm run tunnel` again, and scan the **new** QR. Close other `expo start` / tunnel windows so port 8081 is free.
    - **Why not `expo start --tunnel`?** Expo's built-in tunnel uses one ngrok account shared by every Expo user. When it's full, it fails with `CommandError: TypeError: Cannot read properties of undefined (reading 'body')` (ngrok error `ERR_NGROK_108`). The old way is still there as `npm run tunnel:ngrok`.
 
 4. **Scan the QR code.** On iPhone, use the Camera app. On Android, scan from inside Expo Go. Allow **location, camera and motion** access when the app asks.
@@ -108,7 +109,8 @@ Plain `npx expo start`, without the tunnel, is fine on a **home network** where 
 
 | What you see | Fix |
 |---|---|
-| Loading spins forever, "Could not connect to development server", or "request timed out" | The network blocks it. Use `npm run tunnel`. |
+| Cloudflare 530 / Error 1033 on trycloudflare.com | That hostname is from a **dead** tunnel (old QR, laptop slept, or Metro was not up yet). Ctrl+C, run `npm run tunnel` again, wait for **Metro is up**, scan the **new** QR. |
+| Loading spins forever, "Could not connect to development server", or "request timed out" | The network blocks LAN. Use `npm run tunnel`. Wait for Metro before scanning. |
 | "Project is incompatible with this version of Expo Go" | Update Expo Go from the app store. The project needs SDK 57. |
 | `The expected package.json path ... does not exist` | You're in the wrong folder. `cd mobile` first (step 1). |
 | `npx` isn't recognized in PowerShell, or "running scripts is disabled" | Run the commands in **Command Prompt** instead, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once. |
