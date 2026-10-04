@@ -1,3 +1,71 @@
+# Secrets; retain safe templates
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+
+# Dependencies, caches, and logs
+node_modules/
+.npm/
+.pnpm-store/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Expo, Metro, native builds, and exports
+.expo/
+dist/
+web-build/
+.metro-health-check*
+.kotlin/
+*.tsbuildinfo
+/mobile/ios/
+/mobile/android/
+/mobile/expo-env.d.ts
+/mobile/.review-export/
+
+# Runtime storage and generated backend images
+/server/data/
+
+# Local editor/agent settings; keep shared Cursor rules
+.idea/
+.vscode/
+**/.claude/settings.local.json
+**/.claude/settings.json
+
+# OS, Python, tests, and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+coverage/
+.nyc_output/
+
+# LaTeX intermediates; retain source and published PDFs
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.nav
+*.snm
+
+# Promo intermediates; retain final GIF, MP4, and source
+/docs/demo-gif/_frames/
+/docs/demo-gif/probe/
+/docs/demo-gif/stills.png
+/docs/demo-gif/gif-check.png
+/docs/demo-gif/*.render.json

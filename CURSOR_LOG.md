@@ -1,5 +1,13 @@
 # Cursor log
 
+## 2026-10-03 — README and repository cleanup (Codex)
+
+Prompt: create a README and ignore irrelevant files. Rewrote the root README
+with current mobile setup, backend integrations, development checks, and the
+paw-trail preview. Expanded root ignore rules for secrets, dependencies, caches,
+local settings, and render intermediates. Removed ignored files from Git's index
+while retaining local copies and final promo artifacts. Work performed in Codex.
+
 ## 2026-10-03 — Photon daily places and steps
 
 **Prompt (summary).** Photon should update the user about places they passed and how many steps they walked today.
