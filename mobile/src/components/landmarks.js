@@ -36,6 +36,10 @@ export function hpNow(entry, now = Date.now()) {
   return Math.min(entry.maxHp ?? MAX_HP, entry.hp + ((now - entry.hpAt) / 60000) * HEAL_PER_MINUTE);
 }
 
+// A guard fights at its power scaled by the HP it has left (server/src/turf.js guardStrength).
+export const guardStrength = (guard, now) =>
+  Math.round((guard?.pet?.power ?? 0) * (hpNow(guard, now) / (guard?.maxHp ?? guard?.pet?.power ?? MAX_HP)));
+
 export const petHpOf = (state, petId, now) => hpNow(state.petHp?.[petId], now);
 export const healMinutes = (hp, target = MAX_HP) => Math.max(0, Math.ceil((target - hp) / HEAL_PER_MINUTE));
 
@@ -109,7 +113,8 @@ export function claimLocally(state, landmark, pet, power, guardHp = MAX_HP) {
   if (!defender) {
     return { result: "claimed", won: true, message: `${landmark.title} is yours! ${pet.name} is standing guard.`, turf: replace(claim) };
   }
-  if (power > defender.pet.power) {
+  const defense = guardStrength(defender);
+  if (power > defense) {
     return {
       result: "captured", won: true, turf: replace(claim),
       message: `${pet.name} (power ${power}) beat ${defender.ownerName}'s ${defender.pet.name} (power ${defender.pet.power}). ${landmark.title} is yours!`,
@@ -117,7 +122,7 @@ export function claimLocally(state, landmark, pet, power, guardHp = MAX_HP) {
   }
   return {
     result: "defended", won: false, turf: null,
-    message: `${defender.ownerName}'s ${defender.pet.name} (power ${defender.pet.power}) held ${landmark.title}. Your ${pet.name} has power ${power}. Walk more to level up!`,
+    message: `${defender.ownerName}'s ${defender.pet.name} (fighting at power ${defense}) held ${landmark.title}. Your ${pet.name} has power ${power}. Walk more to level up, or come back when its HP is lower!`,
   };
 }
 

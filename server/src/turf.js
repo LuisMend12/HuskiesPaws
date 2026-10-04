@@ -26,6 +26,13 @@ export function currentHp(turf, now = Date.now()) {
 
 export const isAlive = (turf, now) => currentHp(turf, now) > 0;
 
+// A guard fights at its power scaled by the HP it has left, so a drained guard
+// can be taken by a weaker pet (walking back to top up is how you defend).
+export function guardStrength(turf, now = Date.now()) {
+  const maxHp = turf.maxHp ?? maxHpOf(turf.pet);
+  return (turf.pet?.power ?? 0) * (currentHp(turf, now) / maxHp);
+}
+
 function petSnapshot(pet, startHp) {
   return {
     startHp,
@@ -84,7 +91,8 @@ export function decideClaim({ defender, allTurf, attempt, now = Date.now() }) {
     return { result: "claimed", message: `${attempt.title} is yours! ${attempt.pet.name} is standing guard.`, claim: newClaim };
   }
 
-  if (attempt.pet.power > liveDefender.pet.power) {
+  const defense = Math.round(guardStrength(liveDefender, now));
+  if (attempt.pet.power > defense) {
     return {
       result: "captured",
       message: `${attempt.pet.name} (power ${attempt.pet.power}) beat ${liveDefender.ownerName}'s ${liveDefender.pet.name} (power ${liveDefender.pet.power}). ${attempt.title} is yours!`,
@@ -95,6 +103,6 @@ export function decideClaim({ defender, allTurf, attempt, now = Date.now() }) {
 
   return {
     result: "defended",
-    message: `${liveDefender.ownerName}'s ${liveDefender.pet.name} (power ${liveDefender.pet.power}) held ${attempt.title}. Your ${attempt.pet.name} has power ${attempt.pet.power}. Walk more to level up!`,
+    message: `${liveDefender.ownerName}'s ${liveDefender.pet.name} (fighting at power ${defense}) held ${attempt.title}. Your ${attempt.pet.name} has power ${attempt.pet.power}. Walk more to level up, or come back when its HP is lower!`,
   };
 }

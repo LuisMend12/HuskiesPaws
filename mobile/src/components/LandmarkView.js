@@ -21,7 +21,7 @@ import { FrameTicker } from "./Pet3D.js";
 import { GlCanvas } from "./GlCanvas.js";
 import { diag } from "../diag.js";
 import {
-  FIGHT_RANGE_M, GUARD_DRAIN_PER_HOUR, MAX_HP, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
+  FIGHT_RANGE_M, GUARD_DRAIN_PER_HOUR, MAX_HP, guardStrength, READY_HP, claimLocally, healMinutes, hpNow, landmarksView, petHpOf, reachOf, ringOf, xpBoostFromTurf,
 } from "./landmarks.js";
 import { PetSvg } from "./PetArt.js";
 import { squadStatuses } from "./petStatus.js";
@@ -182,7 +182,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
       }
       if (after && !outcome.won) {
         turf = petsView(state).turf.map((t) =>
-          String(t.landmarkId) === landmark.landmarkId ? { ...t, startHp: after.them, maxHp: t.maxHp ?? MAX_HP, decaysAt: now } : t,
+          String(t.landmarkId) === landmark.landmarkId ? { ...t, startHp: (after.them / 100) * (t.maxHp ?? MAX_HP), maxHp: t.maxHp ?? MAX_HP, decaysAt: now } : t,
         );
       }
       if (turf) patch.turf = turf;
@@ -226,7 +226,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     // and still short if it was healing from an earlier fight.
     const startHp = petHpOf(state, picked.id);
     const rival = guard && !guard.mine ? guard : null;
-    const hpLeft = rival && power > rival.pet.power ? winnerHpAfter(startHp, power, rival.pet.power) : startHp;
+    const hpLeft = rival && power > guardStrength(rival) ? winnerHpAfter(startHp, power, rival.pet.power) : startHp;
     const online = game.claimTurf ? await game.claimTurf(landmark.landmarkId, picked.id, landmark, hpLeft / MAX_HP) : null;
     if (game.store.getState().generation !== state.generation) { setBusy(false); return; }
     const outcome = online ?? (!apiAvailable() ? { ...claimLocally(state, landmark, picked, power), local: true } : null);
@@ -237,8 +237,8 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
     }
     setClaimError(null);
     const fight = guard && !guard.mine && (outcome.result === "captured" || outcome.result === "defended");
-    const start = { you: petHpOf(state, picked.id), them: hpNow(guard) };
-    if (fight) setBattle({ attacker: picked, power, defender: guard.pet, outcome, start, hp: start });
+    const start = { you: petHpOf(state, picked.id), them: guard ? (100 * hpNow(guard)) / (guard.maxHp ?? MAX_HP) : MAX_HP }; // bars are in %
+    if (fight) setBattle({ attacker: picked, power, defender: { ...guard.pet, power: guardStrength(guard) }, outcome, start, hp: start });
     else finish(outcome, picked, null);
   };
 
@@ -297,7 +297,7 @@ export default function LandmarkView({ state, game, landmarkId, onClose }) {
             <View style={styles.guardCard}>
               <Text style={styles.guardText}>{`🛡️ ${guard.mine ? "Your" : `${guard.ownerName}'s`} ${guard.pet.name} · ⚡${guard.pet.power}`}</Text>
               {guard.maxHp ? (
-                <HpBar name={`Guard HP · ${Math.round(hpNow(guard))}/${guard.maxHp} · −${GUARD_DRAIN_PER_HOUR}/h`} power={guard.pet.power} hp={(100 * hpNow(guard)) / guard.maxHp} color={RING_COLORS[ring]} />
+                <HpBar name={`Guard HP · ${Math.round(hpNow(guard))}/${guard.maxHp} · −${GUARD_DRAIN_PER_HOUR}/h`} power={guardStrength(guard)} hp={(100 * hpNow(guard)) / guard.maxHp} color={RING_COLORS[ring]} />
               ) : null}
             </View>
           )}

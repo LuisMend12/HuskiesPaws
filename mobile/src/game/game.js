@@ -330,10 +330,16 @@ export function createGame() {
 
   async function resetProgress() {
     if (get().resetting) return;
+    // Guards are read before the wipe: the reset pets are gone afterwards.
+    const guardIds = [
+      ...(get().pets ?? []).map((pet) => pet.id),
+      ...(get().turf ?? []).filter((t) => t.mine).map((t) => t.pet?.id),
+    ];
     set({ generation: get().generation + 1, resetting: true });
     walking.stop();
     online.invalidate();
     stopMemo();
+    await online.recallAll(guardIds);
     await clearKeys(RESETTABLE_KEYS);
     walking.resetTrail();
     const fresh = Object.fromEntries(RESETTABLE_KEYS.map((key) => [key, SAVED_DEFAULTS[key]]));

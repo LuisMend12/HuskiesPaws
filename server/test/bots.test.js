@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DEMO_RIVALS } from "../../core/rivals.js";
 import { botAt, defenderAt, withBots } from "../src/bots.js";
-import { HP_DECAY_PER_HOUR, decideClaim } from "../src/turf.js";
+import { HP_DECAY_PER_HOUR, decideClaim, guardStrength } from "../src/turf.js";
 
 const [uris] = DEMO_RIVALS;
 const now = Date.parse("2026-10-04T12:00:00Z");
@@ -17,10 +17,13 @@ test("every bot is listed at full HP when nobody holds its landmark", () => {
   assert.equal(botAt(uris.landmarkId, now).maxHp, uris.pet.power);
 });
 
-test("a stronger pet captures a bot landmark; a weaker one is defended", () => {
-  const strong = decideClaim({ defender: defenderAt(uris.landmarkId, null, now), allTurf: [], attempt: attempt(uris.pet.power + 5), now });
+test("a bot guard fights at its power scaled by HP: beat that and you capture it", () => {
+  const bot = defenderAt(uris.landmarkId, null, now);
+  const defense = Math.round(guardStrength(bot, now));
+  assert.ok(defense < uris.pet.power, "a worn-down bot fights below its full power");
+  const strong = decideClaim({ defender: bot, allTurf: [], attempt: attempt(defense + 1), now });
   assert.equal(strong.result, "captured");
-  const weak = decideClaim({ defender: defenderAt(uris.landmarkId, null, now), allTurf: [], attempt: attempt(uris.pet.power - 5), now });
+  const weak = decideClaim({ defender: bot, allTurf: [], attempt: attempt(defense), now });
   assert.equal(weak.result, "defended");
 });
 
