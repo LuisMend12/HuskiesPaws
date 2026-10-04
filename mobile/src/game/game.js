@@ -14,6 +14,7 @@ import { INITIAL_STATE, RESETTABLE_KEYS, SAVED_DEFAULTS, migrateSaved, savedFiel
 import { createStore } from "./store.js";
 import { createWalking } from "./walking.js";
 
+const STORY_COOLDOWN_MS = 20_000; // wait between stories (the voice takes a while anyway)
 const NEARBY_LANDMARKS = 25; // nearest real landmarks shown as food bags
 const NEARBY_REFRESH_M = 400;
 
@@ -182,6 +183,13 @@ export function createGame() {
   async function tellStory(agent) {
     const token = get().generation;
     if (!get().loaded || get().resetting) return;
+    // One story at a time: the button counts down until storyReadyAt (SquadPanel).
+    const waitMs = (get().storyReadyAt ?? 0) - Date.now();
+    if (waitMs > 0) {
+      say(`${agent.name} is still catching their breath. Try again in ${Math.ceil(waitMs / 1000)} s.`);
+      return;
+    }
+    set({ storyReadyAt: Date.now() + STORY_COOLDOWN_MS });
     say(`${agent.name} is remembering a story…`);
     try {
       const position = get().position;

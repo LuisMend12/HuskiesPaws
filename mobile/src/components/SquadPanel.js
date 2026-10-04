@@ -42,6 +42,23 @@ function useSecondsLeft(expedition) {
   return Math.max(0, Math.ceil((expedition.startedAt + expedition.durationMs - Math.max(now, expedition.startedAt)) / 1000));
 }
 
+// Seconds until readyAt (ms timestamp), ticking once a second; 0 when ready.
+function useCooldown(readyAt) {
+  const [now, setNow] = useState(0);
+  const waiting = readyAt > now;
+  useEffect(() => {
+    setNow(Date.now()); // eslint-disable-line react-hooks/set-state-in-effect -- start the countdown from the real clock
+    if (!readyAt) return undefined;
+    const timer = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= readyAt) clearInterval(timer);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [readyAt]);
+  return waiting && now ? Math.ceil((readyAt - now) / 1000) : 0;
+}
+
 function SquadCard({ pet, status, agentId, hp, state, game }) {
   const walked = state.progress.walked;
   const agent = AGENTS.find((a) => a.id === agentId);
@@ -52,15 +69,18 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
   const needsDiscovery = pet.petClass === "Pathfinder" && !state.discovery;
   const trip = status === "exploring" && state.expedition?.agentId === agentId ? state.expedition : null;
   const secondsLeft = useSecondsLeft(trip);
+  const storyWait = useCooldown(agentId === "storyteller" ? state.storyReadyAt ?? 0 : 0);
   const run = () => (game.runPet ? game.runPet(pet.id) : game.runAgent({ ...agent, name: pet.name }));
   const whyDisabled = needsDiscovery
     ? "Explore with a Scout first"
+    : storyWait > 0
+      ? "Catching their breath"
     : state.walking || state.planning
       ? "Wait until this walk finishes"
       : status !== "with-you"
         ? "This pet is busy"
         : null;
-  const actionTitle = needsDiscovery ? "Explore first" : agent?.action;
+  const actionTitle = needsDiscovery ? "Explore first" : storyWait > 0 ? `${agent?.action} · ${storyWait}s` : agent?.action;
 
   return (
     <Card style={styles.card}>
@@ -92,7 +112,7 @@ function SquadCard({ pet, status, agentId, hp, state, game }) {
         <ActivityIndicator color={colors.green} />
       ) : agent ? (
         <View style={styles.action}>
-          <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery} icon={CLASS_ICON[pet.petClass]} />
+          <Button title={actionTitle} onPress={run} disabled={busy || needsDiscovery || storyWait > 0} icon={CLASS_ICON[pet.petClass]} />
           {whyDisabled ? <Hint style={styles.why}>{whyDisabled}</Hint> : null}
         </View>
       ) : (

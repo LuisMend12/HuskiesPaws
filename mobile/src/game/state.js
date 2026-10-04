@@ -46,6 +46,7 @@ export const INITIAL_STATE = Object.freeze({
   followCamera: true, // garden map: stop following after a manual pan
   walking: false,
   planning: false, // a walk's route is being looked up (see oneWalk in game.js)
+  storyReadyAt: 0, // ms timestamp when the next story can start (not saved)
   nearbyPlaces: [], // [{ id, title, lat, lon }] real landmarks near you (not saved)
   away: [], // agent ids on an expedition
   expedition: null, // { agentId, from, to: { lat, lon }, startedAt, durationMs } while a pet walks to a place
